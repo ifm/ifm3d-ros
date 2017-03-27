@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="ns" default="ifm3d"/>
+  <arg name="nn" default="camera"/>
+
+  <group ns="$(arg ns)">
+    <node pkg="rviz"
+	  type="rviz"
+	  name="$(arg nn)_rviz"
+	  args="-d $(find ifm3d)/launch/ifm3d.rviz"/>
+  </group>
+</launch>
