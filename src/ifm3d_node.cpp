@@ -33,6 +33,8 @@
 #include <ifm3d/fg.h>
 #include <ifm3d/image.h>
 
+namespace enc = sensor_msgs::image_encodings;
+
 class IFM3DNode
 {
 public:
@@ -200,7 +202,7 @@ public:
           {
             sensor_msgs::ImagePtr uvec_msg =
               cv_bridge::CvImage(optical_head,
-                                 sensor_msgs::image_encodings::TYPE_32FC3,
+                                 enc::TYPE_32FC3,
                                  buff->UnitVectors()).toImageMsg();
             this->uvec_pub_.publish(uvec_msg);
 
@@ -230,7 +232,7 @@ public:
         confidence_img = buff->ConfidenceImage();
         sensor_msgs::ImagePtr confidence_msg =
           cv_bridge::CvImage(optical_head,
-                             "",
+                             "mono8",
                              confidence_img).toImageMsg();
         this->conf_pub_.publish(confidence_msg);
 
@@ -245,8 +247,7 @@ public:
             sensor_msgs::ImagePtr xyz_image_msg =
               cv_bridge::CvImage(head,
                                  xyz_img.type() == CV_32FC3 ?
-                                 sensor_msgs::image_encodings::TYPE_32FC3
-                                 : sensor_msgs::image_encodings::TYPE_16SC3,
+                                 enc::TYPE_32FC3 : enc::TYPE_16SC3,
                                  xyz_img).toImageMsg();
             this->xyz_image_pub_.publish(xyz_image_msg);
           }
@@ -256,7 +257,8 @@ public:
             distance_img = buff->DistanceImage();
             sensor_msgs::ImagePtr distance_msg =
               cv_bridge::CvImage(optical_head,
-                                 "",
+                                 distance_img.type() == CV_32FC1 ?
+                                 enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                  distance_img).toImageMsg();
             this->distance_pub_.publish(distance_msg);
           }
@@ -266,7 +268,8 @@ public:
             amplitude_img = buff->AmplitudeImage();
             sensor_msgs::ImagePtr amplitude_msg =
               cv_bridge::CvImage(optical_head,
-                                 "",
+                                 amplitude_img.type() == CV_32FC1 ?
+                                 enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                  amplitude_img).toImageMsg();
             this->amplitude_pub_.publish(amplitude_msg);
           }
@@ -276,7 +279,8 @@ public:
             raw_amplitude_img = buff->RawAmplitudeImage();
             sensor_msgs::ImagePtr raw_amplitude_msg =
               cv_bridge::CvImage(optical_head,
-                                 "",
+                                 raw_amplitude_img.type() == CV_32FC1 ?
+                                 enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                  raw_amplitude_img).toImageMsg();
             this->raw_amplitude_pub_.publish(raw_amplitude_msg);
           }
@@ -292,11 +296,10 @@ public:
                                             CV_8UC1);
         cv::bitwise_and(confidence_img, good_bad_pixels_img,
                         good_bad_pixels_img);
-        good_bad_pixels_img *= 255;
         sensor_msgs::ImagePtr good_bad_msg =
           cv_bridge::CvImage(optical_head,
                              "mono8",
-                             good_bad_pixels_img).toImageMsg();
+                             (good_bad_pixels_img == 0)).toImageMsg();
         this->good_bad_pub_.publish(good_bad_msg);
 
         //
