@@ -67,20 +67,6 @@ public:
     this->frame_id_ = frame_id_base + "_link";
     this->optical_frame_id_ = frame_id_base + "_optical_link";
 
-    //-----------------------------------------
-    // Instantiate the camera and frame-grabber
-    //-----------------------------------------
-    this->cam_ =
-      ifm3d::Camera::MakeShared(this->camera_ip_,
-                                this->xmlrpc_port_,
-                                this->password_);
-
-    // NOTE: we initially only want to stream in the unit vectors, we switch
-    // to the requested mask, *after* we publish the unit vectors at least
-    // once.
-    this->fg_ =
-      std::make_shared<ifm3d::FrameGrabber>(this->cam_, ifm3d::IMG_UVEC);
-
     //----------------------
     // Published topics
     //----------------------
@@ -109,11 +95,74 @@ public:
    */
   void Run()
   {
-    std::unique_lock<std::mutex> cam_lock(this->cam_mutex_, std::defer_lock);
-    std::unique_lock<std::mutex> fg_lock(this->fg_mutex_, std::defer_lock);
+    std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
     this->spinner_->start();
 
-    auto buff = std::make_shared<ifm3d::ImageBuffer>();
+    auto init_structures =
+      [this](std::uint16_t mask)->bool
+      {
+        std::lock_guard<std::mutex> lock(this->mutex_);
+        bool retval = false;
+
+        try
+          {
+            ROS_INFO("Running dtors...");
+            this->im_.reset();
+            this->fg_.reset();
+            this->cam_.reset();
+
+            ROS_INFO("Initializing camera...");
+            this->cam_ =
+              ifm3d::Camera::MakeShared(this->camera_ip_,
+                                        this->xmlrpc_port_,
+                                        this->password_);
+            ros::Duration(1.0).sleep();
+
+            ROS_INFO("Initializing framegrabber...");
+            this->fg_ =
+              std::make_shared<ifm3d::FrameGrabber>(this->cam_, mask);
+
+            ROS_INFO("Initializing image buffer...");
+            this->im_ = std::make_shared<ifm3d::ImageBuffer>();
+
+            retval = true;
+          }
+        catch (const ifm3d::error_t& ex)
+          {
+            ROS_WARN_STREAM(ex.code() << ": " << ex.what());
+            retval = false;
+          }
+
+        return retval;
+      };
+
+    auto acquire_frame =
+      [this]()->bool
+      {
+        std::lock_guard<std::mutex> lock(this->mutex_);
+        bool retval = false;
+
+        try
+          {
+            retval =
+              this->fg_->WaitForFrame(this->im_.get(), this->timeout_millis_);
+          }
+        catch (const ifm3d::error_t& ex)
+          {
+            ROS_WARN_STREAM(ex.code() << ": " << ex.what());
+            retval = false;
+          }
+
+        return retval;
+      };
+
+    // This accounts for the case where the node is started
+    // prior to the camera being plugged in
+    while (! init_structures(ifm3d::IMG_UVEC))
+      {
+        ROS_WARN("Could not initialize pixel stream!");
+        ros::Duration(1.0).sleep();
+      }
 
     pcl::PointCloud<ifm3d::PointT>::Ptr
       cloud(new pcl::PointCloud<ifm3d::PointT>());
@@ -132,10 +181,8 @@ public:
 
     while (ros::ok())
       {
-        fg_lock.lock();
-        if (! this->fg_->WaitForFrame(buff.get(), this->timeout_millis_))
+        if (! acquire_frame())
           {
-            fg_lock.unlock();
             if (! this->assume_sw_triggered_)
               {
                 ROS_WARN("Timeout waiting for camera!");
@@ -149,43 +196,17 @@ public:
                 this->timeout_tolerance_secs_)
               {
                 ROS_WARN("Attempting to restart framegrabber...");
-                // This is different than in o3d3xx-ros b/c
-                // of the constraint on O3X where it can handle
-                // only a single PCIC client socket
-                cam_lock.lock();
-                fg_lock.lock();
-
-                buff.reset();
-                this->fg_.reset();
-                this->cam_.reset();
-
-                this->cam_ =
-                  ifm3d::Camera::MakeShared(this->camera_ip_,
-                                            this->xmlrpc_port_,
-                                            this->password_);
-                if (got_uvec)
+                while (! init_structures(got_uvec ?
+                                         this->schema_mask_ : ifm3d::IMG_UVEC))
                   {
-                    this->fg_ =
-                      std::make_shared<ifm3d::FrameGrabber>(this->cam_,
-                                                            this->schema_mask_);
+                    ROS_WARN("Could not re-initialize pixel stream!");
+                    ros::Duration(1.0).sleep();
                   }
-                else
-                  {
-                    this->fg_ =
-                      std::make_shared<ifm3d::FrameGrabber>(this->cam_,
-                                                            ifm3d::IMG_UVEC);
-                  }
-
-                buff = std::make_shared<ifm3d::ImageBuffer>();
-
-                fg_lock.unlock();
-                cam_lock.unlock();
 
                 last_frame = ros::Time::now();
               }
             continue;
           }
-        fg_lock.unlock();
 
         std_msgs::Header head = std_msgs::Header();
         head.stamp = ros::Time::now();
@@ -200,36 +221,45 @@ public:
         // framegrabber with the user's requested schema mask
         if (! got_uvec)
           {
+            lock.lock();
             sensor_msgs::ImagePtr uvec_msg =
               cv_bridge::CvImage(optical_head,
                                  enc::TYPE_32FC3,
-                                 buff->UnitVectors()).toImageMsg();
+                                 this->im_->UnitVectors()).toImageMsg();
+            lock.unlock();
             this->uvec_pub_.publish(uvec_msg);
-
+            got_uvec = true;
             ROS_INFO("Got unit vectors, restarting framegrabber with mask: %d",
                      (int) this->schema_mask_);
 
-            cam_lock.lock();
-            fg_lock.lock();
-
-            got_uvec = true;
-
-            buff.reset();
-            buff = std::make_shared<ifm3d::ImageBuffer>();
-
-            this->fg_.reset();
-            this->fg_ =
-              std::make_shared<ifm3d::FrameGrabber>(this->cam_,
-                                                    this->schema_mask_);
-
-            fg_lock.unlock();
-            cam_lock.unlock();
-
-            continue;
+            while (! init_structures(this->schema_mask_))
+                  {
+                    ROS_WARN("Could not re-initialize pixel stream!");
+                    ros::Duration(1.0).sleep();
+                  }
           }
 
+        //
+        // Pull out all the wrapped images so that we can release the "GIL"
+        // while publishing
+        //
+        lock.lock();
+
+        // boost::shared_ptr vs std::shared_ptr forces this copy
+        pcl::copyPointCloud(*(this->im_->Cloud().get()), *cloud);
+        xyz_img = this->im_->XYZImage();
+        confidence_img = this->im_->ConfidenceImage();
+        distance_img = this->im_->DistanceImage();
+        amplitude_img = this->im_->AmplitudeImage();
+        raw_amplitude_img = this->im_->RawAmplitudeImage();
+
+        lock.unlock();
+
+        //
+        // Now, do the publishing
+        //
+
         // Confidence image is invariant - no need to check the mask
-        confidence_img = buff->ConfidenceImage();
         sensor_msgs::ImagePtr confidence_msg =
           cv_bridge::CvImage(optical_head,
                              "mono8",
@@ -238,12 +268,9 @@ public:
 
         if ((this->schema_mask_ & ifm3d::IMG_CART) == ifm3d::IMG_CART)
           {
-            // boost::shared_ptr vs std::shared_ptr forces this copy
-            pcl::copyPointCloud(*(buff->Cloud().get()), *cloud);
             cloud->header = pcl_conversions::toPCL(head);
             this->cloud_pub_.publish(cloud);
 
-            xyz_img = buff->XYZImage();
             sensor_msgs::ImagePtr xyz_image_msg =
               cv_bridge::CvImage(head,
                                  xyz_img.type() == CV_32FC3 ?
@@ -254,7 +281,6 @@ public:
 
         if ((this->schema_mask_ & ifm3d::IMG_RDIS) == ifm3d::IMG_RDIS)
           {
-            distance_img = buff->DistanceImage();
             sensor_msgs::ImagePtr distance_msg =
               cv_bridge::CvImage(optical_head,
                                  distance_img.type() == CV_32FC1 ?
@@ -265,7 +291,6 @@ public:
 
         if ((this->schema_mask_ & ifm3d::IMG_AMP) == ifm3d::IMG_AMP)
           {
-            amplitude_img = buff->AmplitudeImage();
             sensor_msgs::ImagePtr amplitude_msg =
               cv_bridge::CvImage(optical_head,
                                  amplitude_img.type() == CV_32FC1 ?
@@ -276,7 +301,6 @@ public:
 
         if ((this->schema_mask_ & ifm3d::IMG_RAMP) == ifm3d::IMG_RAMP)
           {
-            raw_amplitude_img = buff->RawAmplitudeImage();
             sensor_msgs::ImagePtr raw_amplitude_msg =
               cv_bridge::CvImage(optical_head,
                                  raw_amplitude_img.type() == CV_32FC1 ?
@@ -319,9 +343,9 @@ private:
   bool assume_sw_triggered_;
   std::unique_ptr<ros::AsyncSpinner> spinner_;
   ifm3d::Camera::Ptr cam_;
-  std::mutex cam_mutex_;
   ifm3d::FrameGrabber::Ptr fg_;
-  std::mutex fg_mutex_;
+  ifm3d::ImageBuffer::Ptr im_;
+  std::mutex mutex_;
 
   std::string frame_id_;
   std::string optical_frame_id_;
