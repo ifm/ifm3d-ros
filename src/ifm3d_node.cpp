@@ -98,6 +98,8 @@ public:
     std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
     this->spinner_->start();
 
+    // atomically re-initializes the core data structures for interfacing
+    // to the camera
     auto init_structures =
       [this](std::uint16_t mask)->bool
       {
@@ -130,12 +132,16 @@ public:
         catch (const ifm3d::error_t& ex)
           {
             ROS_WARN_STREAM(ex.code() << ": " << ex.what());
+            this->im_.reset();
+            this->fg_.reset();
+            this->cam_.reset();
             retval = false;
           }
 
         return retval;
       };
 
+    // simplifies "safe" image acquisition
     auto acquire_frame =
       [this]()->bool
       {
