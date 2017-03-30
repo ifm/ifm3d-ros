@@ -97,7 +97,7 @@ looks basically like:
 
 ```
 [ ~/catkin/ifm3d/src ]
-tpanzarella@jelly: $ pwd
+tpanzarella@tuna: $ pwd
 /home/tpanzarella/catkin/ifm3d/src
 
 [ ~/catkin/ifm3d/src ]
