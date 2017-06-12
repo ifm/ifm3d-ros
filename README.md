@@ -36,8 +36,8 @@ Prerequisites
 (Acceptable)
 
 1. [Ubuntu 14.04 LTS](http://www.ubuntu.com)
-2. [ROS Indigo](http://wiki.ros.org/indigo/Installation) - we recommend `ros-kinetic-desktop-full`.
-3. [ifm3d](https://github.com/lovepark/ifm3d)
+2. [ROS Indigo](http://wiki.ros.org/indigo/Installation) - we recommend `ros-indigo-desktop-full`.
+3. [ifm3d](https://github.com/lovepark/ifm3d) (version >= 0.2.0)
 
 Building and Installing the Software
 ------------------------------------
