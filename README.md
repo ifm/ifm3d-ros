@@ -17,26 +17,34 @@ Software Compatibility Matrix
     <td>0.1.0</td>
     <td>Kinetic</td>
   </tr>
+  <tr>
+    <td>0.2.0</td>
+    <td>0.2.0</td>
+    <td>Kinetic, Indigo</td>
+  </tr>
 </table>
-
-Disclaimer
-----------
-This software is under active development and not yet ready for production
-systems. If you are looking for a ROS interface to the ifm O3D303,
-please consider using [o3d3xx-ros](https://github.com/lovepark/o3d3xx-ros).
-
-If you are an early-adopter user of the new O3X, and want to start using it
-from within ROS, please keep reading.
 
 Prerequisites
 -------------
+
+(Recommended)
 
 1. [Ubuntu 16.04 LTS](http://www.ubuntu.com)
 2. [ROS Kinetic](http://www.ros.org/install) - we recommend `ros-kinetic-desktop-full`.
 3. [ifm3d](https://github.com/lovepark/ifm3d)
 
+(Acceptable)
+
+1. [Ubuntu 14.04 LTS](http://www.ubuntu.com)
+2. [ROS Indigo](http://wiki.ros.org/indigo/Installation) - we recommend `ros-kinetic-desktop-full`.
+3. [ifm3d](https://github.com/lovepark/ifm3d)
+
 Building and Installing the Software
 ------------------------------------
+(NOTE: By request, step-by-step instructions on getting a fresh installation of
+Ubuntu 14.04 with ROS Indigo preapred for usage with `ifm3d-ros` is available
+[here](doc/indigo.md).
+
 Building and installing ifm3d-ros is accomplished by utilizing the ROS
 [catkin](http://wiki.ros.org/catkin) tool. There are many tutorials and other
 pieces of advice available on-line advising how to most effectively utilize
