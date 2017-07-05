@@ -32,6 +32,9 @@
 #include <ifm3d/camera.h>
 #include <ifm3d/fg.h>
 #include <ifm3d/image.h>
+#include <ifm3d/Config.h>
+#include <ifm3d/Dump.h>
+#include <ifm3d/Trigger.h>
 
 namespace enc = sensor_msgs::image_encodings;
 
@@ -88,6 +91,28 @@ public:
       nh.advertise<sensor_msgs::Image>("unit_vectors", 1, true);
 
     //this->extrinsics_pub_ = nh.advertise<ifm3d::Extrinsics>("extrinsics", 1);
+
+    //---------------------
+    // Advertised Services
+    //---------------------
+    this->dump_srv_ =
+      nh.advertiseService<ifm3d::Dump::Request, ifm3d::Dump::Response>
+      ("Dump", std::bind(&IFM3DNode::Dump, this,
+                         std::placeholders::_1,
+                         std::placeholders::_2));
+
+    this->config_srv_ =
+      nh.advertiseService<ifm3d::Config::Request, ifm3d::Config::Response>
+      ("Config", std::bind(&IFM3DNode::Config, this,
+                           std::placeholders::_1,
+                           std::placeholders::_2));
+
+    this->trigger_srv_ =
+      nh.advertiseService<ifm3d::Trigger::Request, ifm3d::Trigger::Response>
+      ("Trigger", std::bind(&IFM3DNode::Trigger, this,
+                            std::placeholders::_1,
+                            std::placeholders::_2));
+
   } // end: ctor
 
   /**
@@ -339,6 +364,92 @@ public:
       } // end: while(ros::ok()) {...}
   } // end: Run()
 
+  /**
+   * Implements the `Dump' service
+   *
+   * The `Dump' service will dump the current camera configuration to a JSON
+   * string. This JSON string is suitable for editing and using to reconfigure
+   * the camera via the `Config' service.
+   */
+  bool Dump(ifm3d::Dump::Request &req,
+            ifm3d::Dump::Response &res)
+  {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    res.status = 0;
+
+    try
+      {
+        res.config = this->cam_->ToJSONStr();
+      }
+    catch (const ifm3d::error_t& ex)
+      {
+        res.status = ex.code();
+      }
+
+    return true;
+  }
+
+  /**
+   * Implements the `Config' service.
+   *
+   * The `Config' service will read the input JSON configuration data and
+   * mutate the camera's settings to match that of the configuration
+   * described by the JSON file. Syntactically, the JSON should look like the
+   * JSON that is produced by `Dump'. However, you need not specify every
+   * parameter. You can specify only the parameters you wish to change with the
+   * only caveat being that you need to specify the parameter as fully
+   * qualified from the top-level root of the JSON tree.
+   */
+  bool Config(ifm3d::Config::Request &req,
+              ifm3d::Config::Response &res)
+  {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    res.status = 0;
+    res.msg = "OK";
+
+    try
+      {
+        this->cam_->FromJSONStr(req.json);
+      }
+    catch (const ifm3d::error_t& ex)
+      {
+        res.status = ex.code();
+        res.msg = ex.what();
+      }
+    catch (const std::exception& std_ex)
+      {
+        res.status = -1;
+        res.msg = std_ex.what();
+      }
+
+    return true;
+  }
+
+  /**
+   * Implements the `Trigger' service.
+   *
+   * For cameras whose active application is set to software triggering as
+   * opposed to free-running, this service send the trigger for image
+   * acquisition to the camera.
+   */
+  bool Trigger(ifm3d::Trigger::Request &req,
+               ifm3d::Trigger::Response &res)
+  {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    res.status = 0;
+
+    try
+      {
+        this->fg_->SWTrigger();
+      }
+    catch (const ifm3d::error_t& ex)
+      {
+        res.status = ex.code();
+      }
+
+    return true;
+  }
+
 private:
   std::string camera_ip_;
   int xmlrpc_port_;
@@ -365,6 +476,10 @@ private:
   image_transport::Publisher conf_pub_;
   image_transport::Publisher good_bad_pub_;
   image_transport::Publisher xyz_image_pub_;
+
+  ros::ServiceServer dump_srv_;
+  ros::ServiceServer config_srv_;
+  ros::ServiceServer trigger_srv_;
 
 }; // end: class IFM3DNode
 
