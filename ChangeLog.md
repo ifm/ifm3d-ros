@@ -1,3 +1,7 @@
+## Changes between ifm3d-ros 0.3.0 and 0.4.0
+
+* Now publishing extrinsics on a topic
+
 ## Changes between ifm3d-ros 0.2.0 and 0.3.0
 
 * Added `Dump` Service

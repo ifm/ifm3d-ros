@@ -24,6 +24,11 @@ find_package(catkin REQUIRED COMPONENTS
 ## Declare ROS messages and services ##
 #######################################
 
+add_message_files(
+  FILES
+  Extrinsics.msg
+  )
+
 add_service_files(
   FILES
   Dump.srv

@@ -34,6 +34,7 @@
 #include <ifm3d/image.h>
 #include <ifm3d/Config.h>
 #include <ifm3d/Dump.h>
+#include <ifm3d/Extrinsics.h>
 #include <ifm3d/Trigger.h>
 
 namespace enc = sensor_msgs::image_encodings;
@@ -90,7 +91,7 @@ public:
     this->uvec_pub_ =
       nh.advertise<sensor_msgs::Image>("unit_vectors", 1, true);
 
-    //this->extrinsics_pub_ = nh.advertise<ifm3d::Extrinsics>("extrinsics", 1);
+    this->extrinsics_pub_ = nh.advertise<ifm3d::Extrinsics>("extrinsics", 1);
 
     //---------------------
     // Advertised Services
@@ -283,6 +284,7 @@ public:
         distance_img = this->im_->DistanceImage();
         amplitude_img = this->im_->AmplitudeImage();
         raw_amplitude_img = this->im_->RawAmplitudeImage();
+        extrinsics = this->im_->Extrinsics();
 
         lock.unlock();
 
@@ -358,8 +360,24 @@ public:
         this->good_bad_pub_.publish(good_bad_msg);
 
         //
-        // XXX: Need to publish extrinsics
+        // publish extrinsics
         //
+        ifm3d::Extrinsics extrinsics_msg;
+        extrinsics_msg.header = optical_head;
+        try
+          {
+            extrinsics_msg.tx = extrinsics.at(0);
+            extrinsics_msg.ty = extrinsics.at(1);
+            extrinsics_msg.tz = extrinsics.at(2);
+            extrinsics_msg.rot_x = extrinsics.at(3);
+            extrinsics_msg.rot_y = extrinsics.at(4);
+            extrinsics_msg.rot_z = extrinsics.at(5);
+          }
+        catch (const std::out_of_range& ex)
+          {
+            ROS_WARN("out-of-range error fetching extrinsics");
+          }
+        this->extrinsics_pub_.publish(extrinsics_msg);
 
       } // end: while(ros::ok()) {...}
   } // end: Run()
