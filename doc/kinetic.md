@@ -53,10 +53,10 @@ $ make
 $ make check
 $ make package
 $ make repackage
-$ sudo dpkg -i ifm3d_0.2.0_amd64-camera.deb
-$ sudo dpkg -i ifm3d_0.2.0_amd64-framegrabber.deb
-$ sudo dpkg -i ifm3d_0.2.0_amd64-image.deb
-$ sudo dpkg -i ifm3d_0.2.0_amd64-tools.deb
+$ sudo dpkg -i ifm3d_0.3.2_amd64-camera.deb
+$ sudo dpkg -i ifm3d_0.3.2_amd64-framegrabber.deb
+$ sudo dpkg -i ifm3d_0.3.2_amd64-image.deb
+$ sudo dpkg -i ifm3d_0.3.2_amd64-tools.deb
 ```
 
 You are now in position to install `ifm3d-ros`. Those instructions are
