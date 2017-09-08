@@ -51,9 +51,10 @@ Prerequisites
 
 Building and Installing the Software
 ------------------------------------
-(NOTE: By request, step-by-step instructions on getting a fresh installation of
-Ubuntu 14.04 with ROS Indigo preapred for usage with `ifm3d-ros` is available
-[here](doc/indigo.md).)
+Step-by-step instructions on getting a fresh installation of Ubuntu and ROS
+prepared for usage with `ifm3d-ros` is available at the following links:
+    * [Ubuntu 14.04 with ROS Indigo](doc/indigo.md)
+    * [Ubuntu 16.04 with ROS Kinetic](doc/kinetic.md)
 
 Building and installing ifm3d-ros is accomplished by utilizing the ROS
 [catkin](http://wiki.ros.org/catkin) tool. There are many tutorials and other
