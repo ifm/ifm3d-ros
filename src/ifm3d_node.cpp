@@ -84,6 +84,7 @@ public:
     this->conf_pub_ = it.advertise("confidence", 1);
     this->good_bad_pub_ = it.advertise("good_bad_pixels", 1);
     this->xyz_image_pub_ = it.advertise("xyz_image", 1);
+    this->depth_with_confidence_pub_ = it.advertise("depth_with_confidence", 1);
 
     // NOTE: not using ImageTransport here ... having issues with the
     // latching. I need to investigate further. A "normal" publisher seems to
@@ -205,6 +206,7 @@ public:
     cv::Mat xyz_img;
     cv::Mat raw_amplitude_img;
     cv::Mat good_bad_pixels_img;
+    cv::Mat non_saturated_zero_img;
 
     std::vector<float> extrinsics(6);
 
@@ -359,6 +361,15 @@ public:
                              (good_bad_pixels_img == 0)).toImageMsg();
         this->good_bad_pub_.publish(good_bad_msg);
 
+        
+        non_saturated_zero_img = ((confidence_img & 2) == 0) & (depth_img == 0);
+        depth_with_confidence_img = depth_img.clone();
+        depth_with_confidence_img.setTo(32767, non_saturated_zero_img);
+        sensor_msgs::ImagePtr depth_with_confidence =
+          cv_bridge::CvImage(optical_head,
+                            "mono16",
+                            depth_with_confidence_img).toImageMsg();
+        this->depth_with_confidence_pub_.publish(depth_with_confidence);
         //
         // publish extrinsics
         //
@@ -494,6 +505,7 @@ private:
   image_transport::Publisher conf_pub_;
   image_transport::Publisher good_bad_pub_;
   image_transport::Publisher xyz_image_pub_;
+  image_transport::Publisher depth_with_confidence_pub_;
 
   ros::ServiceServer dump_srv_;
   ros::ServiceServer config_srv_;
