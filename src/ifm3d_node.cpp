@@ -269,6 +269,10 @@ public:
                     ROS_WARN("Could not re-initialize pixel stream!");
                     ros::Duration(1.0).sleep();
                   }
+
+            // should solve the problem of first image being (0,0)
+            // see: https://github.com/lovepark/ifm3d/issues/12
+            continue;
           }
 
         //

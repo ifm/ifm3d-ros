@@ -2,7 +2,7 @@
 <package format="2">
 
   <name>ifm3d</name>
-  <version>0.4.0</version>
+  <version>0.4.1</version>
   <description>ifm pmd-based 3D ToF Camera ROS package</description>
   <maintainer email="tom@loveparkrobotics.com">Tom Panzarella</maintainer>
   <license>Apache 2</license>
