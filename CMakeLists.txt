@@ -24,8 +24,22 @@ find_package(catkin REQUIRED COMPONENTS
 ## Declare ROS messages and services ##
 #######################################
 
-# Coming soon, for now, just streaming points clouds
-# in free-run mode
+add_message_files(
+  FILES
+  Extrinsics.msg
+  )
+
+add_service_files(
+  FILES
+  Dump.srv
+  Config.srv
+  Trigger.srv
+  )
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  )
 
 ###################################
 ## catkin specific configuration ##
@@ -48,7 +62,13 @@ target_link_libraries(ifm3d_node
   ${LIB_ifm3d_framegrabber}
   ${LIB_ifm3d_image}
   )
-#add_dependencies(ifm3d_node ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(ifm3d_node ${PROJECT_NAME}_generate_messages_cpp)
+
+add_executable(ifm3d_config_node src/ifm3d_config_node.cpp)
+target_link_libraries(ifm3d_config_node
+  ${catkin_LIBRARIES}
+  )
+add_dependencies(ifm3d_config_node ${PROJECT_NAME}_generate_messages_cpp)
 
 #############
 ## Install ##
@@ -68,6 +88,7 @@ install(FILES
 
 install(TARGETS
   ifm3d_node
+  ifm3d_config_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

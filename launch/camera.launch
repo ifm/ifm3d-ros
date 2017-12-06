@@ -52,6 +52,11 @@
       <remap from="xyz_image" to="$(arg nn)/xyz_image"/>
       <remap from="extrinsics" to="$(arg nn)/extrinsics"/>
 
+      <!-- advertised services -->
+      <remap from="Dump" to="$(arg nn)/Dump"/>
+      <remap from="Config" to="$(arg nn)/Config"/>
+      <remap from="Trigger" to="$(arg nn)/Trigger"/>
+
     </node>
 
     <node pkg="tf2_ros"
