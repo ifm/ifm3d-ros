@@ -80,6 +80,7 @@ public:
     this->conf_pub_ = it.advertise("confidence", 1);
     this->good_bad_pub_ = it.advertise("good_bad_pixels", 1);
     this->xyz_image_pub_ = it.advertise("xyz_image", 1);
+    this->depth_with_confidence_pub_ = it.advertise("depth_with_confidence", 1);
 
     // NOTE: not using ImageTransport here ... having issues with the
     // latching. I need to investigate further. A "normal" publisher seems to
@@ -179,6 +180,7 @@ public:
     cv::Mat xyz_img;
     cv::Mat raw_amplitude_img;
     cv::Mat good_bad_pixels_img;
+    cv::Mat depth_with_confidence_img;
 
     std::vector<float> extrinsics(6);
 
@@ -256,6 +258,7 @@ public:
         xyz_img = this->im_->XYZImage();
         confidence_img = this->im_->ConfidenceImage();
         distance_img = this->im_->DistanceImage();
+        depth_with_confidence_img = distance_img.clone();
         amplitude_img = this->im_->AmplitudeImage();
         raw_amplitude_img = this->im_->RawAmplitudeImage();
 
@@ -332,6 +335,23 @@ public:
                              (good_bad_pixels_img == 0)).toImageMsg();
         this->good_bad_pub_.publish(good_bad_msg);
 
+
+        if(confidence_img.rows >0 && confidence_img.cols > 0){
+          //compute depth with confidence only when it contains some data
+          cv::Mat non_saturated_zero_img = ((confidence_img & 2) == 0) & (distance_img == 0);
+          depth_with_confidence_img.setTo(32767, non_saturated_zero_img);
+        }else{
+          //publish zeros otherwise
+          depth_with_confidence_img = cv::Mat::zeros(confidence_img.rows,
+                                            confidence_img.cols,
+                                            CV_8UC1);
+        }
+        
+        sensor_msgs::ImagePtr depth_with_confidence = cv_bridge::CvImage(optical_head,
+                                                      "mono16",
+                                                      depth_with_confidence_img).toImageMsg();
+
+        this->depth_with_confidence_pub_.publish(depth_with_confidence);
         //
         // XXX: Need to publish extrinsics
         //
@@ -365,7 +385,7 @@ private:
   image_transport::Publisher conf_pub_;
   image_transport::Publisher good_bad_pub_;
   image_transport::Publisher xyz_image_pub_;
-
+  image_transport::Publisher depth_with_confidence_pub_;
 }; // end: class IFM3DNode
 
 int main(int argc, char **argv)
