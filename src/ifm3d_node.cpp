@@ -344,11 +344,12 @@ public:
           //publish zeros otherwise
           depth_with_confidence_img = cv::Mat::zeros(confidence_img.rows,
                                             confidence_img.cols,
-                                            CV_8UC1);
+                                            CV_32FC1);
         }
         
         sensor_msgs::ImagePtr depth_with_confidence = cv_bridge::CvImage(optical_head,
-                                                      "mono16",
+                                                      depth_with_confidence_img.type() == CV_32FC1 ?
+                                                      enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                                       depth_with_confidence_img).toImageMsg();
 
         this->depth_with_confidence_pub_.publish(depth_with_confidence);
