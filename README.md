@@ -34,7 +34,7 @@ Software Compatibility Matrix
   </tr>
   <tr>
     <td>0.4.1</td>
-    <td>0.3.3</td>
+    <td>0.3.3, 0.4.0, 0.5.0, 0.6.0, 0.7.0</td>
     <td>Kinetic, Indigo</td>
   </tr>
 </table>
