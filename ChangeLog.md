@@ -1,3 +1,8 @@
+## Changes between ifm3d-ros 0.4.1 and 0.4.2
+
+* Now requires ifm3d 0.9.0 and by association the more modernized tooling
+  (C++14, cmake 3.5, dropped support for 14.04/Indigo, etc.)
+
 ## Changes between ifm3d-ros 0.3.0 and 0.4.0
 
 * Now publishing extrinsics on a topic

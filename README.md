@@ -37,6 +37,11 @@ Software Compatibility Matrix
     <td>0.3.3, 0.4.0, 0.5.0, 0.6.0, 0.7.0, 0.8.1</td>
     <td>Kinetic, Indigo</td>
   </tr>
+  <tr>
+    <td>0.4.2</td>
+    <td>0.9.0</td>
+    <td>Kinetic</td>
+  </tr>
 </table>
 
 Prerequisites
@@ -48,7 +53,7 @@ Prerequisites
 2. [ROS Kinetic](http://www.ros.org/install) - we recommend `ros-kinetic-desktop-full`.
 3. [ifm3d](https://github.com/lovepark/ifm3d)
 
-(Acceptable)
+(Acceptable - For version 0.4.1 and earlier)
 
 1. [Ubuntu 14.04 LTS](http://www.ubuntu.com)
 2. [ROS Indigo](http://wiki.ros.org/indigo/Installation) - we recommend `ros-indigo-desktop-full`.
