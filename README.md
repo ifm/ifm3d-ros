@@ -53,7 +53,6 @@ Prerequisites
 2. [ROS Kinetic](http://www.ros.org/install) - we recommend `ros-kinetic-desktop-full`.
 3. [ifm3d](https://github.com/lovepark/ifm3d)
 
-
 Building and Installing the Software
 ------------------------------------
 Step-by-step instructions on getting a fresh installation of Ubuntu and ROS

@@ -1,13 +1,12 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(ifm3d)
 
-#
-# ifm3d is not yet setup for `find_package` discovery,
-# so for now we do it "the old way"
-#
-find_library(LIB_ifm3d_camera NAMES ifm3d_camera)
-find_library(LIB_ifm3d_framegrabber NAMES ifm3d_framegrabber)
-find_library(LIB_ifm3d_image NAMES ifm3d_image)
+find_package(ifm3d 0.9.0 CONFIG REQUIRED COMPONENTS
+             camera
+             framegrabber
+             image
+             )
+
 find_package(catkin REQUIRED COMPONENTS
              image_transport
              pcl_ros
@@ -49,7 +48,9 @@ catkin_package()
 #############
 ##  Build  ##
 #############
-add_compile_options(-std=c++11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -58,9 +59,9 @@ include_directories(
 add_executable(ifm3d_node src/ifm3d_node.cpp)
 target_link_libraries(ifm3d_node
   ${catkin_LIBRARIES}
-  ${LIB_ifm3d_camera}
-  ${LIB_ifm3d_framegrabber}
-  ${LIB_ifm3d_image}
+  ifm3d::camera
+  ifm3d::framegrabber
+  ifm3d::image
   )
 add_dependencies(ifm3d_node ${PROJECT_NAME}_generate_messages_cpp)
 
