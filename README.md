@@ -166,8 +166,3 @@ LICENSE
 -------
 
 Please see the file called [LICENSE](LICENSE).
-
-AUTHORS
--------
-
-Tom Panzarella <tom@loveparkrobotics.com>
