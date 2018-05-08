@@ -1,4 +1,8 @@
-## Changes between ifm3d-ros 0.3.0 and 0.4.0
+## Changes between ifm3d-ros 0.4.1 and 0.4.2
+
+* Updated to support ifm3d 0.9.0
+
+## Changes between ifm3d-ros 0.3.0 and 0.4.0, 0.4.1
 
 * Now publishing extrinsics on a topic
 
