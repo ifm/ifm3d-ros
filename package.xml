@@ -2,17 +2,20 @@
 <package format="2">
 
   <name>ifm3d</name>
-  <version>0.4.2</version>
+  <version>0.5.0</version>
   <description>ifm pmd-based 3D ToF Camera ROS package</description>
-  <maintainer email="tom@loveparkrobotics.com">Tom Panzarella</maintainer>
+  <maintainer email="tom.panzarella@ifm.com">Tom Panzarella</maintainer>
   <license>Apache 2</license>
-  <author email="tom@loveparkrobotics.com">Tom Panzarella</author>
+  <author email="tom.panzarella@ifm.com">Tom Panzarella</author>
+
+  <url type="repository">https://github.com/lovepark/ifm3d-ros</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>image_transport</depend>
   <depend>pcl_ros</depend>
   <depend>cv_bridge</depend>
+  <depend>nodelet</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
@@ -20,5 +23,9 @@
   <depend>message_generation</depend>
 
   <test_depend>rostest</test_depend>
+
+  <export>
+    <nodelet plugin="${prefix}/nodelets.xml"/>
+  </export>
 
 </package>

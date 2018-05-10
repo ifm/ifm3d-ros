@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
              image_transport
              pcl_ros
              cv_bridge
+             nodelet
              roscpp
              sensor_msgs
              std_msgs
@@ -43,7 +44,11 @@ generate_messages(
 ###################################
 ## catkin specific configuration ##
 ###################################
-catkin_package()
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES ifm3d_ros
+  CATKIN_DEPENDS roscpp nodelet
+  )
 
 #############
 ##  Build  ##
@@ -53,17 +58,18 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 include_directories(
+  include
   ${catkin_INCLUDE_DIRS}
   )
 
-add_executable(ifm3d_node src/ifm3d_node.cpp)
-target_link_libraries(ifm3d_node
+add_library(ifm3d_ros src/camera_nodelet.cpp)
+target_link_libraries(ifm3d_ros
   ${catkin_LIBRARIES}
   ifm3d::camera
   ifm3d::framegrabber
   ifm3d::image
   )
-add_dependencies(ifm3d_node ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(ifm3d_ros ${PROJECT_NAME}_generate_messages_cpp)
 
 add_executable(ifm3d_config_node src/ifm3d_config_node.cpp)
 target_link_libraries(ifm3d_config_node
@@ -75,24 +81,25 @@ add_dependencies(ifm3d_config_node ${PROJECT_NAME}_generate_messages_cpp)
 ## Install ##
 #############
 
-file(GLOB ifm3d_launch_files launch/*.launch)
-install(FILES
-  ${ifm3d_launch_files}
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  )
-
-file(GLOB ifm3d_rviz_files launch/*.rviz)
-install(FILES
-  ${ifm3d_rviz_files}
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  )
-
 install(TARGETS
-  ifm3d_node
   ifm3d_config_node
+  ifm3d_ros
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
+
+install(DIRECTORY
+  include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  )
+
+install(FILES nodelets.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  )
+
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
   )
 
 ######################

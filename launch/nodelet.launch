@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- cmd line arguments -->
+  <arg name="camera" default="camera"/>
+  <arg name="ip" default="192.168.0.69"/>
+  <arg name="xmlrpc_port" default="80"/>
+  <arg name="password" default=""/>
+  <arg name="schema_mask" default="15"/>
+  <arg name="timeout_millis" default="500"/>
+  <arg name="timeout_tolerance_secs" default="5.0"/>
+  <arg name="respawn" default="false"/>
+  <arg name="assume_sw_triggered" default="false"/>
+  <arg name="frame_id_base" default="ifm3d/$(arg camera)" />
+
+  <node pkg="nodelet"
+        type="nodelet"
+        name="$(arg camera)_standalone_nodelet"
+        args="manager"
+        output="screen"/>
+
+  <node pkg="nodelet"
+        type="nodelet"
+        name="$(arg camera)"
+        args="load ifm3d_ros/camera_nodelet $(arg camera)_standalone_nodelet"
+        output="screen"
+        respawn="$(arg respawn)">
+
+    <!-- You can add topic remappings here, e.g.: -->
+
+    <rosparam subst_value="true">
+      #
+      # The IP address of the camera to connect to
+      #
+      ip: "$(arg ip)"
+
+      #
+      # The on-camera TCP port that the XMLRPC server is listening to
+      #
+      xmlrpc_port: $(arg xmlrpc_port)
+
+      #
+      # The password needed to establish an edit session with the camera
+      #
+      password: "$(arg password)"
+
+      #
+      # The PCIC schema mask to apply to the framegrabber
+      #
+      schema_mask: $(arg schema_mask)
+
+      #
+      # The number of milliseconds to wait for a frame before declaring a
+      # framegrabber timeout
+      #
+      timeout_millis: $(arg timeout_millis)
+
+      #
+      # The number of seconds to endure timeouts before restarting the framegrabber
+      #
+      timeout_tolerance_secs: $(arg timeout_tolerance_secs)
+
+      #
+      # Flag indicating whether or not the nodelet should assume the camera is
+      # being software triggered
+      #
+      assume_sw_triggered: $(arg assume_sw_triggered)
+    </rosparam>
+
+    <param name="frame_id_base" value="$(arg frame_id_base)"/>
+
+    <!-- if assume_sw_triggered == True -->
+    <param name="timeout_millis" value="500" if="$(arg assume_sw_triggered)"/>
+    <param name="timeout_tolerance_secs" value="600.0" if="$(arg assume_sw_triggered)"/>
+    <env name="GLOG_minloglevel" value="3" if="$(arg assume_sw_triggered)"/>
+  </node>
+
+  <!-- coord frame transform from optical frame to ROS sensor frame -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="$(arg camera)_tf"
+        args="0 0 0 -1.5707963267948966 0 -1.5707963267948966 $(arg frame_id_base)_link $(arg frame_id_base)_optical_link"
+        respawn="$(arg respawn)" />
+
+</launch>
