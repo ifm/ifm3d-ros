@@ -1,8 +1,8 @@
 ifm3d-ros
 =========
 ifm3d-ros is a wrapper around [ifm3d](https://github.com/lovepark/ifm3d)
-enabling the usage of ifm pmd-based ToF cameras (including the new O3X) from
-within [ROS](http://ros.org) software systems.
+enabling the usage of ifm pmd-based ToF cameras from within
+[ROS](http://ros.org) software systems.
 
 Software Compatibility Matrix
 -----------------------------
@@ -39,6 +39,11 @@ Software Compatibility Matrix
   </tr>
   <tr>
     <td>0.4.2</td>
+    <td>0.9.0</td>
+    <td>Kinetic</td>
+  </tr>
+  <tr>
+    <td>0.5.0</td>
     <td>0.9.0</td>
     <td>Kinetic</td>
   </tr>
