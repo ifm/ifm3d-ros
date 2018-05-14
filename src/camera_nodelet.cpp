@@ -153,6 +153,21 @@ ifm3d_ros::CameraNodelet::Dump(ifm3d::Dump::Request& req,
   catch (const ifm3d::error_t& ex)
     {
       res.status = ex.code();
+      NODELET_WARN_STREAM(ex.what());
+    }
+  catch (const std::exception& std_ex)
+    {
+      res.status = -1;
+      NODELET_WARN_STREAM(std_ex.what());
+    }
+  catch (...)
+    {
+      res.status = -2;
+    }
+
+  if (res.status != 0)
+    {
+      NODELET_WARN_STREAM("Dump: " << res.status);
     }
 
   return true;
@@ -179,6 +194,16 @@ ifm3d_ros::CameraNodelet::Config(ifm3d::Config::Request& req,
     {
       res.status = -1;
       res.msg = std_ex.what();
+    }
+  catch (...)
+    {
+      res.status = -2;
+      res.msg = "Unknown error in `Config'";
+    }
+
+  if (res.status != 0)
+    {
+      NODELET_WARN_STREAM("Config: " << res.status << " - " << res.msg);
     }
 
   return true;

@@ -8,6 +8,7 @@ find_package(ifm3d 0.9.0 CONFIG REQUIRED COMPONENTS
              )
 
 find_package(catkin REQUIRED COMPONENTS
+             rospy
              image_transport
              pcl_ros
              cv_bridge
@@ -20,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
              message_runtime
              )
 
+catkin_python_setup()
 #######################################
 ## Declare ROS messages and services ##
 #######################################
@@ -71,18 +73,18 @@ target_link_libraries(ifm3d_ros
   )
 add_dependencies(ifm3d_ros ${PROJECT_NAME}_generate_messages_cpp)
 
-add_executable(ifm3d_config_node src/ifm3d_config_node.cpp)
-target_link_libraries(ifm3d_config_node
-  ${catkin_LIBRARIES}
-  )
-add_dependencies(ifm3d_config_node ${PROJECT_NAME}_generate_messages_cpp)
-
 #############
 ## Install ##
 #############
 
+catkin_install_python(
+  PROGRAMS
+  bin/dump
+  bin/config
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
+
 install(TARGETS
-  ifm3d_config_node
   ifm3d_ros
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
