@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
              tf
              message_generation
              message_runtime
+             rostest
              )
 
 catkin_python_setup()
@@ -108,4 +109,7 @@ install(DIRECTORY launch
 ## Node-level tests ##
 ######################
 
-# Yes, I know... coming soon!
+if (CATKIN_ENABLE_TESTING)
+  add_rostest(test/ifm3d.test)
+  catkin_add_nosetests(test)
+endif()

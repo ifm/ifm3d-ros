@@ -1,5 +1,8 @@
 ## Changes between ifm3d-ros 0.4.2 and 0.5.0
 * Converted primary data publisher to a nodelet architecture
+* Provide the `dump` and `config` scripts to call into the exposed ROS services
+  of the nodelet. Removed the older "config node".
+* Added unit tests
 
 ## Changes between ifm3d-ros 0.4.1 and 0.4.2
 * Now requires ifm3d 0.9.0 and by association the more modernized tooling

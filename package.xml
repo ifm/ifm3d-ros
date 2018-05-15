@@ -12,6 +12,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>rostest</build_depend>
+
   <depend>rospy</depend>
   <depend>image_transport</depend>
   <depend>pcl_ros</depend>
@@ -22,8 +24,6 @@
   <depend>std_msgs</depend>
   <depend>tf</depend>
   <depend>message_generation</depend>
-
-  <test_depend>rostest</test_depend>
 
   <export>
     <nodelet plugin="${prefix}/nodelets.xml"/>
