@@ -4,8 +4,10 @@ ifm3d-ros is a wrapper around [ifm3d](https://github.com/lovepark/ifm3d)
 enabling the usage of ifm pmd-based ToF cameras from within
 [ROS](http://ros.org) software systems.
 
+![rviz1](doc/figures/rviz_sample.png)
+
 Software Compatibility Matrix
------------------------------
+=============================
 <table>
   <tr>
     <th>ifm3d-ros version</th>
@@ -49,123 +51,257 @@ Software Compatibility Matrix
   </tr>
 </table>
 
-Prerequisites
--------------
-
-(Recommended)
-
-1. [Ubuntu 16.04 LTS](http://www.ubuntu.com)
-2. [ROS Kinetic](http://www.ros.org/install) - we recommend `ros-kinetic-desktop-full`.
-3. [ifm3d](https://github.com/lovepark/ifm3d)
-
 Building and Installing the Software
-------------------------------------
-Step-by-step instructions on getting a fresh installation of Ubuntu and ROS
-prepared for usage with `ifm3d-ros` is available at the following link:
-* [Ubuntu 16.04 with ROS Kinetic](doc/kinetic.md)
+====================================
 
-Building and installing ifm3d-ros is accomplished by utilizing the ROS
-[catkin](http://wiki.ros.org/catkin) tool. There are many tutorials and other
-pieces of advice available on-line advising how to most effectively utilize
-catkin. However, the basic idea is to provide a clean separation between your
-source code repository and your build and runtime environments. The
-instructions that now follow represent how we choose to use catkin to build and
-_permanently install_ a ROS package from source.
+1. [Preparing your system](doc/kinetic.md)
+2. [Installing the ROS node](doc/building.md)
 
-First, we need to decide where we want our software to ultimately be
-installed. For purposes of this document, we will assume that we will install
-our ROS packages at `~/ros`. For convenience, we add the following to our
-`~/.bash_profile`:
+ROS Interface
+=============
+
+## camera nodelet
+
+The core `ifm3d-ros` sensor interface is implemented as a ROS nodelet. This
+allows for lower-latency data processing vs. the traditional out-of-process
+node-based ROS interface for applications that require it. However, we ship a
+launch file with this package that allows for using the core `ifm3d-ros` driver
+as a standard node. To launch the node, the following command can be used:
 
 ```
-if [ -f /opt/ros/kinetic/setup.bash ]; then
-  source /opt/ros/kinetic/setup.bash
-fi
-
-cd ${HOME}
-
-export LPR_ROS=${HOME}/ros
-
-if [ -d ${LPR_ROS} ]; then
-    for i in $(ls ${LPR_ROS}); do
-        if [ -d ${LPR_ROS}/${i} ]; then
-            if [ -f ${LPR_ROS}/${i}/setup.bash ]; then
-                source ${LPR_ROS}/${i}/setup.bash --extend
-            fi
-        fi
-    done
-fi
+$ roslaunch ifm3d camera.launch
 ```
 
-Next, we need to get the code from github. We assume we keep all of our git
-repositories in `~/dev`.
+We note, the above command is equivalent to the following and is used for
+purposes of providing a backward compatible interface to versions of
+`ifm3d-ros` prior to the conversion to a nodelet architecture:
 
 ```
-$ cd ~/dev
-$ git clone https://github.com/lovepark/ifm3d-ros.git
+$ roslaunch ifm3d nodelet.launch __ns:=ifm3d
 ```
 
-We now have the code in `~/dev/ifm3d-ros`. Next, we want to create a _catkin
-workspace_ that we can use to build and install that code from. It is the
-catkin philosophy that we do not do this directly in the source directory.
+Regardless of which command line you used from above, the launch file(s)
+encapsulate several features:
+
+1. It exposes some of the `camera_nodelet` parameters as command-line arguments
+   for ease of runtime configuration.
+2. It instantiates a nodelet manager which the `camera_nodelet` will be loaded
+   into.
+3. It launches the camera nodelet itself.
+4. It publishes the static transform from the camera's optical frame to a
+   traditional ROS sensor frame as a tf2 `static_transform_publisher`.
+
+You can either use [this launch file](launch/camera.launch) directly, or, use
+it as a basis for integrating `ifm3d-ros` into your own robot software system.
+
+We note: due to the change in architecture from a standalone node to a nodelet,
+we have seen one behavior whose solution is not clear to have us provide
+backward compatible behavior with older versions of `ifm3d-ros`. Specifically,
+if you plan to run the camera in software triggered mode, you should lanch the
+node as follows:
 
 ```
-$ cd ~/catkin
-$ mkdir ifm3d
-$ cd ifm3d
-$ mkdir src
-$ cd src
-$ catkin_init_workspace
-$ ln -s ~/dev/ifm3d-ros ifm3d
+$ GLOG_minloglevel=3 roslaunch ifm3d camera.launch assume_sw_triggered:=true
 ```
 
-So, you should have a catkin workspace set up to build the ifm3d-ros code that
-looks basically like:
+The incomatibility here is that in prior versions, one would not need to
+explicitly set the `GLOG_` environment variable. While not strictly necessary,
+it is recommended for keeping the noise level of the `ifm3d` logs low.
 
-```
-[ ~/catkin/ifm3d/src ]
-tpanzarella@tuna: $ pwd
-/home/tpanzarella/catkin/ifm3d/src
 
-[ ~/catkin/ifm3d/src ]
-tpanzarella@tuna: $ ls -l
-total 0
-lrwxrwxrwx 1 tpanzarella tpanzarella 50 Mar 26 15:16 CMakeLists.txt -> /opt/ros/kinetic/share/catkin/cmake/toplevel.cmake
-lrwxrwxrwx 1 tpanzarella tpanzarella 31 Mar 26 15:16 ifm3d -> /home/tpanzarella/dev/ifm3d-ros
-```
+### Parameters
 
-Now we are ready to build the code.
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Data Type</th>
+    <th>Default Value</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>~assume_sw_triggered</td>
+    <td>bool</td>
+    <td>false</td>
+    <td>
+      This provides a hint to the driver that the camera is configured for
+      software triggering (as opposed to free running). In this mode, certain
+      default values are applied to lessen the noise in terms of timeouts from
+      the framegrabber.
+    </td>
+  </tr>
+  <tr>
+    <td>~frame_id_base</td>
+    <td>string</td>
+    <td>ifm3d/camera</td>
+    <td>
+      This string provides a prefix into the `tf` tree for `ifm3d-ros`
+      coordinate frames.
+    </td>
+  </tr>
+  <tr>
+    <td>~ip</td>
+    <td>string</td>
+    <td>192.168.0.69</td>
+    <td>
+      The ip address of the camera.
+    </td>
+  </tr>
+  <tr>
+    <td>~password</td>
+    <td>string</td>
+    <td></td>
+    <td>
+      The password required to establish an edit session with the camera.
+    </td>
+  </tr>
+  <tr>
+    <td>~schema_mask</td>
+    <td>uint16</td>
+    <td>0xf</td>
+    <td>
+      The pcic schema mask to apply to the active session with the frame
+      grabber. This determines which images are available for publication from
+      the camera. More about pcic schemas can be gleaned from the
+      <a href="https://github.com/lovepark/ifm3d">ifm3d</a> project.
+    </td>
+  </tr>
+  <tr>
+    <td>~timeout_millis</td>
+    <td>int</td>
+    <td>500</td>
+    <td>
+      The number of milliseconds to wait for the framegrabber to return new
+      frame data before declaring a "timeout" and to stop blocking on new
+      data.
+    </td>
+  </tr>
+  <tr>
+    <td>~timeout_tolerance_secs</td>
+    <td>float</td>
+    <td>5.0</td>
+    <td>
+      The wall time to wait with no new data from the camera before trying to
+      establish a new connection to the camera. This helps to provide
+      robustness against camera cables becoming unplugged or other in-field
+      pathologies which would cause the connection between the ROS node and the
+      camera to be broken.
+    </td>
+  </tr>
+  <tr>
+    <td>~xmlrpc_port</td>
+    <td>uint16</td>
+    <td>80</td>
+    <td>
+      The TCP port the camera's xmlrpc server is listening on for requests.
+    </td>
+  </tr>
+</table>
 
-```
-$ cd ~/catkin/ifm3d
-$ catkin_make
-$ catkin_make -DCMAKE_INSTALL_PREFIX=${LPR_ROS}/ifm3d install
-```
+### Published Topics
 
-The ROS package should now be installed in `~/ros/ifm3d`. To test everything
-out you should open a fresh bash shell, and start up a ROS core:
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Data Type</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>amplitude</td>
+    <td>sensor_msgs/Image</td>
+    <td>The normalized amplitude image</td>
+  </tr>
+  <tr>
+    <td>cloud</td>
+    <td>sensor_msgs/PointCloud2</td>
+    <td>The point cloud data</td>
+  </tr>
+  <tr>
+    <td>confidence</td>
+    <td>sensor_msgs/Image</td>
+    <td>The confidence image</td>
+  </tr>
+  <tr>
+    <td>distance</td>
+    <td>sensor_msgs/Image</td>
+    <td>The radial distance image</td>
+  </tr>
+  <tr>
+    <td>extrinsics</td>
+    <td><a href="msg/Extrinsics.msg">ifm3d/Extrinsics</a></td>
+    <td>
+      The extrinsic calibration of the camera with respect to the camera
+      optical frame. The data are mm and degrees.
+    </td>
+  </tr>
+  <tr>
+    <td>good_bad_pixels</td>
+    <td>sensor_msgs/Image</td>
+    <td>
+      A binary image indicating good vs. bad pixels as gleaned from the
+      confidence data.
+    </td>
+  </tr>
+  <tr>
+    <td>raw_amplitude</td>
+    <td>sensor_msgs/Image</td>
+    <td>The raw amplitude image</td>
+  </tr>
+  <tr>
+    <td>unit_vectors</td>
+    <td>sensor_msgs/Image</td>
+    <td>The rotated unit vectors</td>
+  </tr>
+  <tr>
+    <td>xyz_image</td>
+    <td>sensor_msgs/Image</td>
+    <td>
+      A 3-channel image encoding of the point cloud. Each of the three image
+      channels respesent a spatial data plane encoding the x, y, z cartesian
+      values respectively.
+    </td>
+  </tr>
+</table>
 
-    $ roscore
+### Subscribed Topics
 
-Open another shell and start the primary camera node:
+None.
 
-    $ roslaunch ifm3d camera.launch
+### Advertised Services
 
-Open another shell and start the rviz node to visualize the data coming from
-the camera:
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Service Definition</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>Dump</td>
+    <td><a href="srv/Dump.srv">ifm3d/Dump</a></td>
+    <td>Dumps the state of the camera parameters to JSON</td>
+  </tr>
+  <tr>
+    <td>Config</td>
+    <td><a href="srv/Config.srv">ifm3d/Config</a></td>
+    <td>
+      Provides a means to configure the camera and imager settings,
+      declaratively from a JSON encoding of the desired settings.
+    </td>
+  </tr>
+  <tr>
+    <td>Trigger</td>
+    <td><a href="srv/Trigger.srv">ifm3d/Trigger</a></td>
+    <td>
+      Requests the driver to software trigger the imager for data
+      acquisition.
+    </td>
+  </tr>
+</table>
 
-    $ roslaunch ifm3d rviz.launch
 
-At this point, you should see an rviz window that looks something like:
+Additional Documentation
+========================
 
-![rviz1](doc/figures/rviz_sample.png)
-
-Congratulations! You can now utilize ifm3d-ros.
-
-TODO
-----
-
-Please see the [Github Issues](https://github.com/lovepark/ifm3d-ros/issues).
+* [Inspecting and configuring the camera/imager settings](doc/dump_and_config.md)
 
 LICENSE
 -------
