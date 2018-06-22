@@ -46,7 +46,7 @@ Software Compatibility Matrix
   </tr>
   <tr>
     <td>0.5.0</td>
-    <td>0.9.0</td>
+    <td>0.9.0, 0.9.1</td>
     <td>Kinetic</td>
   </tr>
 </table>
