@@ -8,11 +8,18 @@ Building and Installing the ifm3d-ros Package
 2. [ROS Kinetic](http://www.ros.org/install) - we recommend `ros-kinetic-desktop-full`.
 3. [ifm3d](https://github.com/lovepark/ifm3d) - version >= 0.9.0
 
+or
+
+1. [Ubuntu 18.04 LTS](http://www.ubuntu.com)
+2. [ROS Melodic](http://www.ros.org/install) - we recommend `ros-melodic-desktop-full`.
+3. [ifm3d](https://github.com/lovepark/ifm3d) - version >= 0.9.2
+
 ### Step-by-Step Build Instructions
 
 Step-by-step instructions on getting a fresh installation of Ubuntu and ROS
-prepared for usage with `ifm3d-ros` is available at the following link:
+prepared for usage with `ifm3d-ros` is available at the following links:
 * [Ubuntu 16.04 with ROS Kinetic](kinetic.md)
+* [Ubuntu 18.04 with ROS Melodic](melodic.md)
 
 Building and installing ifm3d-ros is accomplished by utilizing the ROS
 [catkin](http://wiki.ros.org/catkin) tool. There are many tutorials and other
@@ -26,6 +33,9 @@ First, we need to decide where we want our software to ultimately be
 installed. For purposes of this document, we will assume that we will install
 our ROS packages at `~/ros`. For convenience, we add the following to our
 `~/.bashrc`:
+
+NOTE: Below we assume `kinetic`. Adapting to `melodic` is left as an exercise
+for the reader.
 
 ```
 if [ -f /opt/ros/kinetic/setup.bash ]; then

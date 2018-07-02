@@ -1,3 +1,7 @@
+## Changes between ifm3d-ros 0.5.0 and 0.5.1
+
+* Added support for Ubuntu 18.04 and ROS Melodic
+
 ## Changes between ifm3d-ros 0.4.2 and 0.5.0
 * Converted primary data publisher to a nodelet architecture
 * Provide the `dump` and `config` scripts to call into the exposed ROS services

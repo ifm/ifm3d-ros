@@ -49,12 +49,17 @@ Software Compatibility Matrix
     <td>0.9.0, 0.9.1</td>
     <td>Kinetic</td>
   </tr>
+  <tr>
+    <td>0.5.1</td>
+    <td>0.9.2</td>
+    <td>Kinetic, Melodic</td>
+  </tr>
 </table>
 
 Building and Installing the Software
 ====================================
 
-1. [Preparing your system](doc/kinetic.md)
+1. Preparing your system: [Kinetic](doc/kinetic.md), [Melodic](doc/melodic.md)
 2. [Installing the ROS node](doc/building.md)
 
 ROS Interface
