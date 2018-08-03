@@ -1,3 +1,9 @@
+## Changes between ifm3d-ros 0.5.1 and 0.6.0
+
+* Added a image transport plugin _blacklist_ to the nodlet launch file. This
+  prevents many of the errors seen in the terminal when running `rosbag -a` to
+  capture camera data
+
 ## Changes between ifm3d-ros 0.5.0 and 0.5.1
 
 * Added support for Ubuntu 18.04 and ROS Melodic

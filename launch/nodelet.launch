@@ -65,6 +65,16 @@
       # being software triggered
       #
       assume_sw_triggered: $(arg assume_sw_triggered)
+
+      #
+      # Get rid of the errors when running `rosbag -a'
+      #
+      distance/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
+      amplitude/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
+      raw_amplitude/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
+      confidence/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
+      good_bad_pixels/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
+      xyz_image/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
     </rosparam>
 
     <param name="frame_id_base" value="$(arg frame_id_base)"/>
