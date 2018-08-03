@@ -41,6 +41,8 @@
 #include <ifm3d/Config.h>
 #include <ifm3d/Dump.h>
 #include <ifm3d/Extrinsics.h>
+#include <ifm3d/SoftOff.h>
+#include <ifm3d/SoftOn.h>
 #include <ifm3d/Trigger.h>
 
 namespace enc = sensor_msgs::image_encodings;
@@ -80,6 +82,13 @@ ifm3d_ros::CameraNodelet::onInit()
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
   this->np_.param("timeout_tolerance_secs", this->timeout_tolerance_secs_, 5.0);
   this->np_.param("assume_sw_triggered", this->assume_sw_triggered_, false);
+  this->np_.param("soft_on_timeout_millis", this->soft_on_timeout_millis_, 500);
+  this->np_.param("soft_on_timeout_tolerance_secs",
+                  this->soft_on_timeout_tolerance_secs_, 5.0);
+  this->np_.param("soft_off_timeout_millis",
+                  this->soft_off_timeout_millis_, 500);
+  this->np_.param("soft_off_timeout_tolerance_secs",
+                  this->soft_off_timeout_tolerance_secs_, 600.0);
   this->np_.param("frame_id_base", frame_id_base, frame_id_base);
 
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
@@ -126,6 +135,20 @@ ifm3d_ros::CameraNodelet::onInit()
     this->np_.advertiseService<ifm3d::Trigger::Request,
                                ifm3d::Trigger::Response>
     ("Trigger", std::bind(&CameraNodelet::Trigger, this,
+                          std::placeholders::_1,
+                          std::placeholders::_2));
+
+  this->soft_off_srv_ =
+    this->np_.advertiseService<ifm3d::SoftOff::Request,
+                               ifm3d::SoftOff::Response>
+    ("SoftOff", std::bind(&CameraNodelet::SoftOff, this,
+                          std::placeholders::_1,
+                          std::placeholders::_2));
+
+  this->soft_on_srv_ =
+    this->np_.advertiseService<ifm3d::SoftOn::Request,
+                               ifm3d::SoftOn::Response>
+    ("SoftOn", std::bind(&CameraNodelet::SoftOn, this,
                           std::placeholders::_1,
                           std::placeholders::_2));
 
@@ -223,6 +246,92 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
   catch (const ifm3d::error_t& ex)
     {
       res.status = ex.code();
+    }
+
+  return true;
+}
+
+bool
+ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
+                                  ifm3d::SoftOff::Response& res)
+{
+  std::lock_guard<std::mutex> lock(this->mutex_);
+  res.status = 0;
+  res.msg = "OK";
+
+  int active_application = 0;
+
+  try
+    {
+      active_application = this->cam_->ActiveApplication();
+      if (active_application > 0)
+        {
+          json dict =
+            {
+              {"Apps",
+               {{{"Index", std::to_string(active_application)},
+                 {"TriggerMode",
+                  std::to_string(
+                    static_cast<int>(ifm3d::Camera::trigger_mode::SW))}}}
+              }
+            };
+
+          this->cam_->FromJSON(dict);
+
+          this->assume_sw_triggered_ = true;
+          this->timeout_millis_ = this->soft_off_timeout_millis_;
+          this->timeout_tolerance_secs_ =
+            this->soft_off_timeout_tolerance_secs_;
+        }
+    }
+  catch (const ifm3d::error_t& ex)
+    {
+      res.status = ex.code();
+      res.msg = ex.what();
+      return false;
+    }
+
+  return true;
+}
+
+bool
+ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
+                                 ifm3d::SoftOn::Response& res)
+{
+  std::lock_guard<std::mutex> lock(this->mutex_);
+  res.status = 0;
+  res.msg = "OK";
+
+  int active_application = 0;
+
+  try
+    {
+      active_application = this->cam_->ActiveApplication();
+      if (active_application > 0)
+        {
+          json dict =
+            {
+              {"Apps",
+               {{{"Index", std::to_string(active_application)},
+                 {"TriggerMode",
+                  std::to_string(
+                    static_cast<int>(ifm3d::Camera::trigger_mode::FREE_RUN))}}}
+              }
+            };
+
+          this->cam_->FromJSON(dict);
+
+          this->assume_sw_triggered_ = false;
+          this->timeout_millis_ = this->soft_on_timeout_millis_;
+          this->timeout_tolerance_secs_ =
+            this->soft_on_timeout_tolerance_secs_;
+        }
+    }
+  catch (const ifm3d::error_t& ex)
+    {
+      res.status = ex.code();
+      res.msg = ex.what();
+      return false;
     }
 
   return true;

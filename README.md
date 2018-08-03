@@ -54,6 +54,11 @@ Software Compatibility Matrix
     <td>0.9.2</td>
     <td>Kinetic, Melodic</td>
   </tr>
+  <tr>
+    <td>0.6.0</td>
+    <td>0.9.2, 0.9.3</td>
+    <td>Kinetic, Melodic</td>
+  </tr>
 </table>
 
 Building and Installing the Software
@@ -193,6 +198,42 @@ it is recommended for keeping the noise level of the `ifm3d` logs low.
     </td>
   </tr>
   <tr>
+    <td>~soft_on_timeout_millis</td>
+    <td>int</td>
+    <td>500</td>
+    <td>
+      If using the `SoftOn` service call, when turning the camera back `on`
+      this is the setting that will be used for `timeout_millis`.
+    </td>
+  </tr>
+  <tr>
+    <td>~soft_on_timeout_tolerance_secs</td>
+    <td>float</td>
+    <td>5.0</td>
+    <td>
+      If using the `SoftOn` service call, when turning the camera back `on`
+      this is the setting that will be used for `timeout_tolerance_secs`.
+    </td>
+  </tr>
+  <tr>
+    <td>~soft_off_timeout_millis</td>
+    <td>int</td>
+    <td>500</td>
+    <td>
+      If using the `SoftOff` service call, when turning the camera `off`
+      this is the setting that will be used for `timeout_millis`.
+    </td>
+  </tr>
+  <tr>
+    <td>~soft_off_timeout_tolerance_secs</td>
+    <td>float</td>
+    <td>600.0</td>
+    <td>
+      If using the `SoftOff` service call, when turning the camera `off`
+      this is the setting that will be used for `timeout_tolerance_secs`.
+    </td>
+  </tr>
+  <tr>
     <td>~xmlrpc_port</td>
     <td>uint16</td>
     <td>80</td>
@@ -290,6 +331,23 @@ None.
     <td>
       Provides a means to configure the camera and imager settings,
       declaratively from a JSON encoding of the desired settings.
+    </td>
+  </tr>
+  <tr>
+    <td>SoftOff</td>
+    <td><a href="srv/SoftOff.srv">ifm3d/SoftOff</a></td>
+    <td>
+      Sets the active application of the camera into software triggered
+      mode which will turn off the active illumination reducing both power and
+      heat.
+    </td>
+  </tr>
+  <tr>
+    <td>SoftOn</td>
+    <td><a href="srv/SoftOn.srv">ifm3d/SoftOn</a></td>
+    <td>
+      Sets the active application of the camera into free-running mode.
+      Its intention is to act as the inverse of `SoftOff`.
     </td>
   </tr>
   <tr>

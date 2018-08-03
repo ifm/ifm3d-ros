@@ -33,6 +33,8 @@
 #include <ifm3d/Config.h>
 #include <ifm3d/Dump.h>
 #include <ifm3d/Extrinsics.h>
+#include <ifm3d/SoftOff.h>
+#include <ifm3d/SoftOn.h>
 #include <ifm3d/Trigger.h>
 
 namespace ifm3d_ros
@@ -57,6 +59,8 @@ namespace ifm3d_ros
     bool Dump(ifm3d::Dump::Request& req, ifm3d::Dump::Response& res);
     bool Config(ifm3d::Config::Request& req, ifm3d::Config::Response& res);
     bool Trigger(ifm3d::Trigger::Request& req, ifm3d::Trigger::Response& res);
+    bool SoftOff(ifm3d::SoftOff::Request& req, ifm3d::SoftOff::Response& res);
+    bool SoftOn(ifm3d::SoftOn::Request& req, ifm3d::SoftOn::Response& res);
 
     //
     // This is our main publishing loop and its helper functions
@@ -75,6 +79,10 @@ namespace ifm3d_ros
     int timeout_millis_;
     double timeout_tolerance_secs_;
     bool assume_sw_triggered_;
+    int soft_on_timeout_millis_;
+    double soft_on_timeout_tolerance_secs_;
+    int soft_off_timeout_millis_;
+    double soft_off_timeout_tolerance_secs_;
 
     std::string frame_id_;
     std::string optical_frame_id_;
@@ -106,6 +114,8 @@ namespace ifm3d_ros
     ros::ServiceServer dump_srv_;
     ros::ServiceServer config_srv_;
     ros::ServiceServer trigger_srv_;
+    ros::ServiceServer soft_off_srv_;
+    ros::ServiceServer soft_on_srv_;
 
     //
     // We use a ROS one-shot timer to kick off our publishing loop.

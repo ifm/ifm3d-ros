@@ -67,6 +67,15 @@
       assume_sw_triggered: $(arg assume_sw_triggered)
 
       #
+      # If using the `SoftOff`/`SoftOn` functionality, these parameters
+      # control the `timeout_millis` and `timeout_tolerance_secs`
+      #
+      soft_on_timeout_millis: $(arg timeout_millis)
+      soft_on_timeout_tolerance_secs: $(arg timeout_tolerance_secs)
+      soft_off_timeout_millis: 500
+      soft_off_timeout_tolerance_secs: 600.0
+
+      #
       # Get rid of the errors when running `rosbag -a'
       #
       distance/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
@@ -82,7 +91,6 @@
     <!-- if assume_sw_triggered == True -->
     <param name="timeout_millis" value="500" if="$(arg assume_sw_triggered)"/>
     <param name="timeout_tolerance_secs" value="600.0" if="$(arg assume_sw_triggered)"/>
-    <env name="GLOG_minloglevel" value="3" if="$(arg assume_sw_triggered)"/>
   </node>
 
   <!-- coord frame transform from optical frame to ROS sensor frame -->

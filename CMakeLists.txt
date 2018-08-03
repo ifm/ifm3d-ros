@@ -37,6 +37,8 @@ add_service_files(
   Dump.srv
   Config.srv
   Trigger.srv
+  SoftOff.srv
+  SoftOn.srv
   )
 
 generate_messages(
