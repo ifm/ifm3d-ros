@@ -3,6 +3,7 @@
 * Added a image transport plugin _blacklist_ to the nodlet launch file. This
   prevents many of the errors seen in the terminal when running `rosbag -a` to
   capture camera data
+* Added the `SoftOn` and `SoftOff` service calls
 
 ## Changes between ifm3d-ros 0.5.0 and 0.5.1
 
