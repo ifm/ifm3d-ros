@@ -365,6 +365,7 @@ Additional Documentation
 ========================
 
 * [Inspecting and configuring the camera/imager settings](doc/dump_and_config.md)
+* [Troubleshooting](doc/troubleshooting.md)
 
 LICENSE
 -------
