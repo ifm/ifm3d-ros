@@ -459,10 +459,20 @@ ifm3d_ros::CameraNodelet::Run()
           continue;
         }
 
+      last_frame = ros::Time::now();
+
       std_msgs::Header head = std_msgs::Header();
-      head.stamp = ros::Time::now();
       head.frame_id = this->frame_id_;
-      last_frame = head.stamp;
+      head.stamp = ros::Time(
+        std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>
+        (this->im_->TimeStamp().time_since_epoch()).count());
+      if (ros::Time::now() - head.stamp > ros::Duration(60.0))
+        {
+          ROS_WARN_ONCE("Camera's time is not up to date, therefore header's "
+            "timestamps will be the reception time and not capture time. "
+            "Please update the camera's time if you need the capture time.");
+          head.stamp = ros::Time::now();
+        }
 
       std_msgs::Header optical_head = std_msgs::Header();
       optical_head.stamp = head.stamp;
