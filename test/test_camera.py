@@ -30,6 +30,9 @@ from geometry_msgs.msg import PointStamped
 from cv_bridge import CvBridge, CvBridgeError
 from ifm3d.msg import Extrinsics
 
+# XXX: TP debugging
+#np.set_printoptions(threshold=np.nan)
+
 class TestCamera(unittest.TestCase):
     """
     TP: 14 May 2018 - heavily adapted from my old o3d3xx-ros test of the same
@@ -129,6 +132,10 @@ class TestCamera(unittest.TestCase):
         uvec = np.array(self.bridge_.imgmsg_to_cv2(self.uvec_))
         cloud = np.array(self.bridge_.imgmsg_to_cv2(self.cloud_))
 
+        tf_dtype = np.float64
+        if cloud.dtype == np.float32:
+            tf_dtype = np.float32
+
         # Get the unit vectors
         ex = uvec[:,:,0]
         ey = uvec[:,:,1]
@@ -155,9 +162,9 @@ class TestCamera(unittest.TestCase):
         tf_listener = tf2_ros.TransformListener(tf_buffer)
         n_rows = x_.shape[0]
         n_cols = x_.shape[1]
-        x_f = np.zeros((n_rows, n_cols), dtype=np.float64)
-        y_f = np.zeros((n_rows, n_cols), dtype=np.float64)
-        z_f = np.zeros((n_rows, n_cols), dtype=np.float64)
+        x_f = np.zeros((n_rows, n_cols), dtype=tf_dtype)
+        y_f = np.zeros((n_rows, n_cols), dtype=tf_dtype)
+        z_f = np.zeros((n_rows, n_cols), dtype=tf_dtype)
         for i in range(n_rows):
             for j in range(n_cols):
                 p = PointStamped()
@@ -171,23 +178,32 @@ class TestCamera(unittest.TestCase):
                 y_f[i,j] = pt.point.y
                 z_f[i,j] = pt.point.z
 
-        # Cast to int16_t
-        x_i = x_f.astype(np.int16)
-        y_i = y_f.astype(np.int16)
-        z_i = z_f.astype(np.int16)
+        # cast to the data type of the point cloud
+        x_i = x_f.astype(cloud.dtype)
+        y_i = y_f.astype(cloud.dtype)
+        z_i = z_f.astype(cloud.dtype)
 
-        # Explicitly set to zero any bad pixels
-        mask = rdis == 0
-        x_i[mask] = 0
-        y_i[mask] = 0
-        z_i[mask] = 0
+        #
+        # XXX: TP debugging
+        #
+        # rospy.loginfo("=== cloud[:,:,0] ===")
+        # rospy.loginfo(cloud[:,:,0])
+        # rospy.loginfo(cloud.dtype)
+
+        # rospy.loginfo("=== x_i ===")
+        # rospy.loginfo(x_i)
+        # rospy.loginfo(x_i.dtype)
 
         # Compare to ground truth -- its subtle, but we are testing here that
-        # we are accurate to w/in 1mm to give us some hystersis in all of our
-        # data type transformations (float <-> int)
-        x_mask = np.fabs(x_i - cloud[:,:,0]) > 1
-        y_mask = np.fabs(y_i - cloud[:,:,1]) > 1
-        z_mask = np.fabs(z_i - cloud[:,:,2]) > 1
+        # we are accurate to w/in 1cm to give us some hystersis in all of our
+        # data type transformations (float <-> int) as well as our coord frame
+        # transformation using tf.
+        tol = 10 # milli-meters
+        if ((cloud.dtype == np.float32) or (cloud.dtype == np.float64)):
+            tol = .01 # meters
+        x_mask = np.fabs(x_i - cloud[:,:,0]) > tol
+        y_mask = np.fabs(y_i - cloud[:,:,1]) > tol
+        z_mask = np.fabs(z_i - cloud[:,:,2]) > tol
 
         self.assertTrue(x_mask.sum() == 0)
         self.assertTrue(y_mask.sum() == 0)

@@ -56,7 +56,7 @@ Software Compatibility Matrix
   </tr>
   <tr>
     <td>0.6.0</td>
-    <td>0.9.2, 0.9.3, 0.10.0, 0.11.0</td>
+    <td>0.9.2, 0.9.3, 0.10.0, 0.11.0, 0.11.2</td>
     <td>Kinetic, Melodic</td>
   </tr>
 </table>
