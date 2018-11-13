@@ -148,6 +148,10 @@ class TestCamera(unittest.TestCase):
         x_ = (ex * rdis_f) + self.extrinsics_.tx
         y_ = (ey * rdis_f) + self.extrinsics_.ty
         z_ = (ez * rdis_f) + self.extrinsics_.tz
+        bad_mask = rdis == 0
+        x_[bad_mask] = 0.
+        y_[bad_mask] = 0.
+        z_[bad_mask] = 0.
 
         # Transform to target frame
         #
