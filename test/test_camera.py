@@ -57,6 +57,7 @@ class TestCamera(unittest.TestCase):
         self.rdis_ = None
         self.uvec_ = None
         self.extrinsics_ = None
+        self.conf_ = None
 
     def test_camera(self):
         time.sleep(5.0) # <-- wait for rosmaster and ifm3d nodelet
@@ -75,6 +76,9 @@ class TestCamera(unittest.TestCase):
         self.extrinsics_sub_ = \
           rospy.Subscriber("/ifm3d/camera/extrinsics", Extrinsics,
                            self.extrinsics_cb, queue_size=None)
+        self.conf_sub_ = \
+          rospy.Subscriber("/ifm3d/camera/confidence", Image, self.image_cb,
+                           queue_size=None, callback_args="conf")
 
         # If it takes more than 10 secs to run our test, something is wrong.
         timeout_t = time.time() + 10.0
@@ -86,18 +90,27 @@ class TestCamera(unittest.TestCase):
             if ((self.rdis_ is not None) and
                 (self.cloud_ is not None) and
                 (self.uvec_ is not None) and
-                (self.extrinsics_ is not None)):
+                (self.extrinsics_ is not None) and
+                (self.conf_ is not None)):
 
-                # Make sure the cloud and rdis are from the same image
+                # Make sure the cloud, conf, and rdis are from the same image
                 # acquisition.
                 d = self.rdis_.header.stamp - self.cloud_.header.stamp
                 if d.to_sec() == 0:
-                    self.success_ = self.compute_cartesian()
-                    break
+                    d2 = self.rdis_.header.stamp - self.conf_.header.stamp
+                    if d2.to_sec() == 0:
+                        self.success_ = self.compute_cartesian()
+                        break
+                    else:
+                        # get new data
+                        self.rdis_ = None
+                        self.cloud_ = None
+                        self.conf_ = None
                 else:
                     # get new data
                     self.rdis_ = None
                     self.cloud_ = None
+                    self.conf_ = None
 
             rate.sleep()
 
@@ -118,6 +131,9 @@ class TestCamera(unittest.TestCase):
         elif im_type == "uvec":
             if self.uvec_ is None:
                 self.uvec_ = data
+        elif im_type == "conf":
+            if self.conf_ is None:
+                self.conf_ = data
 
     def compute_cartesian(self):
         """
@@ -131,24 +147,50 @@ class TestCamera(unittest.TestCase):
         rdis = np.array(self.bridge_.imgmsg_to_cv2(self.rdis_))
         uvec = np.array(self.bridge_.imgmsg_to_cv2(self.uvec_))
         cloud = np.array(self.bridge_.imgmsg_to_cv2(self.cloud_))
+        conf = np.array(self.bridge_.imgmsg_to_cv2(self.conf_))
 
-        tf_dtype = np.float64
-        if cloud.dtype == np.float32:
-            tf_dtype = np.float32
+        # split out the camera-computed image planes
+        x_cam = cloud[:,:,0]
+        y_cam = cloud[:,:,1]
+        z_cam = cloud[:,:,2]
+        if ((cloud.dtype == np.float32) or
+            (cloud.dtype == np.float64)):
+            # convert to mm
+            x_cam *= 1000.
+            y_cam *= 1000.
+            z_cam *= 1000.
+
+            # cast to int16_t
+            x_cam = x_cam.astype(np.int16)
+            y_cam = y_cam.astype(np.int16)
+            z_cam = z_cam.astype(np.int16)
+        else:
+            # camera data are already in mm
+            pass
 
         # Get the unit vectors
         ex = uvec[:,:,0]
         ey = uvec[:,:,1]
         ez = uvec[:,:,2]
 
+        # translation vector from extrinsics
+        tx = self.extrinsics_.tx
+        ty = self.extrinsics_.ty
+        tz = self.extrinsics_.tz
+
         # Cast the radial distance image to float
         rdis_f = rdis.astype(np.float32)
+        if (rdis.dtype == np.float32):
+            # assume rdis was in meters, convert to mm
+            rdis_f *= 1000.
 
         # Compute Cartesian
-        x_ = (ex * rdis_f) + self.extrinsics_.tx
-        y_ = (ey * rdis_f) + self.extrinsics_.ty
-        z_ = (ez * rdis_f) + self.extrinsics_.tz
-        bad_mask = rdis == 0
+        x_ = ex * rdis_f + tx
+        y_ = ey * rdis_f + ty
+        z_ = ez * rdis_f + tz
+
+        # mask out bad pixels from our computed cartesian values
+        bad_mask = (np.bitwise_and(conf, 0x1) == 0x1)
         x_[bad_mask] = 0.
         y_[bad_mask] = 0.
         z_[bad_mask] = 0.
@@ -166,9 +208,9 @@ class TestCamera(unittest.TestCase):
         tf_listener = tf2_ros.TransformListener(tf_buffer)
         n_rows = x_.shape[0]
         n_cols = x_.shape[1]
-        x_f = np.zeros((n_rows, n_cols), dtype=tf_dtype)
-        y_f = np.zeros((n_rows, n_cols), dtype=tf_dtype)
-        z_f = np.zeros((n_rows, n_cols), dtype=tf_dtype)
+        x_f = np.zeros((n_rows, n_cols), dtype=np.float32)
+        y_f = np.zeros((n_rows, n_cols), dtype=np.float32)
+        z_f = np.zeros((n_rows, n_cols), dtype=np.float32)
         for i in range(n_rows):
             for j in range(n_cols):
                 p = PointStamped()
@@ -183,32 +225,17 @@ class TestCamera(unittest.TestCase):
                 z_f[i,j] = pt.point.z
 
         # cast to the data type of the point cloud
-        x_i = x_f.astype(cloud.dtype)
-        y_i = y_f.astype(cloud.dtype)
-        z_i = z_f.astype(cloud.dtype)
+        x_i = x_f.astype(np.int16)
+        y_i = y_f.astype(np.int16)
+        z_i = z_f.astype(np.int16)
 
-        #
-        # XXX: TP debugging
-        #
-        # rospy.loginfo("=== cloud[:,:,0] ===")
-        # rospy.loginfo(cloud[:,:,0])
-        # rospy.loginfo(cloud.dtype)
-
-        # rospy.loginfo("=== x_i ===")
-        # rospy.loginfo(x_i)
-        # rospy.loginfo(x_i.dtype)
-
-        # Compare to ground truth -- its subtle, but we are testing here that
-        # we are accurate to w/in 1cm to give us some hystersis in all of our
-        # data type transformations (float <-> int) as well as our coord frame
-        # transformation using tf.
         tol = 10 # milli-meters
-        if ((cloud.dtype == np.float32) or (cloud.dtype == np.float64)):
-            tol = .01 # meters
-        x_mask = np.fabs(x_i - cloud[:,:,0]) > tol
-        y_mask = np.fabs(y_i - cloud[:,:,1]) > tol
-        z_mask = np.fabs(z_i - cloud[:,:,2]) > tol
+        x_mask = np.fabs(x_i - x_cam) > tol
+        y_mask = np.fabs(y_i - y_cam) > tol
+        z_mask = np.fabs(z_i - z_cam) > tol
 
+        # we are asserting that no pixels are out-of-tolerance
+        # per the computation of the x_,y_,z_mask variables above.
         self.assertTrue(x_mask.sum() == 0)
         self.assertTrue(y_mask.sum() == 0)
         self.assertTrue(z_mask.sum() == 0)
