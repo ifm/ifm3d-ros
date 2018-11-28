@@ -39,6 +39,7 @@ add_service_files(
   Trigger.srv
   SoftOff.srv
   SoftOn.srv
+  SyncClocks.srv
   )
 
 generate_messages(

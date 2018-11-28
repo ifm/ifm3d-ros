@@ -11,6 +11,7 @@
   <arg name="timeout_tolerance_secs" default="5.0"/>
   <arg name="respawn" default="false"/>
   <arg name="assume_sw_triggered" default="false"/>
+  <arg name="sync_clocks" default="false"/>
   <arg name="frame_id_base" default="ifm3d/$(arg camera)" />
 
   <node pkg="nodelet"
@@ -74,6 +75,20 @@
       soft_on_timeout_tolerance_secs: $(arg timeout_tolerance_secs)
       soft_off_timeout_millis: 500
       soft_off_timeout_tolerance_secs: 600.0
+
+      #
+      # Flag to control syncing the camera clock with the system
+      # clock at nodelet startup time.
+      #
+      sync_clocks: $(arg sync_clocks)
+
+      #
+      # Time (seconds) used to determine that timestamps from the camera
+      # cannot be trusted. When this threshold is exceeded, when compared to
+      # system time, we use the reception time of the frame and not the capture
+      # time of the frame.
+      #
+      frame_latency_thresh: 60.0
 
       #
       # Get rid of the errors when running `rosbag -a'

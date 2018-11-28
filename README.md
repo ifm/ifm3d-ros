@@ -154,6 +154,17 @@ it is recommended for keeping the noise level of the `ifm3d` logs low.
     </td>
   </tr>
   <tr>
+    <td>~frame_latency_thresh</td>
+    <td>float</td>
+    <td>60.0</td>
+    <td>
+      Time (seconds) used to determine that timestamps from the camera cannot
+      be trusted. When this threshold is exceeded, when compared to system
+      time, we use the reception time of the frame and not the capture time of
+      the frame.
+    </td>
+  </tr>
+  <tr>
     <td>~ip</td>
     <td>string</td>
     <td>192.168.0.69</td>
@@ -236,6 +247,16 @@ it is recommended for keeping the noise level of the `ifm3d` logs low.
     <td>
       If using the `SoftOff` service call, when turning the camera `off`
       this is the setting that will be used for `timeout_tolerance_secs`.
+    </td>
+  </tr>
+  <tr>
+    <td>~sync_clocks</td>
+    <td>bool</td>
+    <td>false</td>
+    <td>
+      Attempt to sync the camera clock to the system clock at start-up. The
+      side-effect is that timestamps on the image should reflect the capture
+      time as opposed to the receipt time.
     </td>
   </tr>
   <tr>
@@ -353,6 +374,15 @@ None.
     <td>
       Sets the active application of the camera into free-running mode.
       Its intention is to act as the inverse of `SoftOff`.
+    </td>
+  </tr>
+  <tr>
+    <td>SyncClocks</td>
+    <td><a href="srv/SyncClocks.srv">ifm3d/SyncClocks</a></td>
+    <td>
+      Synchronizes the camera clock to the system time. The side-effect is that
+      images can be stamped with the capture time of the frame as opposed to
+      the reception time.
     </td>
   </tr>
   <tr>
