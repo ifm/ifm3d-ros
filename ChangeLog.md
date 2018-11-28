@@ -1,3 +1,10 @@
+## Changes between ifm3d-ros 0.6.0 and 0.6.1
+
+* Added support syncing the system and camera clocks at startup. Side-effect,
+  is we can now stamp the images with the camera-side capture time and not the
+  host-side reception time.
+* Added the `SyncClocks` Service
+
 ## Changes between ifm3d-ros 0.5.1 and 0.6.0
 
 * Added a image transport plugin _blacklist_ to the nodlet launch file. This

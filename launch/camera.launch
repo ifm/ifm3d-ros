@@ -12,6 +12,7 @@
   <arg name="frame_id_base" default="$(arg ns)/$(arg nn)" />
   <arg name="respawn" default="false"/>
   <arg name="assume_sw_triggered" default="false"/>
+  <arg name="sync_clocks" default="false"/>
 
   <include ns="$(arg ns)" file="$(find ifm3d)/launch/nodelet.launch">
     <arg name="camera" value="$(arg nn)"/>
@@ -24,6 +25,7 @@
     <arg name="frame_id_base" value="$(arg ns)/$(arg nn)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
+    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
   </include>
 
 </launch>

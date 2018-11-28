@@ -43,6 +43,7 @@
 #include <ifm3d/Extrinsics.h>
 #include <ifm3d/SoftOff.h>
 #include <ifm3d/SoftOn.h>
+#include <ifm3d/SyncClocks.h>
 #include <ifm3d/Trigger.h>
 
 namespace enc = sensor_msgs::image_encodings;
@@ -89,6 +90,8 @@ ifm3d_ros::CameraNodelet::onInit()
                   this->soft_off_timeout_millis_, 500);
   this->np_.param("soft_off_timeout_tolerance_secs",
                   this->soft_off_timeout_tolerance_secs_, 600.0);
+  this->np_.param("sync_clocks", this->sync_clocks_, false);
+  this->np_.param("frame_latency_thresh", this->frame_latency_thresh_, 60.0f);
   this->np_.param("frame_id_base", frame_id_base, frame_id_base);
 
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
@@ -151,6 +154,13 @@ ifm3d_ros::CameraNodelet::onInit()
     ("SoftOn", std::bind(&CameraNodelet::SoftOn, this,
                           std::placeholders::_1,
                           std::placeholders::_2));
+
+  this->sync_clocks_srv_ =
+    this->np_.advertiseService<ifm3d::SyncClocks::Request,
+                               ifm3d::SyncClocks::Response>
+    ("SyncClocks", std::bind(&CameraNodelet::SyncClocks, this,
+                             std::placeholders::_1,
+                             std::placeholders::_2));
 
   //----------------------------------
   // Fire off our main publishing loop
@@ -246,6 +256,30 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
   catch (const ifm3d::error_t& ex)
     {
       res.status = ex.code();
+    }
+
+  return true;
+}
+
+bool
+ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
+                                     ifm3d::SyncClocks::Response& res)
+{
+  std::lock_guard<std::mutex> lock(this->mutex_);
+  res.status = 0;
+  res.msg = "OK";
+
+  NODELET_INFO_STREAM("Syncing camera clock to system...");
+  try
+    {
+      this->cam_->SetCurrentTime(-1);
+    }
+  catch (const ifm3d::error_t& ex)
+    {
+      res.status = ex.code();
+      res.msg = ex.what();
+      NODELET_WARN_STREAM(res.status << ": " << res.msg);
+      return false;
     }
 
   return true;
@@ -401,6 +435,30 @@ ifm3d_ros::CameraNodelet::Run()
   std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
 
   //
+  // Sync camera clock with system clock if necessary
+  //
+  if (this->sync_clocks_)
+    {
+      NODELET_INFO_STREAM("Syncing camera clock to system...");
+      try
+        {
+          this->cam_ = ifm3d::Camera::MakeShared(this->camera_ip_,
+                                                 this->xmlrpc_port_,
+                                                 this->password_);
+          this->cam_->SetCurrentTime(-1);
+        }
+      catch (const ifm3d::error_t& ex)
+        {
+          NODELET_WARN_STREAM("Failed to sync clocks!");
+          NODELET_WARN_STREAM(ex.code() << ": " << ex.what());
+        }
+    }
+  else
+    {
+      NODELET_INFO_STREAM("Camera clock will not be sync'd to system clock");
+    }
+
+  //
   // We need to account for the case of when the nodelet is being started prior
   // to the camera being plugged in.
   //
@@ -466,7 +524,8 @@ ifm3d_ros::CameraNodelet::Run()
       head.stamp = ros::Time(
         std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>
         (this->im_->TimeStamp().time_since_epoch()).count());
-      if (ros::Time::now() - head.stamp > ros::Duration(60.0))
+      if ((ros::Time::now() - head.stamp) >
+          ros::Duration(this->frame_latency_thresh_))
         {
           ROS_WARN_ONCE("Camera's time is not up to date, therefore header's "
             "timestamps will be the reception time and not capture time. "
