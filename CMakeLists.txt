@@ -30,6 +30,9 @@ catkin_python_setup()
 add_message_files(
   FILES
   Extrinsics.msg
+  SetExposureTime.msg
+  SetExposureTimes.msg
+  SetChannel.msg
   )
 
 add_service_files(

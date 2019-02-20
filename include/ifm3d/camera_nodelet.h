@@ -37,6 +37,9 @@
 #include <ifm3d/SoftOn.h>
 #include <ifm3d/SyncClocks.h>
 #include <ifm3d/Trigger.h>
+#include <ifm3d/SetExposureTime.h>
+#include <ifm3d/SetExposureTimes.h>
+#include <ifm3d/SetChannel.h>
 
 namespace ifm3d_ros
 {
@@ -106,12 +109,21 @@ namespace ifm3d_ros
     ros::Publisher cloud_pub_;
     ros::Publisher uvec_pub_;
     ros::Publisher extrinsics_pub_;
+    ros::Publisher exposure_pub_;
     image_transport::Publisher distance_pub_;
     image_transport::Publisher amplitude_pub_;
     image_transport::Publisher raw_amplitude_pub_;
     image_transport::Publisher conf_pub_;
     image_transport::Publisher good_bad_pub_;
     image_transport::Publisher xyz_image_pub_;
+
+
+    //
+    // Topics we subscribe
+    //
+    ros::Subscriber exp_time_sub_;
+    ros::Subscriber exp_times_sub_;
+    ros::Subscriber channel_sub_;
 
     //
     // Services we advertise
@@ -122,6 +134,13 @@ namespace ifm3d_ros
     ros::ServiceServer soft_off_srv_;
     ros::ServiceServer soft_on_srv_;
     ros::ServiceServer sync_clocks_srv_;
+
+    //
+    // Handlers for topic subscriptions
+    //
+    void SetExposureTimeCb(const ifm3d::SetExposureTime::ConstPtr& msg);
+    void SetExposureTimesCb(const ifm3d::SetExposureTimes::ConstPtr& msg);
+    void SetChannelCb(const ifm3d::SetChannel::ConstPtr& msg);
 
     //
     // We use a ROS one-shot timer to kick off our publishing loop.
