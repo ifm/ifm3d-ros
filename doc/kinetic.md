@@ -1,6 +1,11 @@
 ifm3d-ros on Ubuntu 16.04 and ROS Kinetic
 -----------------------------------------
 
+NOTE: The instructions below only apply if you plan to install `ifm3d` from
+source. You can, as of version 0.12.0, install `ifm3d` from binary
+debs. Instructions for that are located at the main
+[ifm3d project page](https://github.com/ifm/ifm3d).
+
 This article provides a quick-start guide for getting a fresh install of Ubuntu
 16.04 ready for usage with `ifm3d-ros` and an O3X camera. As a pre-requisite
 for this article, we assume you already have Ubuntu 16.04 installed (but have
