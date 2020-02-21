@@ -1,4 +1,4 @@
-ifm3d-ros
+
 =========
 ifm3d-ros is a wrapper around [ifm3d](https://github.com/lovepark/ifm3d)
 enabling the usage of ifm pmd-based ToF cameras from within
@@ -60,8 +60,8 @@ Software Compatibility Matrix
     <td>Kinetic, Melodic</td>
   </tr>
   <tr>
-    <td>0.6.1</td>
-    <td>0.11.2, 0.12.0</td>
+    <td>0.6.1, 0.6.2</td>
+    <td>0.11.2, 0.12.0, 0.17.0</td>
     <td>Kinetic, Melodic</td>
   </tr>
 </table>
