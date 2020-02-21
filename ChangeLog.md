@@ -1,3 +1,8 @@
+## Changes between ifm3d-ros 0.6.1 and 0.6.2
+
+* Updated maintainer email address
+* Added ifm3d-core dependency in preparation for submission to the ROS index
+
 ## Changes between ifm3d-ros 0.6.0 and 0.6.1
 
 * Added support syncing the system and camera clocks at startup. Side-effect,
