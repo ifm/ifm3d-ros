@@ -2,9 +2,9 @@
 <package format="2">
 
   <name>ifm3d</name>
-  <version>0.6.1</version>
+  <version>0.6.2</version>
   <description>ifm pmd-based 3D ToF Camera ROS package</description>
-  <maintainer email="tom.panzarella@ifm.com">Tom Panzarella</maintainer>
+  <maintainer email="sean.kelly@ifm.com">Sean Kelly</maintainer>
   <license>Apache 2</license>
   <author email="tom.panzarella@ifm.com">Tom Panzarella</author>
 
@@ -14,6 +14,7 @@
 
   <build_depend>rostest</build_depend>
 
+  <depend>ifm3d_core</depend>
   <depend>rospy</depend>
   <depend>image_transport</depend>
   <depend>pcl_ros</depend>
