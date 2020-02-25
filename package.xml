@@ -6,7 +6,7 @@
   <description>ifm pmd-based 3D ToF Camera ROS package</description>
   <maintainer email="sean.kelly@ifm.com">Sean Kelly</maintainer>
   <license>Apache 2</license>
-  <author email="tom.panzarella@ifm.com">Tom Panzarella</author>
+  <author email="tom@boxrobotics.ai">Tom Panzarella</author>
 
   <url type="repository">https://github.com/lovepark/ifm3d-ros</url>
 
