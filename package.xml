@@ -8,7 +8,7 @@
   <license>Apache 2</license>
   <author email="tom@boxrobotics.ai">Tom Panzarella</author>
 
-  <url type="repository">https://github.com/lovepark/ifm3d-ros</url>
+  <url type="repository">https://github.com/ifm/ifm3d-ros</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
