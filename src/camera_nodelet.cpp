@@ -621,12 +621,11 @@ ifm3d_ros::CameraNodelet::Run()
         {
           sensor_msgs::ImagePtr distance_noise_msg =
             cv_bridge::CvImage(optical_head,
-                               distance_img.type() == CV_32FC1 ?
+                               distance_noise_img.type() == CV_32FC1 ?
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
-                               distance_img).toImageMsg();
+                               distance_noise_img).toImageMsg();
           this->distance_noise_pub_.publish(distance_noise_msg);
         }
-
 
       if ((this->schema_mask_ & ifm3d::IMG_AMP) == ifm3d::IMG_AMP)
         {
