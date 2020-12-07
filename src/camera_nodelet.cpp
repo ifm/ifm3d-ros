@@ -106,6 +106,7 @@ ifm3d_ros::CameraNodelet::onInit()
   this->cloud_pub_ =
     this->np_.advertise<pcl::PointCloud<ifm3d::PointT> >("cloud", 1);
   this->distance_pub_ = this->it_->advertise("distance", 1);
+  this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
   this->amplitude_pub_ = this->it_->advertise("amplitude", 1);
   this->raw_amplitude_pub_ = this->it_->advertise("raw_amplitude", 1);
   this->conf_pub_ = this->it_->advertise("confidence", 1);
@@ -473,6 +474,7 @@ ifm3d_ros::CameraNodelet::Run()
 
   cv::Mat confidence_img;
   cv::Mat distance_img;
+  cv::Mat distance_noise_img;
   cv::Mat amplitude_img;
   cv::Mat xyz_img;
   cv::Mat raw_amplitude_img;
@@ -574,6 +576,7 @@ ifm3d_ros::CameraNodelet::Run()
       xyz_img = this->im_->XYZImage();
       confidence_img = this->im_->ConfidenceImage();
       distance_img = this->im_->DistanceImage();
+      distance_noise_img = this->im_->DistanceNoiseImage();
       amplitude_img = this->im_->AmplitudeImage();
       raw_amplitude_img = this->im_->RawAmplitudeImage();
       extrinsics = this->im_->Extrinsics();
@@ -613,6 +616,17 @@ ifm3d_ros::CameraNodelet::Run()
                                distance_img).toImageMsg();
           this->distance_pub_.publish(distance_msg);
         }
+
+      if ((this->schema_mask_ & ifm3d::IMG_DIS_NOISE) == ifm3d::IMG_DIS_NOISE)
+        {
+          sensor_msgs::ImagePtr distance_noise_msg =
+            cv_bridge::CvImage(optical_head,
+                               distance_img.type() == CV_32FC1 ?
+                               enc::TYPE_32FC1 : enc::TYPE_16UC1,
+                               distance_img).toImageMsg();
+          this->distance_noise_pub_.publish(distance_noise_msg);
+        }
+
 
       if ((this->schema_mask_ & ifm3d::IMG_AMP) == ifm3d::IMG_AMP)
         {

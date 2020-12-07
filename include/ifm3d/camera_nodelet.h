@@ -107,6 +107,7 @@ namespace ifm3d_ros
     ros::Publisher uvec_pub_;
     ros::Publisher extrinsics_pub_;
     image_transport::Publisher distance_pub_;
+    image_transport::Publisher distance_noise_pub_;
     image_transport::Publisher amplitude_pub_;
     image_transport::Publisher raw_amplitude_pub_;
     image_transport::Publisher conf_pub_;
