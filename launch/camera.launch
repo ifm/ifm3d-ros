@@ -22,7 +22,7 @@
     <arg name="schema_mask" value="$(arg schema_mask)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
-    <arg name="frame_id_base" value="$(arg ns)/$(arg nn)" />
+    <arg name="frame_id_base" value="$(arg frame_id_base)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
     <arg name="sync_clocks" value="$(arg sync_clocks)"/>
