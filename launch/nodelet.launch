@@ -112,7 +112,7 @@
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="$(arg camera)_tf"
-        args="0 0 0 -1.5707963267948966 0 -1.5707963267948966 $(arg frame_id_base)_link $(arg frame_id_base)_optical_link"
+        args="0 0 0 -1.5707963267948966 0 -1.5707963267948966 $(arg frame_id_base) $(arg frame_id_base)_optical_link"
         respawn="$(arg respawn)" />
 
 </launch>
