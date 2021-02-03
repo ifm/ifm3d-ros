@@ -34,6 +34,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <std_msgs/UInt32MultiArray.h>
 
 #include <ifm3d/camera.h>
 #include <ifm3d/fg.h>
@@ -45,6 +46,9 @@
 #include <ifm3d/SoftOn.h>
 #include <ifm3d/SyncClocks.h>
 #include <ifm3d/Trigger.h>
+#include <ifm3d/SetExposureTime.h>
+#include <ifm3d/SetExposureTimes.h>
+#include <ifm3d/SetChannel.h>
 
 namespace enc = sensor_msgs::image_encodings;
 
@@ -93,6 +97,7 @@ ifm3d_ros::CameraNodelet::onInit()
   this->np_.param("sync_clocks", this->sync_clocks_, false);
   this->np_.param("frame_latency_thresh", this->frame_latency_thresh_, 60.0f);
   this->np_.param("frame_id_base", frame_id_base, frame_id_base);
+  schema_mask = (schema_mask | ifm3d::EXP_TIME );
 
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_ = static_cast<std::uint16_t>(schema_mask);
@@ -118,6 +123,9 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->extrinsics_pub_ =
     this->np_.advertise<ifm3d::Extrinsics>("extrinsics", 1);
+
+  this->exposure_pub_ =
+          this ->np_.advertise<std_msgs::UInt32MultiArray>("exposure_times",1);
 
   //---------------------
   // Advertised Services
@@ -161,6 +169,21 @@ ifm3d_ros::CameraNodelet::onInit()
     ("SyncClocks", std::bind(&CameraNodelet::SyncClocks, this,
                              std::placeholders::_1,
                              std::placeholders::_2));
+
+  //---------------------
+  // Topic subscriptions
+  //---------------------
+  this->exp_time_sub_ =
+    this->np_.subscribe("SetExposureTime", 1,
+                        &CameraNodelet::SetExposureTimeCb, this);
+
+  this->exp_times_sub_ =
+    this->np_.subscribe("SetExposureTimes", 1,
+                        &CameraNodelet::SetExposureTimesCb, this);
+
+  this->channel_sub_ =
+    this->np_.subscribe("SetChannel", 1,
+                        &CameraNodelet::SetChannelCb, this);
 
   //----------------------------------
   // Fire off our main publishing loop
@@ -371,6 +394,92 @@ ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
   return true;
 }
 
+void
+ifm3d_ros::CameraNodelet::SetExposureTimeCb(
+  const ifm3d::SetExposureTime::ConstPtr& msg)
+{
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::unordered_map<std::string, std::string> params =
+        {
+          {"imager_001/ExposureTime", "0"}
+        };
+
+    params["imager_001/ExposureTime"] = std::to_string(msg->exposure_usecs);
+
+    try
+    {
+        this->cam_->RequestSession();
+        this->cam_->SetTemporaryApplicationParameters(params);
+
+    }
+    catch (const ifm3d::error_t& ex)
+    {
+         NODELET_WARN_STREAM("Could not set exposure time, " << ex.code() << ": " << ex.what());
+         this->cam_->CancelSession();
+
+    }
+    this->cam_->CancelSession();
+
+    return;
+}
+
+void
+ifm3d_ros::CameraNodelet::SetExposureTimesCb(
+  const ifm3d::SetExposureTimes::ConstPtr& msg)
+{
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::unordered_map<std::string, std::string> params =
+        {
+          {"imager_001/ExposureTime", "0"},
+          {"imager_001/ExposureTimeRatio", "0"}
+        };
+
+    params["imager_001/ExposureTime"] = std::to_string(msg->exposure_usecs);
+    params["imager_001/ExposureTimeRatio"] = std::to_string(msg->exposure_time_ratio);
+
+    try
+    {
+
+        this->cam_->RequestSession();
+        this->cam_->SetTemporaryApplicationParameters(params);
+
+    }
+    catch (const ifm3d::error_t& ex)
+    {
+        NODELET_WARN_STREAM("Could not set exposure times, " << ex.code() << ": " << ex.what());
+        this->cam_->CancelSession();
+    }
+    this->cam_->CancelSession();
+
+    return;
+}
+
+void
+ifm3d_ros::CameraNodelet::SetChannelCb(
+        const ifm3d::SetChannel::ConstPtr& msg)
+{
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::unordered_map<std::string, std::string> params =
+        {
+          {"imager_001/Channel", "0"}
+        };
+
+    params["imager_001/Channel"] = std::to_string(msg->channel);
+    try
+    {
+        this->cam_->RequestSession();
+        this->cam_->SetTemporaryApplicationParameters(params);
+
+    }
+    catch (const ifm3d::error_t& ex)
+    {
+        NODELET_WARN_STREAM("Could not set channel, " << ex.code() << ": " << ex.what());
+        this->cam_->CancelSession();
+    }
+    this->cam_->CancelSession();
+
+}
+
 bool
 ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask)
 {
@@ -479,6 +588,7 @@ ifm3d_ros::CameraNodelet::Run()
   cv::Mat good_bad_pixels_img;
 
   std::vector<float> extrinsics(6);
+  std::vector<std::uint32_t> exposure_times;
 
   // XXX: need to implement a nice strategy for getting the actual times
   // from the camera which are registered to the frame data in the image
@@ -577,6 +687,7 @@ ifm3d_ros::CameraNodelet::Run()
       amplitude_img = this->im_->AmplitudeImage();
       raw_amplitude_img = this->im_->RawAmplitudeImage();
       extrinsics = this->im_->Extrinsics();
+      exposure_times = this->im_->ExposureTimes();
 
       lock.unlock();
 
@@ -590,6 +701,13 @@ ifm3d_ros::CameraNodelet::Run()
                            "mono8",
                            confidence_img).toImageMsg();
       this->conf_pub_.publish(confidence_msg);
+
+      std_msgs::UInt32MultiArray exposure_times_msg;
+      for(auto expo_time:exposure_times)
+      {
+        exposure_times_msg.data.push_back(expo_time);
+      }
+      exposure_pub_.publish(exposure_times_msg);
 
       if ((this->schema_mask_ & ifm3d::IMG_CART) == ifm3d::IMG_CART)
         {

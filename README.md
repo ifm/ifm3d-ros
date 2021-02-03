@@ -332,11 +332,45 @@ it is recommended for keeping the noise level of the `ifm3d` logs low.
       values respectively.
     </td>
   </tr>
+  <tr>
+    <td>exposure_times</td>
+    <td>std_msgs/UInt32MultiArray</td>
+    <td>
+      The exposure times obtained from the camera for every frame received, the values are in microseconds.
+    </td>
+  </tr>
 </table>
 
 ### Subscribed Topics
 
-None.
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Data Type</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>SetExposureTime</td>
+    <td>ifm3d/SetExposureTime</td>
+    <td>
+      Allows for a lightweight/fast means to change exposure time in <b>1-exposure mode</b>.
+    </td>
+  </tr>
+  <tr>
+    <td>SetExposureTimes</td>
+    <td>ifm3d/SetExposureTimes</td>
+    <td>
+      Allows for a lightweight/fast means to change the exposure times in <b>2-exposure mode</b>.
+    </td>
+  </tr>
+  <tr>
+    <td>SetChannel</td>
+    <td>ifm3d/SetChannel</td>
+    <td>
+      Allows for a lightweight/fast means to change the Frequency channel to be used by your device.
+    </td>
+  </tr>
+</table>
 
 ### Advertised Services
 
@@ -400,6 +434,7 @@ Additional Documentation
 ========================
 
 * [Inspecting and configuring the camera/imager settings](doc/dump_and_config.md)
+* [Changing temporary application parameters on the fly](doc/changing_temporary_parameters.md)
 * [Troubleshooting](doc/troubleshooting.md)
 
 LICENSE

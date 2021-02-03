@@ -1,0 +1,2 @@
+uint32 exposure_usecs
+uint32 exposure_time_ratio
