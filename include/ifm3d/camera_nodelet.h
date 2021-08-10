@@ -69,7 +69,7 @@ namespace ifm3d_ros
     // This is our main publishing loop and its helper functions
     //
     void Run();
-    bool InitStructures(std::uint16_t mask);
+    bool InitStructures(std::uint16_t mask, std::uint16_t pcic_port);
     bool AcquireFrame();
 
     //
@@ -77,6 +77,7 @@ namespace ifm3d_ros
     //
     std::string camera_ip_;
     std::uint16_t xmlrpc_port_;
+    std::uint16_t pcic_port;
     std::string password_;
     std::uint16_t schema_mask_;
     int timeout_millis_;
@@ -107,7 +108,7 @@ namespace ifm3d_ros
     ros::Publisher uvec_pub_;
     ros::Publisher extrinsics_pub_;
     image_transport::Publisher distance_pub_;
-    image_transport::Publisher distance_noise_pub_;
+    // image_transport::Publisher distance_noise_pub_;
     image_transport::Publisher amplitude_pub_;
     image_transport::Publisher raw_amplitude_pub_;
     image_transport::Publisher conf_pub_;

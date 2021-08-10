@@ -5,6 +5,7 @@
   <arg name="camera" default="camera"/>
   <arg name="ip" default="192.168.0.69"/>
   <arg name="xmlrpc_port" default="80"/>
+  <arg name="pcic_port" default="50010"/>
   <arg name="password" default=""/>
   <arg name="schema_mask" default="15"/>
   <arg name="timeout_millis" default="500"/>

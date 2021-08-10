@@ -65,6 +65,7 @@ ifm3d_ros::CameraNodelet::onInit()
   //
   int schema_mask;
   int xmlrpc_port;
+  int pcic_port;
   std::string frame_id_base;
 
   if ((nn.size() > 0) && (nn.at(0) == '/'))
@@ -78,6 +79,7 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
   this->np_.param("xmlrpc_port", xmlrpc_port, (int) ifm3d::DEFAULT_XMLRPC_PORT);
+  this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_NAT_PCIC_PORT);
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
   this->np_.param("schema_mask", schema_mask, (int) ifm3d::DEFAULT_SCHEMA_MASK);
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
@@ -96,6 +98,7 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_ = static_cast<std::uint16_t>(schema_mask);
+  this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
 
   this->frame_id_ = frame_id_base + "_link";
   this->optical_frame_id_ = frame_id_base + "_optical_link";
@@ -106,7 +109,7 @@ ifm3d_ros::CameraNodelet::onInit()
   this->cloud_pub_ =
     this->np_.advertise<pcl::PointCloud<ifm3d::PointT> >("cloud", 1);
   this->distance_pub_ = this->it_->advertise("distance", 1);
-  this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
+  // this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
   this->amplitude_pub_ = this->it_->advertise("amplitude", 1);
   this->raw_amplitude_pub_ = this->it_->advertise("raw_amplitude", 1);
   this->conf_pub_ = this->it_->advertise("confidence", 1);
@@ -373,7 +376,7 @@ ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
 }
 
 bool
-ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask)
+ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_port)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   bool retval = false;
@@ -392,7 +395,7 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask)
       ros::Duration(1.0).sleep();
 
       NODELET_INFO_STREAM("Initializing framegrabber...");
-      this->fg_ = std::make_shared<ifm3d::FrameGrabber>(this->cam_, mask);
+      this->fg_ = std::make_shared<ifm3d::FrameGrabber>(this->cam_, mask, pcic_port);
 
       NODELET_INFO_STREAM("Initializing image buffer...");
       this->im_ = std::make_shared<ifm3d::ImageBuffer>();
@@ -474,7 +477,7 @@ ifm3d_ros::CameraNodelet::Run()
 
   cv::Mat confidence_img;
   cv::Mat distance_img;
-  cv::Mat distance_noise_img;
+  // cv::Mat distance_noise_img;
   cv::Mat amplitude_img;
   cv::Mat xyz_img;
   cv::Mat raw_amplitude_img;
@@ -554,7 +557,7 @@ ifm3d_ros::CameraNodelet::Run()
           ROS_INFO("Got unit vectors, restarting framegrabber with mask: %d",
                    (int) this->schema_mask_);
 
-          while (! this->InitStructures(this->schema_mask_))
+          while (! this->InitStructures(this->schema_mask_, this->pcic_port))
             {
               ROS_WARN("Could not re-initialize pixel stream!");
               ros::Duration(1.0).sleep();
@@ -576,7 +579,7 @@ ifm3d_ros::CameraNodelet::Run()
       xyz_img = this->im_->XYZImage();
       confidence_img = this->im_->ConfidenceImage();
       distance_img = this->im_->DistanceImage();
-      distance_noise_img = this->im_->DistanceNoiseImage();
+      // distance_noise_img = this->im_->DistanceNoiseImage();
       amplitude_img = this->im_->AmplitudeImage();
       raw_amplitude_img = this->im_->RawAmplitudeImage();
       extrinsics = this->im_->Extrinsics();
@@ -617,15 +620,15 @@ ifm3d_ros::CameraNodelet::Run()
           this->distance_pub_.publish(distance_msg);
         }
 
-      if ((this->schema_mask_ & ifm3d::IMG_DIS_NOISE) == ifm3d::IMG_DIS_NOISE)
-        {
-          sensor_msgs::ImagePtr distance_noise_msg =
-            cv_bridge::CvImage(optical_head,
-                               distance_noise_img.type() == CV_32FC1 ?
-                               enc::TYPE_32FC1 : enc::TYPE_16UC1,
-                               distance_noise_img).toImageMsg();
-          this->distance_noise_pub_.publish(distance_noise_msg);
-        }
+      // if ((this->schema_mask_ & ifm3d::IMG_DIS_NOISE) == ifm3d::IMG_DIS_NOISE)
+      //   {
+      //     sensor_msgs::ImagePtr distance_noise_msg =
+      //       cv_bridge::CvImage(optical_head,
+      //                          distance_noise_img.type() == CV_32FC1 ?
+      //                          enc::TYPE_32FC1 : enc::TYPE_16UC1,
+      //                          distance_noise_img).toImageMsg();
+      //     this->distance_noise_pub_.publish(distance_noise_msg);
+      //   }
 
       if ((this->schema_mask_ & ifm3d::IMG_AMP) == ifm3d::IMG_AMP)
         {
