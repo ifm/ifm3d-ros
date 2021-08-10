@@ -79,7 +79,7 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
   this->np_.param("xmlrpc_port", xmlrpc_port, (int) ifm3d::DEFAULT_XMLRPC_PORT);
-  this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_NAT_PCIC_PORT);
+  this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_PCIC_PORT);
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
   this->np_.param("schema_mask", schema_mask, (int) ifm3d::DEFAULT_SCHEMA_MASK);
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
@@ -98,7 +98,7 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_ = static_cast<std::uint16_t>(schema_mask);
-  this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
+  this->pcic_port_ = static_cast<std::uint16_t>( _port);
 
   this->frame_id_ = frame_id_base + "_link";
   this->optical_frame_id_ = frame_id_base + "_optical_link";
