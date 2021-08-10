@@ -62,8 +62,8 @@ namespace ifm3d_ros
     bool Trigger(ifm3d::Trigger::Request& req, ifm3d::Trigger::Response& res);
     bool SoftOff(ifm3d::SoftOff::Request& req, ifm3d::SoftOff::Response& res);
     bool SoftOn(ifm3d::SoftOn::Request& req, ifm3d::SoftOn::Response& res);
-    bool SyncClocks(ifm3d::SyncClocks::Request& req,
-                    ifm3d::SyncClocks::Response& res);
+    // bool SyncClocks(ifm3d::SyncClocks::Request& req,
+    //                 ifm3d::SyncClocks::Response& res);
 
     //
     // This is our main publishing loop and its helper functions
@@ -93,7 +93,7 @@ namespace ifm3d_ros
     std::string frame_id_;
     std::string optical_frame_id_;
 
-    ifm3d::Camera::Ptr cam_;
+    ifm3d::O3RCamera::Ptr cam_;
     ifm3d::FrameGrabber::Ptr fg_;
     ifm3d::ImageBuffer::Ptr im_;
     std::mutex mutex_;
@@ -123,7 +123,7 @@ namespace ifm3d_ros
     ros::ServiceServer trigger_srv_;
     ros::ServiceServer soft_off_srv_;
     ros::ServiceServer soft_on_srv_;
-    ros::ServiceServer sync_clocks_srv_;
+    // ros::ServiceServer sync_clocks_srv_;
 
     //
     // We use a ROS one-shot timer to kick off our publishing loop.

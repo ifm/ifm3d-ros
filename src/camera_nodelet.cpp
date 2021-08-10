@@ -79,8 +79,8 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
   this->np_.param("xmlrpc_port", xmlrpc_port, (int) ifm3d::DEFAULT_XMLRPC_PORT);
-  // this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_PCIC_PORT);
-  this->np_.param("pcic_port", pcic_port, (int) 50012);
+  this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_PCIC_PORT);
+  // this->np_.param("pcic_port", pcic_port, (int) 50012);
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
   this->np_.param("schema_mask", schema_mask, (int) ifm3d::DEFAULT_SCHEMA_MASK);
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
@@ -160,12 +160,12 @@ ifm3d_ros::CameraNodelet::onInit()
                           std::placeholders::_1,
                           std::placeholders::_2));
 
-  this->sync_clocks_srv_ =
-    this->np_.advertiseService<ifm3d::SyncClocks::Request,
-                               ifm3d::SyncClocks::Response>
-    ("SyncClocks", std::bind(&CameraNodelet::SyncClocks, this,
-                             std::placeholders::_1,
-                             std::placeholders::_2));
+  // this->sync_clocks_srv_ =
+  //   this->np_.advertiseService<ifm3d::SyncClocks::Request,
+  //                              ifm3d::SyncClocks::Response>
+  //   ("SyncClocks", std::bind(&CameraNodelet::SyncClocks, this,
+  //                            std::placeholders::_1,
+  //                            std::placeholders::_2));
 
   //----------------------------------
   // Fire off our main publishing loop
@@ -266,29 +266,29 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
   return true;
 }
 
-bool
-ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
-                                     ifm3d::SyncClocks::Response& res)
-{
-  std::lock_guard<std::mutex> lock(this->mutex_);
-  res.status = 0;
-  res.msg = "OK";
+// bool
+// ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
+//                                      ifm3d::SyncClocks::Response& res)
+// {
+//   std::lock_guard<std::mutex> lock(this->mutex_);
+//   res.status = 0;
+//   res.msg = "OK";
 
-  NODELET_INFO_STREAM("Syncing camera clock to system...");
-  try
-    {
-      this->cam_->SetCurrentTime(-1);
-    }
-  catch (const ifm3d::error_t& ex)
-    {
-      res.status = ex.code();
-      res.msg = ex.what();
-      NODELET_WARN_STREAM(res.status << ": " << res.msg);
-      return false;
-    }
+//   NODELET_INFO_STREAM("Syncing camera clock to system...");
+//   try
+//     {
+//       this->cam_->SetCurrentTime(-1);
+//     }
+//   catch (const ifm3d::error_t& ex)
+//     {
+//       res.status = ex.code();
+//       res.msg = ex.what();
+//       NODELET_WARN_STREAM(res.status << ": " << res.msg);
+//       return false;
+//     }
 
-  return true;
-}
+//   return true;
+// }
 
 bool
 ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
@@ -300,35 +300,35 @@ ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
 
   int active_application = 0;
 
-  try
-    {
-      active_application = this->cam_->ActiveApplication();
-      if (active_application > 0)
-        {
-          json dict =
-            {
-              {"Apps",
-               {{{"Index", std::to_string(active_application)},
-                 {"TriggerMode",
-                  std::to_string(
-                    static_cast<int>(ifm3d::Camera::trigger_mode::SW))}}}
-              }
-            };
+  // try
+  //   {
+  //     active_application = this->cam_->ActiveApplication();
+  //     if (active_application > 0)
+  //       {
+  //         json dict =
+  //           {
+  //             {"Apps",
+  //              {{{"Index", std::to_string(active_application)},
+  //                {"TriggerMode",
+  //                 std::to_string(
+  //                   static_cast<int>(ifm3d::O3RCamera::trigger_mode::SW))}}}
+  //             }
+  //           };
 
-          this->cam_->FromJSON(dict);
+  //         this->cam_->FromJSON(dict);
 
-          this->assume_sw_triggered_ = true;
-          this->timeout_millis_ = this->soft_off_timeout_millis_;
-          this->timeout_tolerance_secs_ =
-            this->soft_off_timeout_tolerance_secs_;
-        }
-    }
-  catch (const ifm3d::error_t& ex)
-    {
-      res.status = ex.code();
-      res.msg = ex.what();
-      return false;
-    }
+  //         this->assume_sw_triggered_ = true;
+  //         this->timeout_millis_ = this->soft_off_timeout_millis_;
+  //         this->timeout_tolerance_secs_ =
+  //           this->soft_off_timeout_tolerance_secs_;
+  //       }
+  //   }
+  // catch (const ifm3d::error_t& ex)
+  //   {
+  //     res.status = ex.code();
+  //     res.msg = ex.what();
+  //     return false;
+  //   }
 
   return true;
 }
@@ -341,37 +341,37 @@ ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
   res.status = 0;
   res.msg = "OK";
 
-  int active_application = 0;
+  // int active_application = 0;
 
-  try
-    {
-      active_application = this->cam_->ActiveApplication();
-      if (active_application > 0)
-        {
-          json dict =
-            {
-              {"Apps",
-               {{{"Index", std::to_string(active_application)},
-                 {"TriggerMode",
-                  std::to_string(
-                    static_cast<int>(ifm3d::Camera::trigger_mode::FREE_RUN))}}}
-              }
-            };
+  // try
+  //   {
+  //     active_application = this->cam_->ActiveApplication();
+  //     if (active_application > 0)
+  //       {
+  //         json dict =
+  //           {
+  //             {"Apps",
+  //              {{{"Index", std::to_string(active_application)},
+  //                {"TriggerMode",
+  //                 std::to_string(
+  //                   static_cast<int>(ifm3d::O3RCamera::trigger_mode::FREE_RUN))}}}
+  //             }
+  //           };
 
-          this->cam_->FromJSON(dict);
+  //         this->cam_->FromJSON(dict);
 
-          this->assume_sw_triggered_ = false;
-          this->timeout_millis_ = this->soft_on_timeout_millis_;
-          this->timeout_tolerance_secs_ =
-            this->soft_on_timeout_tolerance_secs_;
-        }
-    }
-  catch (const ifm3d::error_t& ex)
-    {
-      res.status = ex.code();
-      res.msg = ex.what();
-      return false;
-    }
+  //         this->assume_sw_triggered_ = false;
+  //         this->timeout_millis_ = this->soft_on_timeout_millis_;
+  //         this->timeout_tolerance_secs_ =
+  //           this->soft_on_timeout_tolerance_secs_;
+  //       }
+  //   }
+  // catch (const ifm3d::error_t& ex)
+  //   {
+  //     res.status = ex.code();
+  //     res.msg = ex.what();
+  //     return false;
+  //   }
 
   return true;
 }
@@ -390,9 +390,9 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
       this->cam_.reset();
 
       NODELET_INFO_STREAM("Initializing camera...");
-      this->cam_ = ifm3d::Camera::MakeShared(this->camera_ip_,
-                                             this->xmlrpc_port_,
-                                             this->password_);
+      // this->cam_ = ifm3d::O3RCamera::MakeShared(this->camera_ip_,
+      //                                        this->xmlrpc_port_);
+      this->cam_ = std::make_shared<ifm3d::O3RCamera>(this->camera_ip_, this->xmlrpc_port_);
       ros::Duration(1.0).sleep();
 
       NODELET_INFO_STREAM("Initializing framegrabber...");
@@ -439,18 +439,18 @@ ifm3d_ros::CameraNodelet::Run()
 {
   std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
 
-  //
+  
   // Sync camera clock with system clock if necessary
-  //
+  
   if (this->sync_clocks_)
     {
       NODELET_INFO_STREAM("Syncing camera clock to system...");
       try
         {
-          this->cam_ = ifm3d::Camera::MakeShared(this->camera_ip_,
-                                                 this->xmlrpc_port_,
-                                                 this->password_);
-          this->cam_->SetCurrentTime(-1);
+          // this->cam_ = ifm3d::Camera::MakeShared(this->camera_ip_,
+          //                                        this->xmlrpc_port_);
+          this->cam_ = std::make_shared<ifm3d::O3RCamera>(this->camera_ip_, this->xmlrpc_port_);
+          // this->cam_->SetCurrentTime(-1);
         }
       catch (const ifm3d::error_t& ex)
         {
@@ -463,10 +463,10 @@ ifm3d_ros::CameraNodelet::Run()
       NODELET_INFO_STREAM("Camera clock will not be sync'd to system clock");
     }
 
-  //
+  
   // We need to account for the case of when the nodelet is being started prior
   // to the camera being plugged in.
-  //
+  
   while (ros::ok() && (! this->InitStructures(ifm3d::IMG_UVEC, this->pcic_port_)))
     {
       NODELET_WARN_STREAM("Could not initialize pixel stream!");
