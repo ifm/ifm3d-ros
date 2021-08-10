@@ -98,7 +98,7 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_ = static_cast<std::uint16_t>(schema_mask);
-  this->pcic_port_ = static_cast<std::uint16_t>( _port);
+  this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
 
   this->frame_id_ = frame_id_base + "_link";
   this->optical_frame_id_ = frame_id_base + "_optical_link";
