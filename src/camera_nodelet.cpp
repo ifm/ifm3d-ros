@@ -79,7 +79,8 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
   this->np_.param("xmlrpc_port", xmlrpc_port, (int) ifm3d::DEFAULT_XMLRPC_PORT);
-  this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_PCIC_PORT);
+  // this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_PCIC_PORT);
+  this->np_.param("pcic_port", pcic_port, (int) 50012);
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
   this->np_.param("schema_mask", schema_mask, (int) ifm3d::DEFAULT_SCHEMA_MASK);
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
@@ -510,7 +511,7 @@ ifm3d_ros::CameraNodelet::Run()
               NODELET_WARN_STREAM("Attempting to restart framegrabber...");
               while (! this->InitStructures(got_uvec
                                             ? this->schema_mask_
-                                            : ifm3d::IMG_UVEC))
+                                            : ifm3d::IMG_UVEC, this->pcic_port_))
                 {
                   NODELET_WARN_STREAM("Could not re-initialize pixel stream!");
                   ros::Duration(1.0).sleep();
