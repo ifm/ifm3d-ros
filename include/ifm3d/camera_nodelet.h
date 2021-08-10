@@ -77,7 +77,7 @@ namespace ifm3d_ros
     //
     std::string camera_ip_;
     std::uint16_t xmlrpc_port_;
-    std::uint16_t pcic_port;
+    std::uint16_t pcic_port_;
     std::string password_;
     std::uint16_t schema_mask_;
     int timeout_millis_;
