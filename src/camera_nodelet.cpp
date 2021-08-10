@@ -466,7 +466,7 @@ ifm3d_ros::CameraNodelet::Run()
   // We need to account for the case of when the nodelet is being started prior
   // to the camera being plugged in.
   //
-  while (ros::ok() && (! this->InitStructures(ifm3d::IMG_UVEC, this->pcic_port)))
+  while (ros::ok() && (! this->InitStructures(ifm3d::IMG_UVEC, this->pcic_port_)))
     {
       NODELET_WARN_STREAM("Could not initialize pixel stream!");
       ros::Duration(1.0).sleep();
