@@ -557,7 +557,7 @@ ifm3d_ros::CameraNodelet::Run()
           ROS_INFO("Got unit vectors, restarting framegrabber with mask: %d",
                    (int) this->schema_mask_);
 
-          while (! this->InitStructures(this->schema_mask_, this->pcic_port))
+          while (! this->InitStructures(this->schema_mask_, this->pcic_port_))
             {
               ROS_WARN("Could not re-initialize pixel stream!");
               ros::Duration(1.0).sleep();
