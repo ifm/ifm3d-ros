@@ -99,6 +99,8 @@ ifm3d_ros::CameraNodelet::onInit()
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_ = static_cast<std::uint16_t>(schema_mask);
   this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
+  
+  NODELET_INFO_STREAM("setup ros node parameters finished");
 
   this->frame_id_ = frame_id_base + "_link";
   this->optical_frame_id_ = frame_id_base + "_optical_link";
@@ -114,6 +116,7 @@ ifm3d_ros::CameraNodelet::onInit()
   this->conf_pub_ = this->it_->advertise("confidence", 1);
   this->good_bad_pub_ = this->it_->advertise("good_bad_pixels", 1);
   this->xyz_image_pub_ = this->it_->advertise("xyz_image", 1);
+  this->gray_image_pub_ = this->it_->advertise("gray_image", 1);
 
   // we latch the unit vectors
   this->uvec_pub_ =
@@ -121,7 +124,7 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->extrinsics_pub_ =
     this->np_.advertise<ifm3d::Extrinsics>("extrinsics", 1);
-  NODELET_INFO_STREAM("after uvec");  
+  NODELET_INFO_STREAM("after advertising the publishers");  
   //---------------------
   // Advertised Services
   //---------------------
@@ -480,6 +483,7 @@ ifm3d_ros::CameraNodelet::Run()
   cv::Mat xyz_img;
   cv::Mat raw_amplitude_img;
   cv::Mat good_bad_pixels_img;
+  cv::Mat gray_img;
 
   NODELET_INFO_STREAM("after initializing the opencv buffers");
   std::vector<float> extrinsics(6);
@@ -542,6 +546,7 @@ ifm3d_ros::CameraNodelet::Run()
       optical_head.stamp = head.stamp;
       optical_head.frame_id = this->optical_frame_id_;
 
+      // currently the unit vector calculation seems to be missing in the ifm3d state: therefore we don't publish anything to the uvec pubisher
       // publish unit vectors once on a latched topic, then re-initialize the
       // framegrabber with the user's requested schema mask
       // if (! got_uvec)
@@ -584,6 +589,7 @@ ifm3d_ros::CameraNodelet::Run()
         distance_img = this->im_->DistanceImage();
         amplitude_img = this->im_->AmplitudeImage();
         raw_amplitude_img = this->im_->RawAmplitudeImage();
+        // gray_img = this->im_->GrayImage();
         extrinsics = this->im_->Extrinsics();
       }
       catch (const ifm3d::error_t& ex)
@@ -658,13 +664,17 @@ ifm3d_ros::CameraNodelet::Run()
           NODELET_INFO_STREAM("after publishing raw amplitude image");
         }
 
-      //
-      // XXX: Need to publish ambient light / gray image
-      // ... however, as of now (3/26/2017) there is no
-      // imager mode on the O3X that actually supports it
-      //
-      // Update: as of 5/10/2018 still not supported.
-      //
+      // if ((this->schema_mask_ & ifm3d::IMG_GRAY) == ifm3d::IMG_GRAY)
+      //   {
+      //     sensor_msgs::ImagePtr gray_image_msg =
+      //       cv_bridge::CvImage(optical_head,
+      //                          gray_img.type() == CV_32FC1 ?
+      //                          enc::TYPE_32FC1 : enc::TYPE_16UC1,
+      //                          gray_img).toImageMsg();
+      //     this->gray_image_pub_.publish(gray_image_msg);
+      //     NODELET_INFO_STREAM("after publishing gray image");
+      //   }
+
 
       // good_bad_pixels_img = cv::Mat::ones(confidence_img.rows,
       //                                     confidence_img.cols,
