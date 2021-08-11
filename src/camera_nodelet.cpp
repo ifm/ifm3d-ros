@@ -526,20 +526,20 @@ ifm3d_ros::CameraNodelet::Run()
       NODELET_INFO_STREAM("prepare header");
       std_msgs::Header head = std_msgs::Header();
       head.frame_id = this->frame_id_;
-      // head.stamp = ros::Time(
-      //   std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>
-      //   (this->im_->TimeStamp().time_since_epoch()).count());
-      // if ((ros::Time::now() - head.stamp) >
-      //     ros::Duration(this->frame_latency_thresh_))
-      //   {
-      //     ROS_WARN_ONCE("Camera's time is not up to date, therefore header's "
-      //       "timestamps will be the reception time and not capture time. "
-      //       "Please update the camera's time if you need the capture time.");
-      //     head.stamp = ros::Time::now();
-      //   }
+      head.stamp = ros::Time(
+        std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>
+        (this->im_->TimeStamp().time_since_epoch()).count());
+      if ((ros::Time::now() - head.stamp) >
+          ros::Duration(this->frame_latency_thresh_))
+        {
+          ROS_WARN_ONCE("Camera's time is not up to date, therefore header's "
+            "timestamps will be the reception time and not capture time. "
+            "Please update the camera's time if you need the capture time.");
+          head.stamp = ros::Time::now();
+        }
       NODELET_INFO_STREAM("in header, before setting header to std_msgs");
       std_msgs::Header optical_head = std_msgs::Header();
-      // optical_head.stamp = head.stamp;
+      optical_head.stamp = head.stamp;
       optical_head.frame_id = this->optical_frame_id_;
 
       // publish unit vectors once on a latched topic, then re-initialize the
@@ -574,18 +574,17 @@ ifm3d_ros::CameraNodelet::Run()
       //
       lock.lock();
 
-      NODELET_INFO_STREAM("");
       NODELET_INFO_STREAM("start getting data");
       try
       {
         // boost::shared_ptr vs std::shared_ptr forces this copy
-        // pcl::copyPointCloud(*(this->im_->Cloud().get()), *cloud);
-        // xyz_img = this->im_->XYZImage();
-        // confidence_img = this->im_->ConfidenceImage();
-        // distance_img = this->im_->DistanceImage();
-        // amplitude_img = this->im_->AmplitudeImage();
-        // raw_amplitude_img = this->im_->RawAmplitudeImage();
-        // extrinsics = this->im_->Extrinsics();
+        pcl::copyPointCloud(*(this->im_->Cloud().get()), *cloud);
+        xyz_img = this->im_->XYZImage();
+        confidence_img = this->im_->ConfidenceImage();
+        distance_img = this->im_->DistanceImage();
+        amplitude_img = this->im_->AmplitudeImage();
+        raw_amplitude_img = this->im_->RawAmplitudeImage();
+        extrinsics = this->im_->Extrinsics();
       }
       catch (const ifm3d::error_t& ex)
       {
@@ -595,8 +594,6 @@ ifm3d_ros::CameraNodelet::Run()
         {
           NODELET_WARN_STREAM(std_ex.what());
         }
-      
-
       NODELET_INFO_STREAM("finished getting data");  
 
       lock.unlock();
@@ -612,6 +609,7 @@ ifm3d_ros::CameraNodelet::Run()
                            "mono8",
                            confidence_img).toImageMsg();
       this->conf_pub_.publish(confidence_msg);
+      NODELET_INFO_STREAM("after publishing confidence image");
 
       if ((this->schema_mask_ & ifm3d::IMG_CART) == ifm3d::IMG_CART)
         {
@@ -624,6 +622,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC3 : enc::TYPE_16SC3,
                                xyz_img).toImageMsg();
           this->xyz_image_pub_.publish(xyz_image_msg);
+          NODELET_INFO_STREAM("after publishing xyz image");
         }
 
       if ((this->schema_mask_ & ifm3d::IMG_RDIS) == ifm3d::IMG_RDIS)
@@ -634,6 +633,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                distance_img).toImageMsg();
           this->distance_pub_.publish(distance_msg);
+          NODELET_INFO_STREAM("after publishing distance image");
         }
 
       if ((this->schema_mask_ & ifm3d::IMG_AMP) == ifm3d::IMG_AMP)
@@ -644,6 +644,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                amplitude_img).toImageMsg();
           this->amplitude_pub_.publish(amplitude_msg);
+          NODELET_INFO_STREAM("after publishing amplitude image");
         }
 
       if ((this->schema_mask_ & ifm3d::IMG_RAMP) == ifm3d::IMG_RAMP)
@@ -654,6 +655,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                raw_amplitude_img).toImageMsg();
           this->raw_amplitude_pub_.publish(raw_amplitude_msg);
+          NODELET_INFO_STREAM("after publishing raw amplitude image");
         }
 
       //
@@ -664,20 +666,22 @@ ifm3d_ros::CameraNodelet::Run()
       // Update: as of 5/10/2018 still not supported.
       //
 
-      good_bad_pixels_img = cv::Mat::ones(confidence_img.rows,
-                                          confidence_img.cols,
-                                          CV_8UC1);
-      cv::bitwise_and(confidence_img, good_bad_pixels_img,
-                      good_bad_pixels_img);
-      sensor_msgs::ImagePtr good_bad_msg =
-        cv_bridge::CvImage(optical_head,
-                           "mono8",
-                           (good_bad_pixels_img == 0)).toImageMsg();
-      this->good_bad_pub_.publish(good_bad_msg);
+      // good_bad_pixels_img = cv::Mat::ones(confidence_img.rows,
+      //                                     confidence_img.cols,
+      //                                     CV_8UC1);
+      // cv::bitwise_and(confidence_img, good_bad_pixels_img,
+      //                 good_bad_pixels_img);
+      // sensor_msgs::ImagePtr good_bad_msg =
+      //   cv_bridge::CvImage(optical_head,
+      //                      "mono8",
+      //                      (good_bad_pixels_img == 0)).toImageMsg();
+      // this->good_bad_pub_.publish(good_bad_msg);
+      // NODELET_INFO_STREAM("after publishing good/bad pixel image image");
 
       //
       // publish extrinsics
       //
+      NODELET_INFO_STREAM("start publishing extrinsics");
       ifm3d::Extrinsics extrinsics_msg;
       extrinsics_msg.header = optical_head;
       try
