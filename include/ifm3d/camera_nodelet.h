@@ -77,6 +77,7 @@ namespace ifm3d_ros
     //
     std::string camera_ip_;
     std::uint16_t xmlrpc_port_;
+    std::uint16_t pcic_port_;
     std::string password_;
     std::uint16_t schema_mask_;
     int timeout_millis_;
@@ -92,7 +93,7 @@ namespace ifm3d_ros
     std::string frame_id_;
     std::string optical_frame_id_;
 
-    ifm3d::Camera::Ptr cam_;
+    ifm3d::O3RCamera::Ptr cam_;
     ifm3d::FrameGrabber::Ptr fg_;
     ifm3d::ImageBuffer::Ptr im_;
     std::mutex mutex_;
