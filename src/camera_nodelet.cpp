@@ -389,9 +389,6 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
       this->cam_.reset();
 
       NODELET_INFO_STREAM("Initializing camera...");
-      // this->cam_ = ifm3d::Camera::MakeShared(this->camera_ip_,
-      //                                        this->xmlrpc_port_,
-      //                                        this->password_);
       this->cam_ = std::make_shared<ifm3d::O3RCamera>();
       ros::Duration(1.0).sleep();
 
@@ -400,16 +397,6 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
 
       NODELET_INFO_STREAM("Initializing image buffer...");
       this->im_ = std::make_shared<ifm3d::ImageBuffer>();
-
-      try
-        {
-          retval = this->fg_->WaitForFrame(this->im_.get(), this->timeout_millis_);
-        }
-      catch (const ifm3d::error_t& ex)
-        {
-          NODELET_WARN_STREAM(ex.code() << ": " << ex.what());
-          retval = false;
-        }
 
       retval = true;
     }
@@ -430,7 +417,7 @@ ifm3d_ros::CameraNodelet::AcquireFrame()
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   bool retval = false;
-  NODELET_INFO_STREAM("try receiving data via fg WaitForFrame");
+  NODELET_DEBUG_STREAM("try receiving data via fg WaitForFrame");
   try
     {
       retval = this->fg_->WaitForFrame(this->im_.get(), this->timeout_millis_);
@@ -474,15 +461,15 @@ ifm3d_ros::CameraNodelet::Run()
   //     NODELET_INFO_STREAM("Camera clock will not be sync'd to system clock");
   //   }
 
-  //
+  
   // We need to account for the case of when the nodelet is being started prior
   // to the camera being plugged in.
-  //
-  // while (ros::ok() && (! this->InitStructures(ifm3d::IMG_UVEC)))
-  //   {
-  //     NODELET_WARN_STREAM("Could not initialize pixel stream!");
-  //     ros::Duration(1.0).sleep();
-  //   }
+  
+  while (ros::ok() && (! this->InitStructures(ifm3d::IMG_UVEC, this->pcic_port_)))
+    {
+      NODELET_WARN_STREAM("Could not initialize pixel stream!");
+      ros::Duration(1.0).sleep();
+    }
 
   pcl::PointCloud<ifm3d::PointT>::Ptr
     cloud(new pcl::PointCloud<ifm3d::PointT>());
@@ -522,7 +509,7 @@ ifm3d_ros::CameraNodelet::Run()
               NODELET_WARN_STREAM("Attempting to restart framegrabber...");
               while (! this->InitStructures(got_uvec
                                             ? this->schema_mask_
-                                            : ifm3d::IMG_UVEC))
+                                            : ifm3d::IMG_UVEC, this->pcic_port_))
                 {
                   NODELET_WARN_STREAM("Could not re-initialize pixel stream!");
                   ros::Duration(1.0).sleep();

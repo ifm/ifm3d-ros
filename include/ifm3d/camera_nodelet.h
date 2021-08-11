@@ -69,7 +69,7 @@ namespace ifm3d_ros
     // This is our main publishing loop and its helper functions
     //
     void Run();
-    bool InitStructures(std::uint16_t mask);
+    bool InitStructures(std::uint16_t mask, std::uint16_t pcic_port);
     bool AcquireFrame();
 
     //
