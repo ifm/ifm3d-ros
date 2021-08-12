@@ -4,7 +4,8 @@ ifm3d-ros is a wrapper around [ifm3d](https://github.com/lovepark/ifm3d)
 enabling the usage of ifm pmd-based ToF cameras from within
 [ROS](http://ros.org) software systems.
 
-![rviz1](doc/figures/rviz_sample.png)
+>TODO: add a 3D-image which is easier to understand
+<!-- ![rviz1](doc/figures/rviz_sample.png) -->
 
 Software Compatibility Matrix
 =============================
@@ -21,12 +22,13 @@ Software Compatibility Matrix
 | 0.5.1 | 0.9.2 | Kinetic, Melodic |
 | 0.6.0 | 0.9.2, 0.9.3, 0.10.0, 0.11.0, 0.11.2 | Kinetic, Melodic |
 | 0.6.1, 0.6.2 | 0.11.2, 0.12.0, 0.17.0 | Kinetic, Melodic |
+| 0.7.0 | NN - in dev - placeholder 0.91.0 | Noetic |
 
 
 Building and Installing the Software
 ====================================
 
-1. Preparing your system: [Kinetic](doc/kinetic.md), [Melodic](doc/melodic.md)
+1. Preparing your system: [Noetic](doc/noetic.md), [Melodic](doc/melodic.md)
 2. [Installing the ROS node](doc/building.md)
 
 ROS Interface
