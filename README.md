@@ -8,63 +8,20 @@ enabling the usage of ifm pmd-based ToF cameras from within
 
 Software Compatibility Matrix
 =============================
-<table>
-  <tr>
-    <th>ifm3d-ros version</th>
-    <th>ifm3d version</th>
-    <th>ROS distribution(s)</th>
-  </tr>
-  <tr>
-    <td>0.1.0</td>
-    <td>0.1.0</td>
-    <td>Kinetic</td>
-  </tr>
-  <tr>
-    <td>0.2.0</td>
-    <td>0.2.0</td>
-    <td>Kinetic, Indigo</td>
-  </tr>
-  <tr>
-    <td>0.3.0</td>
-    <td>0.2.0</td>
-    <td>Kinetic, Indigo</td>
-  </tr>
-  <tr>
-    <td>0.4.0</td>
-    <td>0.2.0, 0.3.0, 0.3.1, 0.3.2</td>
-    <td>Kinetic, Indigo</td>
-  </tr>
-  <tr>
-    <td>0.4.1</td>
-    <td>0.3.3, 0.4.0, 0.5.0, 0.6.0, 0.7.0, 0.8.1</td>
-    <td>Kinetic, Indigo</td>
-  </tr>
-  <tr>
-    <td>0.4.2</td>
-    <td>0.9.0</td>
-    <td>Kinetic</td>
-  </tr>
-  <tr>
-    <td>0.5.0</td>
-    <td>0.9.0, 0.9.1</td>
-    <td>Kinetic</td>
-  </tr>
-  <tr>
-    <td>0.5.1</td>
-    <td>0.9.2</td>
-    <td>Kinetic, Melodic</td>
-  </tr>
-  <tr>
-    <td>0.6.0</td>
-    <td>0.9.2, 0.9.3, 0.10.0, 0.11.0, 0.11.2</td>
-    <td>Kinetic, Melodic</td>
-  </tr>
-  <tr>
-    <td>0.6.1, 0.6.2</td>
-    <td>0.11.2, 0.12.0, 0.17.0</td>
-    <td>Kinetic, Melodic</td>
-  </tr>
-</table>
+
+|**ifm3d-ros version**|**ifm3d version**|**ROS distribution(s)**|
+|---|---|---|
+| 0.1.0 | 0.1.0 | Kinetic |
+| 0.2.0 | 0.2.0 | Kinetic, Indigo |
+| 0.3.0 | 0.2.0 | Kinetic, Indigo |
+| 0.4.0 | 0.3.0, 0.3.1, 0.3.2 | Kinetic, Indigo |
+| 0.4.1 | 0.3.3, 0.4.0, 0.5.0, 0.6.0, 0.7.0, 0.8.1 | Kinetic, Indigo |
+| 0.4.2 | 0.9.0 | Kinetic |
+| 0.5.0 | 0.9.0, 0.9.1 | Kinetic |
+| 0.5.1 | 0.9.2 | Kinetic, Melodic |
+| 0.6.0 | 0.9.2, 0.9.3, 0.10.0, 0.11.0, 0.11.2 | Kinetic, Melodic |
+| 0.6.1, 0.6.2 | 0.11.2, 0.12.0, 0.17.0 | Kinetic, Melodic |
+
 
 Building and Installing the Software
 ====================================
