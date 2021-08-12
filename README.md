@@ -36,19 +36,14 @@ ROS Interface
 
 ## camera nodelet
 
-The core `ifm3d-ros` sensor interface is implemented as a ROS nodelet. This
-allows for lower-latency data processing vs. the traditional out-of-process
-node-based ROS interface for applications that require it. However, we ship a
-launch file with this package that allows for using the core `ifm3d-ros` driver
+The core `ifm3d-ros` sensor interface is implemented as a ROS nodelet. This allows for lower-latency data processing vs. the traditional out-of-process node-based ROS interface for applications that require it. However, we ship a launch file with this package that allows for using the core `ifm3d-ros` driver
 as a standard node. To launch the node, the following command can be used:
 
 ```
 $ roslaunch ifm3d camera.launch
 ```
 
-We note, the above command is equivalent to the following and is used for
-purposes of providing a backward compatible interface to versions of
-`ifm3d-ros` prior to the conversion to a nodelet architecture:
+We note, the above command is equivalent to the following and is used for purposes of providing a backward compatible interface to versions of `ifm3d-ros` prior to the conversion to a nodelet architecture:
 
 ```
 $ roslaunch ifm3d nodelet.launch __ns:=ifm3d
@@ -57,30 +52,21 @@ $ roslaunch ifm3d nodelet.launch __ns:=ifm3d
 Regardless of which command line you used from above, the launch file(s)
 encapsulate several features:
 
-1. It exposes some of the `camera_nodelet` parameters as command-line arguments
-   for ease of runtime configuration.
-2. It instantiates a nodelet manager which the `camera_nodelet` will be loaded
-   into.
+1. It exposes some of the `camera_nodelet` parameters as command-line arguments for ease of runtime configuration.
+2. It instantiates a nodelet manager which the `camera_nodelet` will be loaded into.
 3. It launches the camera nodelet itself.
-4. It publishes the static transform from the camera's optical frame to a
-   traditional ROS sensor frame as a tf2 `static_transform_publisher`.
+4. It publishes the static transform from the camera's optical frame to a traditional ROS sensor frame as a tf2 `static_transform_publisher`.
 
-You can either use [this launch file](launch/camera.launch) directly, or, use
-it as a basis for integrating `ifm3d-ros` into your own robot software system.
+You can either use [this launch file](launch/camera.launch) directly, or, use it as a basis for integrating `ifm3d-ros` into your own robot software system.
 
 We note: due to the change in architecture from a standalone node to a nodelet,
-we have seen one behavior whose solution is not clear to have us provide
-backward compatible behavior with older versions of `ifm3d-ros`. Specifically,
-if you plan to run the camera in software triggered mode, you should lanch the
-node as follows:
+we have seen one behavior whose solution is not clear to have us provide backward compatible behavior with older versions of `ifm3d-ros`. Specifically, if you plan to run the camera in software triggered mode, you should launch then ode as follows:
 
 ```
 $ GLOG_minloglevel=3 roslaunch ifm3d camera.launch assume_sw_triggered:=true
 ```
 
-The incomatibility here is that in prior versions, one would not need to
-explicitly set the `GLOG_` environment variable. While not strictly necessary,
-it is recommended for keeping the noise level of the `ifm3d` logs low.
+The incomatibility here is that in prior versions, one would not need to explicitly set the `GLOG_` environment variable. While not strictly necessary, it is recommended for keeping the noise level of the `ifm3d` logs low.
 
 
 ### Parameters
