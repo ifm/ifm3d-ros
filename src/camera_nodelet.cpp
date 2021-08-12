@@ -268,6 +268,7 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
   return true;
 }
 
+// this is a dummy method for the moment:  the syncing of clocks is not supported for the O3RCamera (for the moment)
 bool
 ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
                                      ifm3d::SyncClocks::Response& res)
@@ -292,6 +293,8 @@ ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
   return true;
 }
 
+// this is a dummy method for the moment:  the idea of applications is not supported for the O3RCamera
+// we keep this in to possibly keep it comparable / interoperable with the ROS wrappers for other ifm cameras
 bool
 ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
                                   ifm3d::SoftOff::Response& res)
@@ -335,6 +338,8 @@ ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
   return true;
 }
 
+// this is a dummy method for the moment:  the idea of applications is not supported for the O3RCamera
+// we keep this in to possibly keep it comparable / interoperable with the ROS wrappers for other ifm cameras
 bool
 ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
                                  ifm3d::SoftOn::Response& res)
@@ -392,7 +397,7 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
       this->cam_.reset();
 
       NODELET_INFO_STREAM("Initializing camera...");
-      this->cam_ = std::make_shared<ifm3d::O3RCamera>();
+      this->cam_ = std::make_shared<ifm3d::O3RCamera>(this->camera_ip_, this->xm);
       ros::Duration(1.0).sleep();
 
       NODELET_INFO_STREAM("Initializing framegrabber...");
@@ -415,6 +420,7 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
   return retval;
 }
 
+// this is the helper function for retrieving complete pcic frames
 bool
 ifm3d_ros::CameraNodelet::AcquireFrame()
 {
@@ -447,8 +453,10 @@ ifm3d_ros::CameraNodelet::Run()
   //   {
   //     NODELET_INFO_STREAM("Syncing camera clock to system...");
   //     try
-  //       {
-  //         this->cam_ = ifm3d::Camera::MakeShared(this->camera_ip_,
+  //       {  
+             this->cam_ = std::MakeShared<O3RCamera>(this->camera_ip_, 
+                                                    this->)
+  //         this->cam_ = ifm3d::O3RCamera::MakeShared(this->camera_ip_,
   //                                                this->xmlrpc_port_,
   //                                                this->password_);
   //         this->cam_->SetCurrentTime(-1);
@@ -647,7 +655,7 @@ ifm3d_ros::CameraNodelet::Run()
           sensor_msgs::ImagePtr amplitude_msg =
             cv_bridge::CvImage(optical_head,
                                amplitude_img.type() == CV_32FC1 ?
-                               enc::TYPE_32FC1 : enc::TYPE_16UC1,
+                               enc::TYPE_32FC1 : enc::TYPE_16UC1,<<
                                amplitude_img).toImageMsg();
           this->amplitude_pub_.publish(amplitude_msg);
           NODELET_INFO_STREAM("after publishing amplitude image");
@@ -664,6 +672,9 @@ ifm3d_ros::CameraNodelet::Run()
           NODELET_INFO_STREAM("after publishing raw amplitude image");
         }
 
+      // we leave the publishing to these messages out for the moment as the 
+      // data frames received from ifm3d for these methods is empty 
+      
       // if ((this->schema_mask_ & ifm3d::IMG_GRAY) == ifm3d::IMG_GRAY)
       //   {
       //     sensor_msgs::ImagePtr gray_image_msg =
