@@ -46,6 +46,9 @@
 #include <ifm3d/SyncClocks.h>
 #include <ifm3d/Trigger.h>
 
+#include <ifm3d/contrib/nlohmann/json.hpp>
+
+using json = nlohmann::json;
 namespace enc = sensor_msgs::image_encodings;
 
 void
@@ -187,8 +190,9 @@ ifm3d_ros::CameraNodelet::Dump(ifm3d::Dump::Request& req,
   res.status = 0;
 
   try
-    {
-      res.config = this->cam_->ToJSON();
+    { 
+      json j = this->cam_->ToJSON();
+      res.config = j.dump();
     }
   catch (const ifm3d::error_t& ex)
     {
@@ -253,8 +257,9 @@ bool
 ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
                                   ifm3d::Trigger::Response& res)
 {
-  // std::lock_guard<std::mutex> lock(this->mutex_);
-  // res.status = 0;
+  std::lock_guard<std::mutex> lock(this->mutex_);
+  res.status = 0;
+  res.msg = "Software trigger is currently not implemented";
 
   // try
   //   {
@@ -276,7 +281,7 @@ ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  res.msg = "OK";
+  res.msg = "Syncing clocks is currently not implemented";
 
   // NODELET_INFO_STREAM("Syncing camera clock to system...");
   // try
@@ -302,7 +307,7 @@ ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  res.msg = "OK";
+  res.msg = "Applications are currently not implemented";
 
   int active_application = 0;
 
@@ -347,7 +352,7 @@ ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  res.msg = "OK";
+  res.msg = "Applications are currently not implemented";
 
   int active_application = 0;
 
@@ -380,7 +385,7 @@ ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
   //     res.msg = ex.what();
   //     return false;
   //   }
-  
+
   NODELET_WARN_STREAM("The concept of applications is not available for the O3R - may follow");
   return true;
 }
@@ -504,6 +509,7 @@ ifm3d_ros::CameraNodelet::Run()
   ros::Time last_frame = ros::Time::now();
   bool got_uvec = false;
 
+  NODELET_INFO_STREAM("Start streaming data");
   while (ros::ok())
     {
       if (! this->AcquireFrame())
