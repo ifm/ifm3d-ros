@@ -188,7 +188,7 @@ ifm3d_ros::CameraNodelet::Dump(ifm3d::Dump::Request& req,
 
   try
     {
-      res.config = this->cam_->ToJSONStr();
+      res.config = this->cam_->ToJSON();
     }
   catch (const ifm3d::error_t& ex)
     {
@@ -223,7 +223,7 @@ ifm3d_ros::CameraNodelet::Config(ifm3d::Config::Request& req,
 
   try
     {
-      this->cam_->FromJSONStr(req.json);
+      this->cam_->FromJSON(req.json);
     }
   catch (const ifm3d::error_t& ex)
     {
@@ -253,18 +253,19 @@ bool
 ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
                                   ifm3d::Trigger::Response& res)
 {
-  std::lock_guard<std::mutex> lock(this->mutex_);
-  res.status = 0;
+  // std::lock_guard<std::mutex> lock(this->mutex_);
+  // res.status = 0;
 
-  try
-    {
-      this->fg_->SWTrigger();
-    }
-  catch (const ifm3d::error_t& ex)
-    {
-      res.status = ex.code();
-    }
+  // try
+  //   {
+  //     this->fg_->SWTrigger();
+  //   }
+  // catch (const ifm3d::error_t& ex)
+  //   {
+  //     res.status = ex.code();
+  //   }
 
+  NODELET_WARN_STREAM("Triggering a camera head is currently not implemented - will follow");
   return true;
 }
 
@@ -289,7 +290,7 @@ ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
   //     NODELET_WARN_STREAM(res.status << ": " << res.msg);
   //     return false;
   //   }
-
+  NODELET_WARN_STREAM("Syncing clocks is currently not implemented - will follow");
   return true;
 }
 
@@ -334,7 +335,7 @@ ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
   //     res.msg = ex.what();
   //     return false;
   //   }
-
+  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - may follow");
   return true;
 }
 
@@ -379,7 +380,8 @@ ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
   //     res.msg = ex.what();
   //     return false;
   //   }
-
+  
+  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - may follow");
   return true;
 }
 
