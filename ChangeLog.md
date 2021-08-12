@@ -1,3 +1,17 @@
+## Changes between ifm3d-ros 0.6.x and 0.7.0
+### unreleased
++ change camera class from based camera to O3RCamera
++ comment out methods / publisher which are not available for the O3RCamera (at the moment)
++ comment out the unit vector publishing
++ changed services trigger and softon, softoff to dummy services 
++ changed service trigger to have a status message
++ changed service dump: coverts from json to str for displaying the message
+
+### added
++ added pcic_port to the list of framegrabber arguments
++ (gray image pulisher) still commented out
+
+
 ## Changes between ifm3d-ros 0.6.1 and 0.6.2
 
 * Updated maintainer email address
