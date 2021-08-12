@@ -1,8 +1,6 @@
 ifm3d-ros wrapper around the ifm3d C++ software
 =========
-ifm3d-ros is a wrapper around [ifm3d](https://github.com/lovepark/ifm3d)
-enabling the usage of ifm pmd-based ToF cameras from within
-[ROS](http://ros.org) software systems.
+ifm3d-ros is a wrapper around [ifm3d](https://github.com/ifm/ifm3d-ros/) enabling the usage of ifm pmd-based ToF cameras from within [ROS](http://ros.org) software systems.
 
 >TODO: add a 3D-image which is easier to understand
 <!-- ![rviz1](doc/figures/rviz_sample.png) -->
@@ -128,7 +126,7 @@ None.
 Additional Documentation
 ========================
 
-* [Inspecting and configuring the camera/imager settings](doc/dump_and_config.md)
+* [Inspecting and configuring the camera / imager settings](doc/dump_and_config.md)
 * [Troubleshooting](doc/troubleshooting.md)
 
 LICENSE
