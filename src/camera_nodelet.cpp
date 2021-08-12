@@ -453,19 +453,15 @@ ifm3d_ros::CameraNodelet::Run()
   std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
 
   NODELET_DEBUG_STREAM("in Run");
-  //
+  
   // Sync camera clock with system clock if necessary
-  //
   // if (this->sync_clocks_)
   //   {
   //     NODELET_INFO_STREAM("Syncing camera clock to system...");
   //     try
   //       {  
-            //  this->cam_ = std::makeShared<O3RCamera>(this->camera_ip_, 
-            //                                         this->);
-  //         this->cam_ = ifm3d::O3RCamera::MakeShared(this->camera_ip_,
-  //                                                this->xmlrpc_port_,
-  //                                                this->password_);
+  //            this->cam_ = std::makeShared<O3RCamera>(this->camera_ip_, 
+  //                                                   this->xmlrpc_port_);
   //         this->cam_->SetCurrentTime(-1);
   //       }
   //     catch (const ifm3d::error_t& ex)
