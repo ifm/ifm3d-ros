@@ -397,7 +397,7 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
       this->cam_.reset();
 
       NODELET_INFO_STREAM("Initializing camera...");
-      this->cam_ = std::make_shared<ifm3d::O3RCamera>(this->camera_ip_, this->xm);
+      this->cam_ = std::make_shared<ifm3d::O3RCamera>(this->camera_ip_, this->xmlrpc_port_);
       ros::Duration(1.0).sleep();
 
       NODELET_INFO_STREAM("Initializing framegrabber...");
@@ -454,8 +454,8 @@ ifm3d_ros::CameraNodelet::Run()
   //     NODELET_INFO_STREAM("Syncing camera clock to system...");
   //     try
   //       {  
-             this->cam_ = std::MakeShared<O3RCamera>(this->camera_ip_, 
-                                                    this->)
+            //  this->cam_ = std::makeShared<O3RCamera>(this->camera_ip_, 
+            //                                         this->);
   //         this->cam_ = ifm3d::O3RCamera::MakeShared(this->camera_ip_,
   //                                                this->xmlrpc_port_,
   //                                                this->password_);
@@ -655,7 +655,7 @@ ifm3d_ros::CameraNodelet::Run()
           sensor_msgs::ImagePtr amplitude_msg =
             cv_bridge::CvImage(optical_head,
                                amplitude_img.type() == CV_32FC1 ?
-                               enc::TYPE_32FC1 : enc::TYPE_16UC1,<<
+                               enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                amplitude_img).toImageMsg();
           this->amplitude_pub_.publish(amplitude_msg);
           NODELET_INFO_STREAM("after publishing amplitude image");
