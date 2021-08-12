@@ -52,7 +52,7 @@ void
 ifm3d_ros::CameraNodelet::onInit()
 {
   std::string nn = this->getName();
-  NODELET_INFO_STREAM("onInit(): " << nn);
+  NODELET_DEBUG_STREAM("onInit(): " << nn);
 
   this->np_ = getMTPrivateNodeHandle();
   this->it_.reset(new image_transport::ImageTransport(this->np_));
@@ -100,7 +100,7 @@ ifm3d_ros::CameraNodelet::onInit()
   this->schema_mask_ = static_cast<std::uint16_t>(schema_mask);
   this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
   
-  NODELET_INFO_STREAM("setup ros node parameters finished");
+  NODELET_DEBUG_STREAM("setup ros node parameters finished");
 
   this->frame_id_ = frame_id_base + "_link";
   this->optical_frame_id_ = frame_id_base + "_optical_link";
@@ -124,7 +124,7 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->extrinsics_pub_ =
     this->np_.advertise<ifm3d::Extrinsics>("extrinsics", 1);
-  NODELET_INFO_STREAM("after advertising the publishers");  
+  NODELET_DEBUG_STREAM("after advertising the publishers");  
   //---------------------
   // Advertised Services
   //---------------------
@@ -168,7 +168,7 @@ ifm3d_ros::CameraNodelet::onInit()
                              std::placeholders::_1,
                              std::placeholders::_2));
 
-  NODELET_INFO_STREAM("after advertise service");
+  NODELET_DEBUG_STREAM("after advertise service");
   //----------------------------------
   // Fire off our main publishing loop
   //----------------------------------
@@ -445,7 +445,7 @@ ifm3d_ros::CameraNodelet::Run()
 {
   std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
 
-  NODELET_INFO_STREAM("in Run");
+  NODELET_DEBUG_STREAM("in Run");
   //
   // Sync camera clock with system clock if necessary
   //
@@ -493,7 +493,7 @@ ifm3d_ros::CameraNodelet::Run()
   cv::Mat good_bad_pixels_img;
   cv::Mat gray_img;
 
-  NODELET_INFO_STREAM("after initializing the opencv buffers");
+  NODELET_DEBUG_STREAM("after initializing the opencv buffers");
   std::vector<float> extrinsics(6);
 
   // XXX: need to implement a nice strategy for getting the actual times
@@ -535,7 +535,7 @@ ifm3d_ros::CameraNodelet::Run()
 
       last_frame = ros::Time::now();
 
-      NODELET_INFO_STREAM("prepare header");
+      NODELET_DEBUG_STREAM("prepare header");
       std_msgs::Header head = std_msgs::Header();
       head.frame_id = this->frame_id_;
       head.stamp = ros::Time(
@@ -549,7 +549,7 @@ ifm3d_ros::CameraNodelet::Run()
             "Please update the camera's time if you need the capture time.");
           head.stamp = ros::Time::now();
         }
-      NODELET_INFO_STREAM("in header, before setting header to std_msgs");
+      NODELET_DEBUG_STREAM("in header, before setting header to msgs");
       std_msgs::Header optical_head = std_msgs::Header();
       optical_head.stamp = head.stamp;
       optical_head.frame_id = this->optical_frame_id_;
@@ -587,7 +587,7 @@ ifm3d_ros::CameraNodelet::Run()
       //
       lock.lock();
 
-      NODELET_INFO_STREAM("start getting data");
+      NODELET_DEBUG_STREAM("start getting data");
       try
       {
         // boost::shared_ptr vs std::shared_ptr forces this copy
@@ -608,7 +608,7 @@ ifm3d_ros::CameraNodelet::Run()
         {
           NODELET_WARN_STREAM(std_ex.what());
         }
-      NODELET_INFO_STREAM("finished getting data");  
+      NODELET_DEBUG_STREAM("finished getting data");  
 
       lock.unlock();
 
@@ -616,14 +616,14 @@ ifm3d_ros::CameraNodelet::Run()
       // Now, do the publishing
       //
 
-      NODELET_INFO_STREAM("start publishing");
+      NODELET_DEBUG_STREAM("start publishing");
       // Confidence image is invariant - no need to check the mask
       sensor_msgs::ImagePtr confidence_msg =
         cv_bridge::CvImage(optical_head,
                            "mono8",
                            confidence_img).toImageMsg();
       this->conf_pub_.publish(confidence_msg);
-      NODELET_INFO_STREAM("after publishing confidence image");
+      NODELET_DEBUG_STREAM("after publishing confidence image");
 
       if ((this->schema_mask_ & ifm3d::IMG_CART) == ifm3d::IMG_CART)
         {
@@ -636,7 +636,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC3 : enc::TYPE_16SC3,
                                xyz_img).toImageMsg();
           this->xyz_image_pub_.publish(xyz_image_msg);
-          NODELET_INFO_STREAM("after publishing xyz image");
+          NODELET_DEBUG_STREAM("after publishing xyz image");
         }
 
       if ((this->schema_mask_ & ifm3d::IMG_RDIS) == ifm3d::IMG_RDIS)
@@ -647,7 +647,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                distance_img).toImageMsg();
           this->distance_pub_.publish(distance_msg);
-          NODELET_INFO_STREAM("after publishing distance image");
+          NODELET_DEBUG_STREAM("after publishing distance image");
         }
 
       if ((this->schema_mask_ & ifm3d::IMG_AMP) == ifm3d::IMG_AMP)
@@ -658,7 +658,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                amplitude_img).toImageMsg();
           this->amplitude_pub_.publish(amplitude_msg);
-          NODELET_INFO_STREAM("after publishing amplitude image");
+          NODELET_DEBUG_STREAM("after publishing amplitude image");
         }
 
       if ((this->schema_mask_ & ifm3d::IMG_RAMP) == ifm3d::IMG_RAMP)
@@ -669,7 +669,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                raw_amplitude_img).toImageMsg();
           this->raw_amplitude_pub_.publish(raw_amplitude_msg);
-          NODELET_INFO_STREAM("after publishing raw amplitude image");
+          NODELET_DEBUG_STREAM("after publishing raw amplitude image");
         }
 
       // we leave the publishing to these messages out for the moment as the 
@@ -683,7 +683,7 @@ ifm3d_ros::CameraNodelet::Run()
       //                          enc::TYPE_32FC1 : enc::TYPE_16UC1,
       //                          gray_img).toImageMsg();
       //     this->gray_image_pub_.publish(gray_image_msg);
-      //     NODELET_INFO_STREAM("after publishing gray image");
+      //     NODELET_DEBUG_STREAM("after publishing gray image");
       //   }
 
 
@@ -697,12 +697,12 @@ ifm3d_ros::CameraNodelet::Run()
       //                      "mono8",
       //                      (good_bad_pixels_img == 0)).toImageMsg();
       // this->good_bad_pub_.publish(good_bad_msg);
-      // NODELET_INFO_STREAM("after publishing good/bad pixel image image");
+      // NODELET_DEBUG_STREAM("after publishing good/bad pixel image image");
 
       //
       // publish extrinsics
       //
-      NODELET_INFO_STREAM("start publishing extrinsics");
+      NODELET_DEBUG_STREAM("start publishing extrinsics");
       ifm3d::Extrinsics extrinsics_msg;
       extrinsics_msg.header = optical_head;
       try
