@@ -50,8 +50,8 @@ namespace ifm3d_ros
     bool Trigger(ifm3d::Trigger::Request& req, ifm3d::Trigger::Response& res);
     bool SoftOff(ifm3d::SoftOff::Request& req, ifm3d::SoftOff::Response& res);
     bool SoftOn(ifm3d::SoftOn::Request& req, ifm3d::SoftOn::Response& res);
-    // bool SyncClocks(ifm3d::SyncClocks::Request& req,
-    //                 ifm3d::SyncClocks::Response& res);
+    bool SyncClocks(ifm3d::SyncClocks::Request& req,
+                    ifm3d::SyncClocks::Response& res);
 
     //
     // This is our main publishing loop and its helper functions
