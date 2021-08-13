@@ -4,11 +4,12 @@
   <name>ifm3d</name>
   <version>0.7.0</version>
   <description>ifm pmd-based 3D ToF Camera ROS package</description>
-  <maintainer email="sean.kelly@ifm.com">Sean Kelly</maintainer>
+  <maintainer email="Philipp.Senger@ifm.com">Sean Kelly</maintainer>
   <license>Apache 2</license>
-  <author email="tom@boxrobotics.ai">Tom Panzarella</author>
+  <author email="Philipp.Senger@ifm.com">CSR ifm sytron</author>
+  <!-- <commnent> change author email to owen email until CSR support email works </comment>  -->
 
-  <url type="repository">https://github.com/lovepark/ifm3d-ros</url>
+  <url type="repository">https://github.com/ifm/ifm3d-ros/</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
