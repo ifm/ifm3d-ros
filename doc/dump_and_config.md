@@ -138,9 +138,9 @@ $ rosrun ifm3d dump
 Chaining together Linux pipelines works just as it does in `ifm3d`. For example, using a combination of `dump` and `config` to set a new name on the camera would look like:
 
 ```
-$ rosrun ifm3d dump | jq '.ifm3d.Device.Name="My 3D Camera"' | rosrun ifm3d config
-$ rosrun ifm3d dump | jq .ifm3d.Device.Name
-"My 3D Camera"
+$ rosrun ifm3d dump | jq '.ports.port0.mode="experimental_high_2m"' | rosrun ifm3d config 
+$ rosrun ifm3d dump | jq .ports.port0.mode
+"experimental_high_2m"
 ```
 
 >**NOTE:** If you do not have `jq` on your system, it can be installed with: `$ sudo apt-get install jq`  
@@ -148,7 +148,9 @@ $ rosrun ifm3d dump | jq .ifm3d.Device.Name
 For the `config` command, one difference between our ROS implementation and the `ifm3d` implementation is that we only accept input on `stdin`. So, if you had a file with JSON you wish to configure your camera with, you would simply use the file I/O redirection facilities of your shell (or something like `cat`) to feed the data to `stdin`. For example, in `bash`:
 
 ```
-$ rosrun ifm3d config < camera.json
+$ rosrun ifm3d dump > dump.json
+$ cat dump.json | jq '.ports.port0.mode="experimental_high_2m"' > config.json
+$ rosrun ifm3d config < config.json
 ```
 
 Beyond the requirement of prefacing your command-line with `rosrun` to invoke the ROS version of these tools, they operate the same. To learn more about the functionality and concepts, you can read the docs [here](https://github.com/ifm/ifm3d/blob/master/doc/configuring.md).
