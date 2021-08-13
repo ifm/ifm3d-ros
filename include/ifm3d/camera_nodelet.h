@@ -50,8 +50,8 @@ namespace ifm3d_ros
     bool Trigger(ifm3d::Trigger::Request& req, ifm3d::Trigger::Response& res);
     bool SoftOff(ifm3d::SoftOff::Request& req, ifm3d::SoftOff::Response& res);
     bool SoftOn(ifm3d::SoftOn::Request& req, ifm3d::SoftOn::Response& res);
-    bool SyncClocks(ifm3d::SyncClocks::Request& req,
-                    ifm3d::SyncClocks::Response& res);
+    // bool SyncClocks(ifm3d::SyncClocks::Request& req,
+    //                 ifm3d::SyncClocks::Response& res);
 
     //
     // This is our main publishing loop and its helper functions
@@ -96,6 +96,7 @@ namespace ifm3d_ros
     ros::Publisher uvec_pub_;
     ros::Publisher extrinsics_pub_;
     image_transport::Publisher distance_pub_;
+    // image_transport::Publisher distance_noise_pub_;
     image_transport::Publisher amplitude_pub_;
     image_transport::Publisher raw_amplitude_pub_;
     image_transport::Publisher conf_pub_;
@@ -111,7 +112,7 @@ namespace ifm3d_ros
     ros::ServiceServer trigger_srv_;
     ros::ServiceServer soft_off_srv_;
     ros::ServiceServer soft_on_srv_;
-    ros::ServiceServer sync_clocks_srv_;
+    // ros::ServiceServer sync_clocks_srv_;
 
     //
     // We use a ROS one-shot timer to kick off our publishing loop.

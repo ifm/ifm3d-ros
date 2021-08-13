@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(ifm3d)
 
-find_package(ifm3d 0.11.2 CONFIG REQUIRED COMPONENTS
+find_package(ifm3d 0.19.0 CONFIG REQUIRED COMPONENTS
              camera
              framegrabber
              image
