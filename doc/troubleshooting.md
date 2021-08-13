@@ -25,3 +25,27 @@ The snippet below show's how to set this parameter using the [nodelet.launch](ht
 ```
 
 Alternatively if a virtual machine is being used, configuring it to utilize more than one core should resolve this issue without any changes to the launch file.
+
+## ifm3d-ros nodelet can not connect to O3R camera head
+If the user forgets to set the PCIC port (our standard communication port for data broadcasting) the default PCIC port argument will be used `default_pcic_port = 50010`. This TCP-IP port (`50010`) corresponds with the physical `port 0` on the VPU. The 3D imager therefore needs to be connected to exactly this port.  
+
+When these two port arguments don't match you will likely see something along these lines, being repeatedly posted to your shell:    
+```
+[ INFO] [1628860557.703261704]: Running dtors...
+[ INFO] [1628860557.704592043]: Initializing camera...
+[ INFO] [1628860558.705489893]: Initializing framegrabber...
+[ INFO] [1628860558.706352595]: Initializing image buffer...
+[ WARN] [1628860559.207288723]: Timeout waiting for camera!
+[ WARN] [1628860559.708197339]: Timeout waiting for camera!
+[ WARN] [1628860560.209029697]: Timeout waiting for camera!
+[ WARN] [1628860560.709553855]: Timeout waiting for camera!
+[ WARN] [1628860561.210310005]: Timeout waiting for camera!
+[ WARN] [1628860561.710739497]: Timeout waiting for camera!
+[ WARN] [1628860562.211714793]: Timeout waiting for camera!
+[ WARN] [1628860562.712752207]: Timeout waiting for camera!
+[ WARN] [1628860563.213765790]: Timeout waiting for camera!
+[ WARN] [1628860563.714424040]: Timeout waiting for camera!
+[ WARN] [1628860563.714658175]: Attempting to restart framegrabber...
+```
+
+The fix for this is easy: just remember the first 4 digits of the PCIC port argument will stay the same, the last one corresponds to the physical port.
