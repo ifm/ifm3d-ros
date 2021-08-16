@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
 // SPDX-License-Identifier: Apache-2.0
-//  Copyright (C) 2018 ifm electronic, gmbh
+//  Copyright (C) 2021 ifm electronic, gmbh
 
 #ifndef __IFM3D_ROS_CAMERA_NODELET_H__
 #define __IFM3D_ROS_CAMERA_NODELET_H__

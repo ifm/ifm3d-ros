@@ -1,6 +1,6 @@
 /*
 * SPDX-License-Identifier: Apache-2.0
-* Copyright (C) 2018 ifm electronic, gmbh
+* Copyright (C) 2021 ifm electronic, gmbh
 */
 
 
