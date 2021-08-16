@@ -46,9 +46,10 @@ $ git clone https://github.com/ifm3d/ifm3d-ros.git
 ```
 
 ### 3. create and initialize your catkin workspace 
-We now have the code in `~/dev/ifm3d-ros`. Next, we want to create a _catkin workspace_ that we can use to build and install that code from. It is the catkin philosophy that we do not do this directly in the source directory.
+We now have the code in `~/dev/ifm3d-ros`. Next, we want to create a _catkin workspace_ that we can use to build and install that code from. It is the catkin philosophy that we do not do this directly in the source directory.  
+To see find out further information about setting up you _catkin workspace_ please see this documentation: [create a catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace).  
 ```
-$ cd ~/catkin
+$ mkdir -p ~/catkin_ws && cd ~/catkin_ws
 $ mkdir ifm3d
 $ cd ifm3d
 $ mkdir src
@@ -59,29 +60,29 @@ $ ln -s ~/dev/ifm3d-ros ifm3d
 
 So, you should have a catkin workspace set up to build the ifm3d-ros code that looks similar to this:
 ```
-[ ~/catkin/ifm3d/src ]
+[ ~/catkin_ws/ifm3d/src ]
 rosuser@tuna: $ pwd
-/home/rosuser/catkin/ifm3d/src
+/home/rosuser/catkin_ws/ifm3d/src
 
-[ ~/catkin/ifm3d/src ]
+[ ~/catkin_ws/ifm3d/src ]
 rosuser@tuna: $ ls -l
 total 0
-lrwxrwxrwx 1 rosuser rosuser 50 Mar 26 15:16 CMakeLists.txt -> /opt/ros/noetic/share/catkin/cmake/toplevel.cmake
+lrwxrwxrwx 1 rosuser rosuser 50 Mar 26 15:16 CMakeLists.txt -> /opt/ros/noetic/share/catkin_ws/cmake/toplevel.cmake
 lrwxrwxrwx 1 rosuser rosuser 31 Mar 26 15:16 ifm3d -> /home/rosuser/dev/ifm3d-ros
 ```
 
 ### 4. build the ros node code  
 Now we are ready to build the code. The following code block shows you how to simply run catkin_make without anything else happening further. 
 ```
-$ cd ~/catkin/ifm3d
+$ cd ~/catkin_ws/ifm3d
 $ catkin_make -DCATKIN_ENABLE_TESTING=OFF
 ```
-This will create a `devel` folder in your catkin workspace, which contains the required code for running the ros node. To test this you can easily set-up your current shell and run: `source ~/catkin/ifm3d/devel/setup.bash && roslaunch ifm3d camera.launch`.  
+This will create a `devel` folder in your catkin workspace, which contains the required code for running the ros node. To test this you can easily set-up your current shell and run: `source ~/catkin_ws/ifm3d/devel/setup.bash && roslaunch ifm3d camera.launch`.  
 
 
 Alternatively we supply a set of test scripts for testing the ifm3d-ros node after compiling. Please be aware that the following example code will also immediately install the ifm3d-ros node code to your system.
 ```
-$ cd ~/catkin/ifm3d
+$ cd ~/catkin_ws/ifm3d
 $ catkin_make -DCATKIN_ENABLE_TESTING=ON
 $ catkin_make run_tests
 $ catkin_make -DCMAKE_INSTALL_PREFIX=${HOME}/ros/ifm3d install

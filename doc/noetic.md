@@ -20,7 +20,7 @@ $ sudo apt-get -u upgrade
 
 2. Install ROS Melodic:  
 
-You should now follow [these steps](http://wiki.ros.org/noetic/Installation/Ubuntu) exactly (we assume you did) and that you chose to install `ros-melodic-desktop-full`. 
+You should now follow [these steps](http://wiki.ros.org/noetic/Installation/Ubuntu) exactly (we assume you did) and that you chose to install `ros-noetic-desktop-full`. 
 
 3. additional Dependencies:    
 There are a few things that we need to install to successfully build from source that we did not get implicitly by installing ROS. The following commands will handle these pre-requisites:
