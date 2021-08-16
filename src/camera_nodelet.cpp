@@ -497,7 +497,6 @@ ifm3d_ros::CameraNodelet::Run()
   ros::Time last_frame = ros::Time::now();
   bool got_uvec = false;
 
-  NODELET_INFO_STREAM("Start streaming data");
   while (ros::ok())
     {
       if (! this->AcquireFrame())
@@ -553,29 +552,32 @@ ifm3d_ros::CameraNodelet::Run()
       // currently the unit vector calculation seems to be missing in the ifm3d state: therefore we don't publish anything to the uvec pubisher
       // publish unit vectors once on a latched topic, then re-initialize the
       // framegrabber with the user's requested schema mask
-      // if (! got_uvec)
-      //   {
-      //     lock.lock();
-      //     sensor_msgs::ImagePtr uvec_msg =
-      //       cv_bridge::CvImage(optical_head,
-      //                          enc::TYPE_32FC3,
-      //                          this->im_->UnitVectors()).toImageMsg();
-      //     lock.unlock();
-      //     this->uvec_pub_.publish(uvec_msg);
-      //     got_uvec = true;
-      //     ROS_INFO("Got unit vectors, restarting framegrabber with mask: %d",
-      //              (int) this->schema_mask_);
+      if (! got_uvec)
+        {
+          lock.lock();
+          sensor_msgs::ImagePtr uvec_msg =
+            cv_bridge::CvImage(optical_head,
+                               enc::TYPE_32FC3,
+                               this->im_->UnitVectors()).toImageMsg();
+          NODELET_INFO_STREAM("uvec image size: " << this->im_->UnitVectors().size());
+          lock.unlock();
+          this->uvec_pub_.publish(uvec_msg);
+          got_uvec = true;
+          ROS_INFO("Got unit vectors, restarting framegrabber with mask: %d",
+                   (int) this->schema_mask_);
 
-      //     while (! this->InitStructures(this->schema_mask_))
-      //       {
-      //         ROS_WARN("Could not re-initialize pixel stream!");
-      //         ros::Duration(1.0).sleep();
-      //       }
+          while (! this->InitStructures(this->schema_mask_, this->pcic_port_))
+            {
+              ROS_WARN("Could not re-initialize pixel stream!");
+              ros::Duration(1.0).sleep();
+            }
 
-      //     // should solve the problem of first image being (0,0)
-      //     // see: https://github.com/lovepark/ifm3d/issues/12
-      //     continue;
-      //   }
+          NODELET_INFO_STREAM("Start streaming data");
+
+          // should solve the problem of first image being (0,0)
+          // see: https://github.com/lovepark/ifm3d/issues/12
+          continue;
+        }
 
       //
       // Pull out all the wrapped images so that we can release the "GIL"
@@ -593,7 +595,7 @@ ifm3d_ros::CameraNodelet::Run()
         distance_img = this->im_->DistanceImage();
         amplitude_img = this->im_->AmplitudeImage();
         raw_amplitude_img = this->im_->RawAmplitudeImage();
-        // gray_img = this->im_->GrayImage();
+        gray_img = this->im_->GrayImage();
         extrinsics = this->im_->Extrinsics();
       }
       catch (const ifm3d::error_t& ex)
@@ -646,6 +648,7 @@ ifm3d_ros::CameraNodelet::Run()
           NODELET_DEBUG_STREAM("after publishing distance image");
         }
 
+      // this image is currently not available via the ifm3d
       // if ((this->schema_mask_ & ifm3d::IMG_DIS_NOISE) == ifm3d::IMG_DIS_NOISE)
       //   {
       //     sensor_msgs::ImagePtr distance_noise_msg =
@@ -678,21 +681,19 @@ ifm3d_ros::CameraNodelet::Run()
           NODELET_DEBUG_STREAM("after publishing raw amplitude image");
         }
 
-      // we leave the publishing to these messages out for the moment as the 
-      // data frames received from ifm3d for these methods is empty 
+      if ((this->schema_mask_ & ifm3d::IMG_GRAY) == ifm3d::IMG_GRAY)
+        {
+          sensor_msgs::ImagePtr gray_image_msg =
+            cv_bridge::CvImage(optical_head,
+                               gray_img.type() == CV_32FC1 ?
+                               enc::TYPE_32FC1 : enc::TYPE_16UC1,
+                               gray_img).toImageMsg();
+          this->gray_image_pub_.publish(gray_image_msg);
+          NODELET_DEBUG_STREAM("after publishing gray image");
+        }
+
+      // TODO: this casting of the confidence image to a boolean value image needs fixing
       
-      // if ((this->schema_mask_ & ifm3d::IMG_GRAY) == ifm3d::IMG_GRAY)
-      //   {
-      //     sensor_msgs::ImagePtr gray_image_msg =
-      //       cv_bridge::CvImage(optical_head,
-      //                          gray_img.type() == CV_32FC1 ?
-      //                          enc::TYPE_32FC1 : enc::TYPE_16UC1,
-      //                          gray_img).toImageMsg();
-      //     this->gray_image_pub_.publish(gray_image_msg);
-      //     NODELET_DEBUG_STREAM("after publishing gray image");
-      //   }
-
-
       // good_bad_pixels_img = cv::Mat::ones(confidence_img.rows,
       //                                     confidence_img.cols,
       //                                     CV_8UC1);
