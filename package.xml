@@ -4,10 +4,10 @@
   <name>ifm3d</name>
   <version>0.7.0</version>
   <description>ifm pmd-based 3D ToF Camera ROS package</description>
-  <maintainer email="Philipp.Senger@ifm.com">Sean Kelly</maintainer>
+  <maintainer email="Philipp.Senger@ifm.com">Philipp Senger</maintainer>
   <license>Apache 2</license>
   <author email="Philipp.Senger@ifm.com">CSR ifm sytron</author>
-  <!-- <commnent> change author email to owen email until CSR support email works </comment>  -->
+  <!-- <commnent> change author email to own email until CSR support email works </comment>  -->
 
   <url type="repository">https://github.com/ifm/ifm3d-ros/</url>
 
