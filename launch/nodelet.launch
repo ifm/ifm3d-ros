@@ -42,6 +42,11 @@
       xmlrpc_port: $(arg xmlrpc_port)
 
       #
+      # The on-camera TCP port that the PCIC server is listening to
+      #
+      pcic_port: $(arg pcic_port)
+
+      #
       # The password needed to establish an edit session with the camera
       #
       password: "$(arg password)"
