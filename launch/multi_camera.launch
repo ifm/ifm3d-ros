@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Command-line arguments -->
+  <arg name="ns" default="ifm3d"/>
+  <arg name="nn1" default="camera1"/>
+  <arg name="nn2" default="camera2"/>
+  <arg name="ip" default="192.168.0.69"/>
+  <arg name="xmlrpc_port" default="80"/>
+  <arg name="pcic_port_1" default="50010"/>
+  <arg name="pcic_port_2" default="50011"/>
+  <arg name="password" default=""/>
+  <arg name="schema_mask" default="15"/>
+  <arg name="timeout_millis" default="500"/>
+  <arg name="timeout_tolerance_secs" default="5.0"/>
+  <arg name="frame_id_base" default="$(arg ns)/$(arg nn1)" />
+  <arg name="respawn" default="false"/>
+  <arg name="assume_sw_triggered" default="false"/>
+  <arg name="sync_clocks" default="false"/>
+
+  <!-- node 1 -->
+  <include ns="$(arg ns)" file="$(find ifm3d)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nn1)"/>
+    <arg name="ip" value="$(arg ip)"/>
+    <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
+    <arg name="pcic_port" value="$(arg pcic_port_1)"/>
+    <arg name="password" value="$(arg password)"/>
+    <arg name="schema_mask" value="$(arg schema_mask)"/>
+    <arg name="timeout_millis" value="$(arg timeout_millis)"/>
+    <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
+    <arg name="frame_id_base" value="$(arg ns)/$(arg nn1)" />
+    <arg name="respawn" value="$(arg respawn)"/>
+    <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
+    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
+  </include>
+
+  <!-- node 2 -->
+  <include ns="$(arg ns)" file="$(find ifm3d)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nn2)"/>
+    <arg name="ip" value="$(arg ip)"/>
+    <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
+    <arg name="pcic_port" value="$(arg pcic_port_2)"/>
+    <arg name="password" value="$(arg password)"/>
+    <arg name="schema_mask" value="$(arg schema_mask)"/>
+    <arg name="timeout_millis" value="$(arg timeout_millis)"/>
+    <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
+    <arg name="frame_id_base" value="$(arg ns)/$(arg nn2)" />
+    <arg name="respawn" value="$(arg respawn)"/>
+    <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
+    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
+  </include>
+
+   <!-- coord frame transform from ROS sensor frame to static map frame (no egomotion) -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="$(arg nn1)_tf"
+        args="0 0 0 0 0 0 map $(arg ns)/$(arg nn1)"
+        respawn="$(arg respawn)" />
+
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="$(arg nn2)_tf"
+        args="0 0 0 0 0 0 map $(arg ns)/$(arg nn2)"
+        respawn="$(arg respawn)" />
+
+</launch>
