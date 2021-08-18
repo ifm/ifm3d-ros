@@ -53,13 +53,13 @@
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="$(arg nn1)_tf"
-        args="0 0 0 0 0 0 map $(arg ns)/$(arg nn1)"
+        args="0 0 0 0 0 0 map $(arg ns)/$(arg nn1)_link"
         respawn="$(arg respawn)" />
 
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="$(arg nn2)_tf"
-        args="0 0 0 0 0 0 map $(arg ns)/$(arg nn2)"
+        args="0 0 0 0 0 0 map $(arg ns)/$(arg nn2)_link"
         respawn="$(arg respawn)" />
 
 </launch>
