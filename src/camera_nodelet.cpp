@@ -257,14 +257,14 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
   res.status = 0;
   res.msg = "Software trigger is currently not implemented";
 
-  // try
-  //   {
-  //     this->fg_->SWTrigger();
-  //   }
-  // catch (const ifm3d::error_t& ex)
-  //   {
-  //     res.status = ex.code();
-  //   }
+  try
+    {
+      this->fg_->SWTrigger();
+    }
+  catch (const ifm3d::error_t& ex)
+    {
+      res.status = ex.code();
+    }
 
   NODELET_WARN_STREAM("Triggering a camera head is currently not implemented - will follow");
   return true;
@@ -714,7 +714,8 @@ ifm3d_ros::CameraNodelet::Run()
 
       // The 2D is not yet settable in the schema mask: publish all the time
 
-
+    if (!rgb_img.empty())
+    {
       cv::Mat im_decode = cv::imdecode(rgb_img, cv::IMREAD_UNCHANGED);
       sensor_msgs::ImagePtr rgb_image_msg =
         cv_bridge::CvImage(optical_head,
@@ -722,6 +723,7 @@ ifm3d_ros::CameraNodelet::Run()
                             im_decode).toImageMsg();
       this->rgb_image_pub_.publish(rgb_image_msg);
       NODELET_DEBUG_STREAM("after publishing rgb image");
+    }
 
       //
       // publish extrinsics
