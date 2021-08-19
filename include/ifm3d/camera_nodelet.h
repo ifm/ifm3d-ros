@@ -103,6 +103,7 @@ namespace ifm3d_ros
     image_transport::Publisher good_bad_pub_;
     image_transport::Publisher xyz_image_pub_;
     image_transport::Publisher gray_image_pub_;
+    image_transport::Publisher rgb_image_pub_;
 
     //
     // Services we advertise

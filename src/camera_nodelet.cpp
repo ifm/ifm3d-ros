@@ -115,6 +115,7 @@ ifm3d_ros::CameraNodelet::onInit()
   this->good_bad_pub_ = this->it_->advertise("good_bad_pixels", 1);
   this->xyz_image_pub_ = this->it_->advertise("xyz_image", 1);
   this->gray_image_pub_ = this->it_->advertise("gray_image", 1);
+  this->rgb_image_pub_ = this->it_->advertise("rgb_image", 1);
 
   // we latch the unit vectors
   this->uvec_pub_ =
@@ -492,6 +493,8 @@ ifm3d_ros::CameraNodelet::Run()
   cv::Mat raw_amplitude_img;
   cv::Mat good_bad_pixels_img;
   cv::Mat gray_img;
+  cv::Mat rgb_img;
+
 
   NODELET_DEBUG_STREAM("after initializing the opencv buffers");
   std::vector<float> extrinsics(6);
@@ -599,6 +602,7 @@ ifm3d_ros::CameraNodelet::Run()
         raw_amplitude_img = this->im_->RawAmplitudeImage();
         gray_img = this->im_->GrayImage();
         extrinsics = this->im_->Extrinsics();
+        rgb_img = this->im_->JPEGImage();
       }
       catch (const ifm3d::error_t& ex)
       {
@@ -707,6 +711,17 @@ ifm3d_ros::CameraNodelet::Run()
       //                      (good_bad_pixels_img == 0)).toImageMsg();
       // this->good_bad_pub_.publish(good_bad_msg);
       // NODELET_DEBUG_STREAM("after publishing good/bad pixel image image");
+
+      // The 2D is not yet settable in the schema mask: publish all the time
+
+
+      cv::Mat im_decode = cv::imdecode(rgb_img, cv::IMREAD_UNCHANGED);
+      sensor_msgs::ImagePtr rgb_image_msg =
+        cv_bridge::CvImage(optical_head,
+                            "rgb8",
+                            im_decode).toImageMsg();
+      this->rgb_image_pub_.publish(rgb_image_msg);
+      NODELET_DEBUG_STREAM("after publishing rgb image");
 
       //
       // publish extrinsics
