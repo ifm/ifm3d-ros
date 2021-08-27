@@ -1,6 +1,7 @@
 ## Changes between ifm3d-ros 0.6.x and 0.7.0
 ### unreleased
-+ change camera class from based camera to O3RCamera
++ added publisher for 2D RGB data
++ use CameraBase for compatibility with other O3 devices
 + comment out methods / publisher which are not available for the O3RCamera (at the moment)
 + comment out the unit vector publishing
 + changed services trigger and softon, softoff to dummy services 
