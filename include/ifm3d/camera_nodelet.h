@@ -81,7 +81,7 @@ namespace ifm3d_ros
     std::string frame_id_;
     std::string optical_frame_id_;
 
-    ifm3d::Camera::Ptr cam_;
+    ifm3d::CameraBase::Ptr cam_;
     ifm3d::FrameGrabber::Ptr fg_;
     ifm3d::ImageBuffer::Ptr im_;
     std::mutex mutex_;
