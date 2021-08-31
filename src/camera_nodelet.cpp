@@ -491,9 +491,7 @@ ifm3d_ros::CameraNodelet::Run()
       if ((ros::Time::now() - head.stamp) >
           ros::Duration(this->frame_latency_thresh_))
         {
-          ROS_WARN_ONCE("Camera's time is not up to date, therefore header's "
-            "timestamps will be the reception time and not capture time. "
-            "Please update the camera's time if you need the capture time.");
+          ROS_INFO_ONCE("Camera's time and client's time are not synced");
           head.stamp = ros::Time::now();
         }
       NODELET_DEBUG_STREAM("in header, before setting header to msgs");
