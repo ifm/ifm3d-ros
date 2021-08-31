@@ -33,7 +33,6 @@
 #include <ifm3d/Extrinsics.h>
 #include <ifm3d/SoftOff.h>
 #include <ifm3d/SoftOn.h>
-#include <ifm3d/SyncClocks.h>
 #include <ifm3d/Trigger.h>
 
 #include <ifm3d/contrib/nlohmann/json.hpp>
@@ -89,7 +88,6 @@ ifm3d_ros::CameraNodelet::onInit()
                   this->soft_off_timeout_millis_, 500);
   this->np_.param("soft_off_timeout_tolerance_secs",
                   this->soft_off_timeout_tolerance_secs_, 600.0);
-  this->np_.param("sync_clocks", this->sync_clocks_, false);
   this->np_.param("frame_latency_thresh", this->frame_latency_thresh_, 60.0f);
   this->np_.param("frame_id_base", frame_id_base, frame_id_base);
 
@@ -159,13 +157,6 @@ ifm3d_ros::CameraNodelet::onInit()
     ("SoftOn", std::bind(&CameraNodelet::SoftOn, this,
                           std::placeholders::_1,
                           std::placeholders::_2));
-
-  // this->sync_clocks_srv_ =
-  //   this->np_.advertiseService<ifm3d::SyncClocks::Request,
-  //                              ifm3d::SyncClocks::Response>
-  //   ("SyncClocks", std::bind(&CameraNodelet::SyncClocks, this,
-  //                            std::placeholders::_1,
-  //                            std::placeholders::_2));
 
   NODELET_DEBUG_STREAM("after advertise service");
   //----------------------------------
@@ -267,31 +258,6 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
     }
 
   NODELET_WARN_STREAM("Triggering a camera head is currently not implemented - will follow");
-  return true;
-}
-
-// this is a dummy method for the moment:  the syncing of clocks is not supported for the O3RCamera (for the moment)
-bool
-ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
-                                     ifm3d::SyncClocks::Response& res)
-{
-  std::lock_guard<std::mutex> lock(this->mutex_);
-  res.status = 0;
-  res.msg = "Syncing clocks is currently not implemented";
-
-  // NODELET_INFO_STREAM("Syncing camera clock to system...");
-  // try
-  //   {
-  //     this->cam_->SetCurrentTime(-1);
-  //   }
-  // catch (const ifm3d::error_t& ex)
-  //   {
-  //     res.status = ex.code();
-  //     res.msg = ex.what();
-  //     NODELET_WARN_STREAM(res.status << ": " << res.msg);
-  //     return false;
-  //   }
-  NODELET_WARN_STREAM("Syncing clocks is currently not implemented - will follow");
   return true;
 }
 
@@ -450,28 +416,6 @@ ifm3d_ros::CameraNodelet::Run()
   std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
 
   NODELET_DEBUG_STREAM("in Run");
-  
-  // Sync camera clock with system clock if necessary
-  // if (this->sync_clocks_)
-  //   {
-  //     NODELET_INFO_STREAM("Syncing camera clock to system...");
-  //     try
-  //       {  
-  //            this->cam_ = std::makeShared<O3RCamera>(this->camera_ip_, 
-  //                                                   this->xmlrpc_port_);
-  //         this->cam_->SetCurrentTime(-1);
-  //       }
-  //     catch (const ifm3d::error_t& ex)
-  //       {
-  //         NODELET_WARN_STREAM("Failed to sync clocks!");
-  //         NODELET_WARN_STREAM(ex.code() << ": " << ex.what());
-  //       }
-  //   }
-  // else
-  //   {
-  //     NODELET_INFO_STREAM("Camera clock will not be sync'd to system clock");
-  //   }
-
   
   // We need to account for the case of when the nodelet is being started prior
   // to the camera being plugged in.
