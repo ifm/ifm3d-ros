@@ -23,7 +23,6 @@
   <arg name="frame_id_base" default="$(arg ns)/$(arg nn1)" />
   <arg name="respawn" default="false"/>
   <arg name="assume_sw_triggered" default="false"/>
-  <arg name="sync_clocks" default="false"/>
 
   <!-- node 1 -->
   <include ns="$(arg ns)" file="$(find ifm3d)/launch/nodelet.launch">
@@ -38,7 +37,6 @@
     <arg name="frame_id_base" value="$(arg ns)/$(arg nn1)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
-    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
   </include>
 
   <!-- node 2 -->
@@ -54,7 +52,6 @@
     <arg name="frame_id_base" value="$(arg ns)/$(arg nn2)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
-    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
   </include>
 
   <!-- node 3 -->
@@ -70,7 +67,6 @@
     <arg name="frame_id_base" value="$(arg ns)/$(arg nn3)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
-    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
   </include>
 
   <!-- node 4 -->
@@ -86,7 +82,6 @@
     <arg name="frame_id_base" value="$(arg ns)/$(arg nn4)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
-    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
   </include>
 
   <!-- node 5 -->
@@ -102,7 +97,6 @@
     <arg name="frame_id_base" value="$(arg ns)/$(arg nn5)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
-    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
   </include>
 
 
@@ -119,7 +113,6 @@
     <arg name="frame_id_base" value="$(arg ns)/$(arg nn6)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
-    <arg name="sync_clocks" value="$(arg sync_clocks)"/>
   </include>
 
    <!-- coord frame transform from ROS sensor frame to static map frame (no egomotion) -->
