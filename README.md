@@ -81,7 +81,7 @@ The incompatibility here is that in prior versions, one would not need to explic
 | ~schema_mask | uint16 | 0xf |  The pcic schema mask to apply to the active session with the frame grabber. This determines which images are available for publication from the camera. More about pcic schemas can be gleaned from the [ifm3d projects documentation](https://www.ifm3d.com). |
 | ~timeout_millis | int | 500 | The number of milliseconds to wait for the framegrabber to return new frame data before declaring a "timeout" and to stop blocking on new data. |
 | ~timeout_tolerance_secs |float | 5.0 | The wall time to wait with no new data from the camera before trying to establish a new connection to the camera. This helps to providerobustness against camera cables becoming unplugged or other in-field pathologies which would cause the connection between the ROS node and the camera to be broken. |
-| ~sync_clocks | bool | false | Attempt to sync the camera clock to the system clock at start-up. The side-effect is that timestamps on the image should reflect the capture time as opposed to the receipt time. |
+| ~sync_clocks DEPRECATED | bool | false | Attempt to sync the camera clock to the system clock at start-up. The side-effect is that timestamps on the image should reflect the capture time as opposed to the receipt time. |
 | ~xmlrpc_port | unint16 | 80 | The TCP port the camera's xmlrpc server is listening on for requests. |
 | ~pcic_port | unint16 | 50010 | The TCP (data) port the camera's pcic server is listening on for requests. |
 
