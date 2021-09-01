@@ -15,7 +15,7 @@
 #include <nodelet/nodelet.h>
 #include <ros/ros.h>
 
-#include <ifm3d/camera.h>
+#include <ifm3d/camera/camera_base.h>
 #include <ifm3d/fg.h>
 #include <ifm3d/image.h>
 #include <ifm3d/Config.h>
