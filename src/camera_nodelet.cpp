@@ -25,7 +25,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
 
-#include <ifm3d/camera.h>
+#include <ifm3d/camera/camera_base.h>
 #include <ifm3d/fg.h>
 #include <ifm3d/image.h>
 #include <ifm3d/Config.h>
@@ -366,7 +366,9 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
       this->cam_.reset();
 
       NODELET_INFO_STREAM("Initializing camera...");
-      this->cam_ = std::make_shared<ifm3d::CameraBase>(this->camera_ip_, this->xmlrpc_port_);
+      this->cam_ = ifm3d::CameraBase::MakeShared();
+      // this->cam_ = ifm3d::CameraBase::MakeShared(this->camera_ip_, this->xmlrpc_port_);
+      // this->cam_ = std::make_shared<ifm3d::CameraBase>(this->camera_ip_, this->xmlrpc_port_);
       ros::Duration(1.0).sleep();
 
       NODELET_INFO_STREAM("Initializing framegrabber...");
