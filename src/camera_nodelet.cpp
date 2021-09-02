@@ -501,7 +501,7 @@ ifm3d_ros::CameraNodelet::Run()
       optical_head.stamp = head.stamp;
       optical_head.frame_id = this->optical_frame_id_;
 
-      // currently the unit vector calculation seems to be missing in the ifm3d state: therefore we don't publish anything to the uvec pubisher
+      // currently the unit vector calculation seems to be missing in the ifm3d state: therefore the uvec publisher might return empty frames
       // publish unit vectors once on a latched topic, then re-initialize the
       // framegrabber with the user's requested schema mask
       if (! got_uvec)
@@ -515,7 +515,7 @@ ifm3d_ros::CameraNodelet::Run()
           lock.unlock();
           this->uvec_pub_.publish(uvec_msg);
           got_uvec = true;
-          ROS_INFO("Got unit vectors, restarting framegrabber with mask: %d",
+          ROS_INFO("Got unit vectors from ifm3d, restarting framegrabber with mask: %d",
                    (int) this->schema_mask_);
 
           while (! this->InitStructures(this->schema_mask_, this->pcic_port_))
@@ -643,14 +643,16 @@ ifm3d_ros::CameraNodelet::Run()
         }
 
       
+      // the goof_bad_pixels publisher depends on the confidence image publisher (casting to binary image): 
+      // it is therefore again not invariant
       good_bad_pixels_img = cv::Mat::ones(confidence_img.rows,
                                           confidence_img.cols,
                                           CV_8UC1);
 
       // TODO: this casting of the confidence image to a boolean value image needs to be tested: 
-      // inv cast might be reqiured depending on the interpretation of the binary image 
+      // inv cast might be required depending on the interpretation of the binary image 
       int const thresh = 1; 
-      int const max_binary_value = 255;
+      int const max_binary_value = 1;
       cv::threshold(confidence_img, good_bad_pixels_img, thresh, max_binary_value, cv::THRESH_BINARY); 
       sensor_msgs::ImagePtr good_bad_msg =
         cv_bridge::CvImage(optical_head,
