@@ -246,65 +246,35 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  res.msg = "Software trigger is currently not implemented";
+
+  int port_arg = -1;
 
   try
-    {
-      this->fg_->SWTrigger();
+    { 
+      port_arg = static_cast<int> (this->pcic_port_) % 50010;
+
+      // Configure the device from a json string
+      this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"IDLE\"}}}");
+
+      this->assume_sw_triggered_ = false;
+      this->timeout_millis_ = this->soft_on_timeout_millis_;
+      this->timeout_tolerance_secs_ =
+      this->soft_on_timeout_tolerance_secs_;
+        
     }
   catch (const ifm3d::error_t& ex)
     {
       res.status = ex.code();
+      res.msg = ex.what();
+      return false;
     }
 
-  NODELET_WARN_STREAM("Triggering a camera head is currently not implemented - will follow");
+  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - we use IDLE and RUN states instead");
+  res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"IDLE\"}}}";
+
   return true;
 }
 
-// this is a dummy method for the moment:  the idea of applications is not supported for the O3RCamera
-// we keep this in to possibly keep it comparable / interoperable with the ROS wrappers for other ifm cameras
-bool
-ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
-                                  ifm3d::SoftOff::Response& res)
-{
-  std::lock_guard<std::mutex> lock(this->mutex_);
-  res.status = 0;
-  res.msg = "Applications are currently not implemented";
-
-  int active_application = 0;
-
-  // try
-  //   {
-  //     active_application = this->cam_->ActiveApplication();
-  //     if (active_application > 0)
-  //       {
-  //         json dict =
-  //           {
-  //             {"Apps",
-  //              {{{"Index", std::to_string(active_application)},
-  //                {"TriggerMode",
-  //                 std::to_string(
-  //                   static_cast<int>(ifm3d::Camera::trigger_mode::SW))}}}
-  //             }
-  //           };
-
-  //         this->cam_->FromJSON(dict);
-
-  //         this->assume_sw_triggered_ = true;
-  //         this->timeout_millis_ = this->soft_off_timeout_millis_;
-  //         this->timeout_tolerance_secs_ =
-  //           this->soft_off_timeout_tolerance_secs_;
-  //       }
-  //   }
-  // catch (const ifm3d::error_t& ex)
-  //   {
-  //     res.status = ex.code();
-  //     res.msg = ex.what();
-  //     return false;
-  //   }
-  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - may follow");
-  return true;
-}
 
 // this is a dummy method for the moment:  the idea of applications is not supported for the O3RCamera
 // we keep this in to possibly keep it comparable / interoperable with the ROS wrappers for other ifm cameras
@@ -314,41 +284,48 @@ ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  res.msg = "Applications are currently not implemented";
+  int port_arg = -1;
 
-  int active_application = 0;
+  try
+    { 
+      port_arg = static_cast<int> (this->pcic_port_) % 50010;
 
-  // try
-  //   {
-  //     active_application = this->cam_->ActiveApplication();
-  //     if (active_application > 0)
-  //       {
-  //         json dict =
-  //           {
-  //             {"Apps",
-  //              {{{"Index", std::to_string(active_application)},
-  //                {"TriggerMode",
-  //                 std::to_string(
-  //                   static_cast<int>(ifm3d::Camera::trigger_mode::FREE_RUN))}}}
-  //             }
-  //           };
+      // try getting a current configuration as an ifm3d dump
+      // this way a a-priori test before setting the state can be tested 
+      // try
+      // { 
+      //   json j = this->cam_->ToJSON();
+      // }
+      // catch (const ifm3d::error_t& ex)
+      // {
+      //   NODELET_WARN_STREAM(ex.code());
+      //   NODELET_WARN_STREAM(ex.what());
+      // }
+      // catch (const std::exception& std_ex)
+      //   {
+      //     NODELET_WARN_STREAM(std_ex.what());
+      // } 
 
-  //         this->cam_->FromJSON(dict);
 
-  //         this->assume_sw_triggered_ = false;
-  //         this->timeout_millis_ = this->soft_on_timeout_millis_;
-  //         this->timeout_tolerance_secs_ =
-  //           this->soft_on_timeout_tolerance_secs_;
-  //       }
-  //   }
-  // catch (const ifm3d::error_t& ex)
-  //   {
-  //     res.status = ex.code();
-  //     res.msg = ex.what();
-  //     return false;
-  //   }
+      // Configure the device from a json string
+      this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"RUN\"}}}");
 
-  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - may follow");
+      this->assume_sw_triggered_ = false;
+      this->timeout_millis_ = this->soft_on_timeout_millis_;
+      this->timeout_tolerance_secs_ =
+      this->soft_on_timeout_tolerance_secs_;
+        
+    }
+  catch (const ifm3d::error_t& ex)
+    {
+      res.status = ex.code();
+      res.msg = ex.what();
+      return false;
+    }
+
+  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - we use IDLE and RUN states instead");
+  res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"RUN\"}}}";
+
   return true;
 }
 
