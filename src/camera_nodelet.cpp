@@ -269,31 +269,40 @@ ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  int port_arg = -1;
+  res.msg = "Applications are currently not implemented";
 
-  try
-    { 
-      port_arg = static_cast<int> (this->pcic_port_) % 50010;
+  int active_application = 0;
 
-      // Configure the device from a json string
-      this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"IDLE\"}}}");
+  // try
+  //   {
+  //     active_application = this->cam_->ActiveApplication();
+  //     if (active_application > 0)
+  //       {
+  //         json dict =
+  //           {
+  //             {"Apps",
+  //              {{{"Index", std::to_string(active_application)},
+  //                {"TriggerMode",
+  //                 std::to_string(
+  //                   static_cast<int>(ifm3d::Camera::trigger_mode::SW))}}}
+  //             }
+  //           };
 
-      this->assume_sw_triggered_ = false;
-      this->timeout_millis_ = this->soft_on_timeout_millis_;
-      this->timeout_tolerance_secs_ =
-      this->soft_on_timeout_tolerance_secs_;
-        
-    }
-  catch (const ifm3d::error_t& ex)
-    {
-      res.status = ex.code();
-      res.msg = ex.what();
-      return false;
-    }
+  //         this->cam_->FromJSON(dict);
 
+  //         this->assume_sw_triggered_ = true;
+  //         this->timeout_millis_ = this->soft_off_timeout_millis_;
+  //         this->timeout_tolerance_secs_ =
+  //           this->soft_off_timeout_tolerance_secs_;
+  //       }
+  //   }
+  // catch (const ifm3d::error_t& ex)
+  //   {
+  //     res.status = ex.code();
+  //     res.msg = ex.what();
+  //     return false;
+  //   }
   NODELET_WARN_STREAM("The concept of applications is not available for the O3R - may follow");
-  res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"IDLE\"}}}";
-
   return true;
 }
 
@@ -305,48 +314,41 @@ ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  int port_arg = -1;
+  res.msg = "Applications are currently not implemented";
 
-  try
-    { 
-      port_arg = static_cast<int> (this->pcic_port_) % 50010;
+  int active_application = 0;
 
-      // try getting a current configuration as an ifm3d dump
-      // this way a a-priori test before setting the state can be tested 
-      // try
-      // { 
-      //   json j = this->cam_->ToJSON();
-      // }
-      // catch (const ifm3d::error_t& ex)
-      // {
-      //   NODELET_WARN_STREAM(ex.code());
-      //   NODELET_WARN_STREAM(ex.what());
-      // }
-      // catch (const std::exception& std_ex)
-      //   {
-      //     NODELET_WARN_STREAM(std_ex.what());
-      // } 
+  // try
+  //   {
+  //     active_application = this->cam_->ActiveApplication();
+  //     if (active_application > 0)
+  //       {
+  //         json dict =
+  //           {
+  //             {"Apps",
+  //              {{{"Index", std::to_string(active_application)},
+  //                {"TriggerMode",
+  //                 std::to_string(
+  //                   static_cast<int>(ifm3d::Camera::trigger_mode::FREE_RUN))}}}
+  //             }
+  //           };
 
+  //         this->cam_->FromJSON(dict);
 
-      // Configure the device from a json string
-      this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"RUN\"}}}");
-
-      this->assume_sw_triggered_ = false;
-      this->timeout_millis_ = this->soft_on_timeout_millis_;
-      this->timeout_tolerance_secs_ =
-      this->soft_on_timeout_tolerance_secs_;
-        
-    }
-  catch (const ifm3d::error_t& ex)
-    {
-      res.status = ex.code();
-      res.msg = ex.what();
-      return false;
-    }
+  //         this->assume_sw_triggered_ = false;
+  //         this->timeout_millis_ = this->soft_on_timeout_millis_;
+  //         this->timeout_tolerance_secs_ =
+  //           this->soft_on_timeout_tolerance_secs_;
+  //       }
+  //   }
+  // catch (const ifm3d::error_t& ex)
+  //   {
+  //     res.status = ex.code();
+  //     res.msg = ex.what();
+  //     return false;
+  //   }
 
   NODELET_WARN_STREAM("The concept of applications is not available for the O3R - may follow");
-  res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"RUN\"}}}";
-
   return true;
 }
 
@@ -640,19 +642,22 @@ ifm3d_ros::CameraNodelet::Run()
           NODELET_DEBUG_STREAM("after publishing gray image");
         }
 
-      // TODO: this casting of the confidence image to a boolean value image needs fixing
       
-      // good_bad_pixels_img = cv::Mat::ones(confidence_img.rows,
-      //                                     confidence_img.cols,
-      //                                     CV_8UC1);
-      // cv::bitwise_and(confidence_img, good_bad_pixels_img,
-      //                 good_bad_pixels_img);
-      // sensor_msgs::ImagePtr good_bad_msg =
-      //   cv_bridge::CvImage(optical_head,
-      //                      "mono8",
-      //                      (good_bad_pixels_img == 0)).toImageMsg();
-      // this->good_bad_pub_.publish(good_bad_msg);
-      // NODELET_DEBUG_STREAM("after publishing good/bad pixel image image");
+      good_bad_pixels_img = cv::Mat::ones(confidence_img.rows,
+                                          confidence_img.cols,
+                                          CV_8UC1);
+
+      // TODO: this casting of the confidence image to a boolean value image needs to be tested: 
+      // inv cast might be reqiured depending on the interpretation of the binary image 
+      int const thresh = 1; 
+      int const max_binary_value = 255;
+      cv::threshold(confidence_img, good_bad_pixels_img, thresh, max_binary_value, cv::THRESH_BINARY); 
+      sensor_msgs::ImagePtr good_bad_msg =
+        cv_bridge::CvImage(optical_head,
+                           "mono8",
+                           good_bad_pixels_img).toImageMsg();
+      this->good_bad_pub_.publish(good_bad_msg);
+      NODELET_DEBUG_STREAM("after publishing good/bad pixel image image");
 
       // The 2D is not yet settable in the schema mask: publish all the time
 
