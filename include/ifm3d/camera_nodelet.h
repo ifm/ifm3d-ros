@@ -1,19 +1,7 @@
 // -*- c++ -*-
-/*
- * Copyright (C) 2018 ifm electronic, gmbh
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribted on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
+// SPDX-License-Identifier: Apache-2.0
+//  Copyright (C) 2021 ifm electronic, gmbh
 
 #ifndef __IFM3D_ROS_CAMERA_NODELET_H__
 #define __IFM3D_ROS_CAMERA_NODELET_H__
@@ -27,7 +15,7 @@
 #include <nodelet/nodelet.h>
 #include <ros/ros.h>
 
-#include <ifm3d/camera.h>
+#include <ifm3d/camera/camera_base.h>
 #include <ifm3d/fg.h>
 #include <ifm3d/image.h>
 #include <ifm3d/Config.h>
@@ -35,7 +23,6 @@
 #include <ifm3d/Extrinsics.h>
 #include <ifm3d/SoftOff.h>
 #include <ifm3d/SoftOn.h>
-#include <ifm3d/SyncClocks.h>
 #include <ifm3d/Trigger.h>
 
 namespace ifm3d_ros
@@ -62,8 +49,6 @@ namespace ifm3d_ros
     bool Trigger(ifm3d::Trigger::Request& req, ifm3d::Trigger::Response& res);
     bool SoftOff(ifm3d::SoftOff::Request& req, ifm3d::SoftOff::Response& res);
     bool SoftOn(ifm3d::SoftOn::Request& req, ifm3d::SoftOn::Response& res);
-    // bool SyncClocks(ifm3d::SyncClocks::Request& req,
-    //                 ifm3d::SyncClocks::Response& res);
 
     //
     // This is our main publishing loop and its helper functions
@@ -88,12 +73,11 @@ namespace ifm3d_ros
     int soft_off_timeout_millis_;
     double soft_off_timeout_tolerance_secs_;
     float frame_latency_thresh_;
-    bool sync_clocks_;
 
     std::string frame_id_;
     std::string optical_frame_id_;
 
-    ifm3d::O3RCamera::Ptr cam_;
+    ifm3d::CameraBase::Ptr cam_;
     ifm3d::FrameGrabber::Ptr fg_;
     ifm3d::ImageBuffer::Ptr im_;
     std::mutex mutex_;
@@ -114,6 +98,8 @@ namespace ifm3d_ros
     image_transport::Publisher conf_pub_;
     image_transport::Publisher good_bad_pub_;
     image_transport::Publisher xyz_image_pub_;
+    image_transport::Publisher gray_image_pub_;
+    image_transport::Publisher rgb_image_pub_;
 
     //
     // Services we advertise
@@ -123,7 +109,6 @@ namespace ifm3d_ros
     ros::ServiceServer trigger_srv_;
     ros::ServiceServer soft_off_srv_;
     ros::ServiceServer soft_on_srv_;
-    // ros::ServiceServer sync_clocks_srv_;
 
     //
     // We use a ROS one-shot timer to kick off our publishing loop.

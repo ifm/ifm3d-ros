@@ -12,7 +12,6 @@
   <arg name="timeout_tolerance_secs" default="5.0"/>
   <arg name="respawn" default="false"/>
   <arg name="assume_sw_triggered" default="false"/>
-  <arg name="sync_clocks" default="false"/>
   <arg name="frame_id_base" default="ifm3d/$(arg camera)" />
 
   <node pkg="nodelet"
@@ -40,6 +39,11 @@
       # The on-camera TCP port that the XMLRPC server is listening to
       #
       xmlrpc_port: $(arg xmlrpc_port)
+
+      #
+      # The on-camera TCP port that the PCIC server is listening to
+      #
+      pcic_port: $(arg pcic_port)
 
       #
       # The password needed to establish an edit session with the camera
@@ -78,12 +82,6 @@
       soft_off_timeout_tolerance_secs: 600.0
 
       #
-      # Flag to control syncing the camera clock with the system
-      # clock at nodelet startup time.
-      #
-      sync_clocks: $(arg sync_clocks)
-
-      #
       # Time (seconds) used to determine that timestamps from the camera
       # cannot be trusted. When this threshold is exceeded, when compared to
       # system time, we use the reception time of the frame and not the capture
@@ -113,7 +111,7 @@
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="$(arg camera)_tf"
-        args="0 0 0 -1.5707963267948966 0 -1.5707963267948966 $(arg frame_id_base)_link $(arg frame_id_base)_optical_link"
+        args="0 0 0 0 0 0 $(arg frame_id_base)_link $(arg frame_id_base)_optical_link"
         respawn="$(arg respawn)" />
 
 </launch>

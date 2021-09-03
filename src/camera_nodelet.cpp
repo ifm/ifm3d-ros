@@ -1,18 +1,8 @@
 /*
- * Copyright (C) 2018 ifm electronic, gmbh
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribted on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* SPDX-License-Identifier: Apache-2.0
+* Copyright (C) 2021 ifm electronic, gmbh
+*/
+
 
 #include <ifm3d/camera_nodelet.h>
 
@@ -35,7 +25,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
 
-#include <ifm3d/camera.h>
+#include <ifm3d/camera/camera_base.h>
 #include <ifm3d/fg.h>
 #include <ifm3d/image.h>
 #include <ifm3d/Config.h>
@@ -43,16 +33,18 @@
 #include <ifm3d/Extrinsics.h>
 #include <ifm3d/SoftOff.h>
 #include <ifm3d/SoftOn.h>
-#include <ifm3d/SyncClocks.h>
 #include <ifm3d/Trigger.h>
 
+#include <ifm3d/contrib/nlohmann/json.hpp>
+
+using json = nlohmann::json;
 namespace enc = sensor_msgs::image_encodings;
 
 void
 ifm3d_ros::CameraNodelet::onInit()
 {
   std::string nn = this->getName();
-  NODELET_INFO_STREAM("onInit(): " << nn);
+  NODELET_DEBUG_STREAM("onInit(): " << nn);
 
   this->np_ = getMTPrivateNodeHandle();
   this->it_.reset(new image_transport::ImageTransport(this->np_));
@@ -78,9 +70,12 @@ ifm3d_ros::CameraNodelet::onInit()
     }
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
+  ROS_INFO("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
+
   this->np_.param("xmlrpc_port", xmlrpc_port, (int) ifm3d::DEFAULT_XMLRPC_PORT);
   this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_PCIC_PORT);
-  // this->np_.param("pcic_port", pcic_port, (int) 50012);
+  ROS_INFO("pcic port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
+
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
   this->np_.param("schema_mask", schema_mask, (int) ifm3d::DEFAULT_SCHEMA_MASK);
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
@@ -93,13 +88,14 @@ ifm3d_ros::CameraNodelet::onInit()
                   this->soft_off_timeout_millis_, 500);
   this->np_.param("soft_off_timeout_tolerance_secs",
                   this->soft_off_timeout_tolerance_secs_, 600.0);
-  this->np_.param("sync_clocks", this->sync_clocks_, false);
   this->np_.param("frame_latency_thresh", this->frame_latency_thresh_, 60.0f);
   this->np_.param("frame_id_base", frame_id_base, frame_id_base);
 
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_ = static_cast<std::uint16_t>(schema_mask);
   this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
+
+  NODELET_DEBUG_STREAM("setup ros node parameters finished");
 
   this->frame_id_ = frame_id_base + "_link";
   this->optical_frame_id_ = frame_id_base + "_optical_link";
@@ -116,6 +112,8 @@ ifm3d_ros::CameraNodelet::onInit()
   this->conf_pub_ = this->it_->advertise("confidence", 1);
   this->good_bad_pub_ = this->it_->advertise("good_bad_pixels", 1);
   this->xyz_image_pub_ = this->it_->advertise("xyz_image", 1);
+  this->gray_image_pub_ = this->it_->advertise("gray_image", 1);
+  this->rgb_image_pub_ = this->it_->advertise("rgb_image", 1);
 
   // we latch the unit vectors
   this->uvec_pub_ =
@@ -123,7 +121,7 @@ ifm3d_ros::CameraNodelet::onInit()
 
   this->extrinsics_pub_ =
     this->np_.advertise<ifm3d::Extrinsics>("extrinsics", 1);
-
+  NODELET_DEBUG_STREAM("after advertising the publishers");
   //---------------------
   // Advertised Services
   //---------------------
@@ -160,13 +158,7 @@ ifm3d_ros::CameraNodelet::onInit()
                           std::placeholders::_1,
                           std::placeholders::_2));
 
-  // this->sync_clocks_srv_ =
-  //   this->np_.advertiseService<ifm3d::SyncClocks::Request,
-  //                              ifm3d::SyncClocks::Response>
-  //   ("SyncClocks", std::bind(&CameraNodelet::SyncClocks, this,
-  //                            std::placeholders::_1,
-  //                            std::placeholders::_2));
-
+  NODELET_DEBUG_STREAM("after advertise service");
   //----------------------------------
   // Fire off our main publishing loop
   //----------------------------------
@@ -186,7 +178,8 @@ ifm3d_ros::CameraNodelet::Dump(ifm3d::Dump::Request& req,
 
   try
     {
-      res.config = this->cam_->ToJSONStr();
+      json j = this->cam_->ToJSON();
+      res.config = j.dump();
     }
   catch (const ifm3d::error_t& ex)
     {
@@ -221,7 +214,7 @@ ifm3d_ros::CameraNodelet::Config(ifm3d::Config::Request& req,
 
   try
     {
-      this->cam_->FromJSONStr(req.json);
+      this->cam_->FromJSON(req.json);
     }
   catch (const ifm3d::error_t& ex)
     {
@@ -253,6 +246,7 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
+  res.msg = "Software trigger is currently not implemented";
 
   try
     {
@@ -263,115 +257,96 @@ ifm3d_ros::CameraNodelet::Trigger(ifm3d::Trigger::Request& req,
       res.status = ex.code();
     }
 
+  NODELET_WARN_STREAM("Triggering a camera head is currently not implemented - will follow");
   return true;
 }
 
-// bool
-// ifm3d_ros::CameraNodelet::SyncClocks(ifm3d::SyncClocks::Request& req,
-//                                      ifm3d::SyncClocks::Response& res)
-// {
-//   std::lock_guard<std::mutex> lock(this->mutex_);
-//   res.status = 0;
-//   res.msg = "OK";
-
-//   NODELET_INFO_STREAM("Syncing camera clock to system...");
-//   try
-//     {
-//       this->cam_->SetCurrentTime(-1);
-//     }
-//   catch (const ifm3d::error_t& ex)
-//     {
-//       res.status = ex.code();
-//       res.msg = ex.what();
-//       NODELET_WARN_STREAM(res.status << ": " << res.msg);
-//       return false;
-//     }
-
-//   return true;
-// }
-
+// this is a dummy method for the moment:  the idea of applications is not supported for the O3RCamera
+// we keep this in to possibly keep it comparable / interoperable with the ROS wrappers for other ifm cameras
 bool
 ifm3d_ros::CameraNodelet::SoftOff(ifm3d::SoftOff::Request& req,
                                   ifm3d::SoftOff::Response& res)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  res.msg = "OK";
 
-  int active_application = 0;
+  int port_arg = -1;
 
-  // try
-  //   {
-  //     active_application = this->cam_->ActiveApplication();
-  //     if (active_application > 0)
-  //       {
-  //         json dict =
-  //           {
-  //             {"Apps",
-  //              {{{"Index", std::to_string(active_application)},
-  //                {"TriggerMode",
-  //                 std::to_string(
-  //                   static_cast<int>(ifm3d::O3RCamera::trigger_mode::SW))}}}
-  //             }
-  //           };
+  try
+    {
+      port_arg = static_cast<int> (this->pcic_port_) % 50010;
 
-  //         this->cam_->FromJSON(dict);
+      // Configure the device from a json string
+      this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"IDLE\"}}}");
 
-  //         this->assume_sw_triggered_ = true;
-  //         this->timeout_millis_ = this->soft_off_timeout_millis_;
-  //         this->timeout_tolerance_secs_ =
-  //           this->soft_off_timeout_tolerance_secs_;
-  //       }
-  //   }
-  // catch (const ifm3d::error_t& ex)
-  //   {
-  //     res.status = ex.code();
-  //     res.msg = ex.what();
-  //     return false;
-  //   }
+      this->assume_sw_triggered_ = false;
+      this->timeout_millis_ = this->soft_on_timeout_millis_;
+      this->timeout_tolerance_secs_ =
+      this->soft_on_timeout_tolerance_secs_;
+
+    }
+  catch (const ifm3d::error_t& ex)
+    {
+      res.status = ex.code();
+      res.msg = ex.what();
+      return false;
+    }
+
+  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - we use IDLE and RUN states instead");
+  res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"IDLE\"}}}";
 
   return true;
 }
 
+// this is a dummy method for the moment:  the idea of applications is not supported for the O3RCamera
+// we keep this in to possibly keep it comparable / interoperable with the ROS wrappers for other ifm cameras
 bool
 ifm3d_ros::CameraNodelet::SoftOn(ifm3d::SoftOn::Request& req,
                                  ifm3d::SoftOn::Response& res)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   res.status = 0;
-  res.msg = "OK";
+  int port_arg = -1;
 
-  // int active_application = 0;
+  try
+    {
+      port_arg = static_cast<int> (this->pcic_port_) % 50010;
 
-  // try
-  //   {
-  //     active_application = this->cam_->ActiveApplication();
-  //     if (active_application > 0)
-  //       {
-  //         json dict =
-  //           {
-  //             {"Apps",
-  //              {{{"Index", std::to_string(active_application)},
-  //                {"TriggerMode",
-  //                 std::to_string(
-  //                   static_cast<int>(ifm3d::O3RCamera::trigger_mode::FREE_RUN))}}}
-  //             }
-  //           };
+      // try getting a current configuration as an ifm3d dump
+      // this way a a-priori test before setting the state can be tested
+      // try
+      // {
+      //   json j = this->cam_->ToJSON();
+      // }
+      // catch (const ifm3d::error_t& ex)
+      // {
+      //   NODELET_WARN_STREAM(ex.code());
+      //   NODELET_WARN_STREAM(ex.what());
+      // }
+      // catch (const std::exception& std_ex)
+      //   {
+      //     NODELET_WARN_STREAM(std_ex.what());
+      // }
 
-  //         this->cam_->FromJSON(dict);
 
-  //         this->assume_sw_triggered_ = false;
-  //         this->timeout_millis_ = this->soft_on_timeout_millis_;
-  //         this->timeout_tolerance_secs_ =
-  //           this->soft_on_timeout_tolerance_secs_;
-  //       }
-  //   }
-  // catch (const ifm3d::error_t& ex)
-  //   {
-  //     res.status = ex.code();
-  //     res.msg = ex.what();
-  //     return false;
-  //   }
+      // Configure the device from a json string
+      this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"RUN\"}}}");
+
+      this->assume_sw_triggered_ = false;
+      this->timeout_millis_ = this->soft_on_timeout_millis_;
+      this->timeout_tolerance_secs_ =
+      this->soft_on_timeout_tolerance_secs_;
+
+    }
+  catch (const ifm3d::error_t& ex)
+    {
+      res.status = ex.code();
+      res.msg = ex.what();
+      return false;
+    }
+
+  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - we use IDLE and RUN states instead");
+  res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"RUN\"}}}";
 
   return true;
 }
@@ -390,13 +365,14 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
       this->cam_.reset();
 
       NODELET_INFO_STREAM("Initializing camera...");
-      // this->cam_ = ifm3d::O3RCamera::MakeShared(this->camera_ip_,
-      //                                        this->xmlrpc_port_);
-      this->cam_ = std::make_shared<ifm3d::O3RCamera>(this->camera_ip_, this->xmlrpc_port_);
+      this->cam_ = ifm3d::CameraBase::MakeShared();
+      // this->cam_ = ifm3d::CameraBase::MakeShared(this->camera_ip_, this->xmlrpc_port_);
+      // this->cam_ = std::make_shared<ifm3d::CameraBase>(this->camera_ip_, this->xmlrpc_port_);
       ros::Duration(1.0).sleep();
 
       NODELET_INFO_STREAM("Initializing framegrabber...");
-      this->fg_ = std::make_shared<ifm3d::FrameGrabber>(this->cam_, mask, pcic_port);
+      this->fg_ = std::make_shared<ifm3d::FrameGrabber>(this->cam_, mask, this->pcic_port_);
+      ROS_INFO("Nodelet arguments: %d, %d", (int) mask, (int) this->pcic_port_);
 
       NODELET_INFO_STREAM("Initializing image buffer...");
       this->im_ = std::make_shared<ifm3d::ImageBuffer>();
@@ -415,12 +391,13 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
   return retval;
 }
 
+// this is the helper function for retrieving complete pcic frames
 bool
 ifm3d_ros::CameraNodelet::AcquireFrame()
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   bool retval = false;
-
+  NODELET_DEBUG_STREAM("try receiving data via fg WaitForFrame");
   try
     {
       retval = this->fg_->WaitForFrame(this->im_.get(), this->timeout_millis_);
@@ -439,34 +416,11 @@ ifm3d_ros::CameraNodelet::Run()
 {
   std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
 
-  
-  // Sync camera clock with system clock if necessary
-  
-  if (this->sync_clocks_)
-    {
-      NODELET_INFO_STREAM("Syncing camera clock to system...");
-      try
-        {
-          // this->cam_ = ifm3d::Camera::MakeShared(this->camera_ip_,
-          //                                        this->xmlrpc_port_);
-          this->cam_ = std::make_shared<ifm3d::O3RCamera>(this->camera_ip_, this->xmlrpc_port_);
-          // this->cam_->SetCurrentTime(-1);
-        }
-      catch (const ifm3d::error_t& ex)
-        {
-          NODELET_WARN_STREAM("Failed to sync clocks!");
-          NODELET_WARN_STREAM(ex.code() << ": " << ex.what());
-        }
-    }
-  else
-    {
-      NODELET_INFO_STREAM("Camera clock will not be sync'd to system clock");
-    }
+  NODELET_DEBUG_STREAM("in Run");
 
-  
   // We need to account for the case of when the nodelet is being started prior
   // to the camera being plugged in.
-  
+
   while (ros::ok() && (! this->InitStructures(ifm3d::IMG_UVEC, this->pcic_port_)))
     {
       NODELET_WARN_STREAM("Could not initialize pixel stream!");
@@ -483,7 +437,11 @@ ifm3d_ros::CameraNodelet::Run()
   cv::Mat xyz_img;
   cv::Mat raw_amplitude_img;
   cv::Mat good_bad_pixels_img;
+  cv::Mat gray_img;
+  cv::Mat rgb_img;
 
+
+  NODELET_DEBUG_STREAM("after initializing the opencv buffers");
   std::vector<float> extrinsics(6);
 
   // XXX: need to implement a nice strategy for getting the actual times
@@ -525,6 +483,7 @@ ifm3d_ros::CameraNodelet::Run()
 
       last_frame = ros::Time::now();
 
+      NODELET_DEBUG_STREAM("prepare header");
       std_msgs::Header head = std_msgs::Header();
       head.frame_id = this->frame_id_;
       head.stamp = ros::Time(
@@ -533,16 +492,15 @@ ifm3d_ros::CameraNodelet::Run()
       if ((ros::Time::now() - head.stamp) >
           ros::Duration(this->frame_latency_thresh_))
         {
-          ROS_WARN_ONCE("Camera's time is not up to date, therefore header's "
-            "timestamps will be the reception time and not capture time. "
-            "Please update the camera's time if you need the capture time.");
+          ROS_INFO_ONCE("Camera's time and client's time are not synced");
           head.stamp = ros::Time::now();
         }
-
+      NODELET_DEBUG_STREAM("in header, before setting header to msgs");
       std_msgs::Header optical_head = std_msgs::Header();
       optical_head.stamp = head.stamp;
       optical_head.frame_id = this->optical_frame_id_;
 
+      // currently the unit vector calculation seems to be missing in the ifm3d state: therefore we don't publish anything to the uvec pubisher
       // publish unit vectors once on a latched topic, then re-initialize the
       // framegrabber with the user's requested schema mask
       if (! got_uvec)
@@ -552,6 +510,7 @@ ifm3d_ros::CameraNodelet::Run()
             cv_bridge::CvImage(optical_head,
                                enc::TYPE_32FC3,
                                this->im_->UnitVectors()).toImageMsg();
+          NODELET_INFO_STREAM("uvec image size: " << this->im_->UnitVectors().size());
           lock.unlock();
           this->uvec_pub_.publish(uvec_msg);
           got_uvec = true;
@@ -564,8 +523,7 @@ ifm3d_ros::CameraNodelet::Run()
               ros::Duration(1.0).sleep();
             }
 
-          // should solve the problem of first image being (0,0)
-          // see: https://github.com/lovepark/ifm3d/issues/12
+          NODELET_INFO_STREAM("Start streaming data");
           continue;
         }
 
@@ -575,15 +533,29 @@ ifm3d_ros::CameraNodelet::Run()
       //
       lock.lock();
 
-      // boost::shared_ptr vs std::shared_ptr forces this copy
-      pcl::copyPointCloud(*(this->im_->Cloud().get()), *cloud);
-      xyz_img = this->im_->XYZImage();
-      confidence_img = this->im_->ConfidenceImage();
-      distance_img = this->im_->DistanceImage();
-      // distance_noise_img = this->im_->DistanceNoiseImage();
-      amplitude_img = this->im_->AmplitudeImage();
-      raw_amplitude_img = this->im_->RawAmplitudeImage();
-      extrinsics = this->im_->Extrinsics();
+      NODELET_DEBUG_STREAM("start getting data");
+      try
+      {
+        // boost::shared_ptr vs std::shared_ptr forces this copy
+        pcl::copyPointCloud(*(this->im_->Cloud().get()), *cloud);
+        xyz_img = this->im_->XYZImage();
+        confidence_img = this->im_->ConfidenceImage();
+        distance_img = this->im_->DistanceImage();
+        amplitude_img = this->im_->AmplitudeImage();
+        raw_amplitude_img = this->im_->RawAmplitudeImage();
+        gray_img = this->im_->GrayImage();
+        extrinsics = this->im_->Extrinsics();
+        rgb_img = this->im_->JPEGImage();
+      }
+      catch (const ifm3d::error_t& ex)
+      {
+        NODELET_WARN_STREAM(ex.what());
+      }
+      catch (const std::exception& std_ex)
+        {
+          NODELET_WARN_STREAM(std_ex.what());
+        }
+      NODELET_DEBUG_STREAM("finished getting data");
 
       lock.unlock();
 
@@ -591,12 +563,14 @@ ifm3d_ros::CameraNodelet::Run()
       // Now, do the publishing
       //
 
+      NODELET_DEBUG_STREAM("start publishing");
       // Confidence image is invariant - no need to check the mask
       sensor_msgs::ImagePtr confidence_msg =
         cv_bridge::CvImage(optical_head,
-                           "mono8",
+                           "mono16",
                            confidence_img).toImageMsg();
       this->conf_pub_.publish(confidence_msg);
+      NODELET_DEBUG_STREAM("after publishing confidence image");
 
       if ((this->schema_mask_ & ifm3d::IMG_CART) == ifm3d::IMG_CART)
         {
@@ -609,6 +583,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC3 : enc::TYPE_16SC3,
                                xyz_img).toImageMsg();
           this->xyz_image_pub_.publish(xyz_image_msg);
+          NODELET_DEBUG_STREAM("after publishing xyz image");
         }
 
       if ((this->schema_mask_ & ifm3d::IMG_RDIS) == ifm3d::IMG_RDIS)
@@ -619,8 +594,10 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                distance_img).toImageMsg();
           this->distance_pub_.publish(distance_msg);
+          NODELET_DEBUG_STREAM("after publishing distance image");
         }
 
+      // this image is currently not available via the ifm3d
       // if ((this->schema_mask_ & ifm3d::IMG_DIS_NOISE) == ifm3d::IMG_DIS_NOISE)
       //   {
       //     sensor_msgs::ImagePtr distance_noise_msg =
@@ -639,6 +616,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                amplitude_img).toImageMsg();
           this->amplitude_pub_.publish(amplitude_msg);
+          NODELET_DEBUG_STREAM("after publishing amplitude image");
         }
 
       if ((this->schema_mask_ & ifm3d::IMG_RAMP) == ifm3d::IMG_RAMP)
@@ -649,30 +627,54 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                raw_amplitude_img).toImageMsg();
           this->raw_amplitude_pub_.publish(raw_amplitude_msg);
+          NODELET_DEBUG_STREAM("Raw amplitude image publisher is a dummy publisher - data will be added soon");
+          NODELET_DEBUG_STREAM("after publishing raw amplitude image");
         }
 
-      //
-      // XXX: Need to publish ambient light / gray image
-      // ... however, as of now (3/26/2017) there is no
-      // imager mode on the O3X that actually supports it
-      //
-      // Update: as of 5/10/2018 still not supported.
-      //
+      if ((this->schema_mask_ & ifm3d::IMG_GRAY) == ifm3d::IMG_GRAY)
+        {
+          sensor_msgs::ImagePtr gray_image_msg =
+            cv_bridge::CvImage(optical_head,
+                               gray_img.type() == CV_32FC1 ?
+                               enc::TYPE_32FC1 : enc::TYPE_16UC1,
+                               gray_img).toImageMsg();
+          this->gray_image_pub_.publish(gray_image_msg);
+          NODELET_DEBUG_STREAM("Gray image publisher is a dummy publisher - data will be added soon");
+          NODELET_DEBUG_STREAM("after publishing gray image");
+        }
 
-      good_bad_pixels_img = cv::Mat::ones(confidence_img.rows,
-                                          confidence_img.cols,
-                                          CV_8UC1);
-      cv::bitwise_and(confidence_img, good_bad_pixels_img,
-                      good_bad_pixels_img);
+      // TODO: this casting of the confidence image to a boolean value image needs to be tested:
+      // inv cast might be reqiured depending on the interpretation of the binary image
+
+      int const min_binary_value = 0;
+      int const max_binary_value = 100;
+      cv::threshold(confidence_img, good_bad_pixels_img, min_binary_value, max_binary_value, cv::THRESH_BINARY);
+      good_bad_pixels_img.convertTo(good_bad_pixels_img, CV_8U);
+
       sensor_msgs::ImagePtr good_bad_msg =
         cv_bridge::CvImage(optical_head,
                            "mono8",
-                           (good_bad_pixels_img == 0)).toImageMsg();
+                           good_bad_pixels_img).toImageMsg();
       this->good_bad_pub_.publish(good_bad_msg);
+      NODELET_DEBUG_STREAM("after publishing good/bad pixel image image");
+
+      // The 2D is not yet settable in the schema mask: publish all the time
+
+    if (!rgb_img.empty())
+    {
+      cv::Mat im_decode = cv::imdecode(rgb_img, cv::IMREAD_UNCHANGED);
+      sensor_msgs::ImagePtr rgb_image_msg =
+        cv_bridge::CvImage(optical_head,
+                            "rgb8",
+                            im_decode).toImageMsg();
+      this->rgb_image_pub_.publish(rgb_image_msg);
+      NODELET_DEBUG_STREAM("after publishing rgb image");
+    }
 
       //
       // publish extrinsics
       //
+      NODELET_DEBUG_STREAM("start publishing extrinsics");
       ifm3d::Extrinsics extrinsics_msg;
       extrinsics_msg.header = optical_head;
       try
