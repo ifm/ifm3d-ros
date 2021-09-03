@@ -627,7 +627,7 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                raw_amplitude_img).toImageMsg();
           this->raw_amplitude_pub_.publish(raw_amplitude_msg);
-          ROS_WARN("Raw amplitude image publisher is a dummy publisher - data will be added soon");
+          NODELET_DEBUG_STREAM("Raw amplitude image publisher is a dummy publisher - data will be added soon");
           NODELET_DEBUG_STREAM("after publishing raw amplitude image");
         }
 
@@ -639,19 +639,18 @@ ifm3d_ros::CameraNodelet::Run()
                                enc::TYPE_32FC1 : enc::TYPE_16UC1,
                                gray_img).toImageMsg();
           this->gray_image_pub_.publish(gray_image_msg);
-          ROS_WARN("Gray image publisher is a dummy publisher - data will be added soon");
+          NODELET_DEBUG_STREAM("Gray image publisher is a dummy publisher - data will be added soon");
           NODELET_DEBUG_STREAM("after publishing gray image");
         }
 
-
-
       // TODO: this casting of the confidence image to a boolean value image needs to be tested:
       // inv cast might be reqiured depending on the interpretation of the binary image
+
       int const min_binary_value = 0;
       int const max_binary_value = 100;
       cv::threshold(confidence_img, good_bad_pixels_img, min_binary_value, max_binary_value, cv::THRESH_BINARY);
       good_bad_pixels_img.convertTo(good_bad_pixels_img, CV_8U);
-      
+
       sensor_msgs::ImagePtr good_bad_msg =
         cv_bridge::CvImage(optical_head,
                            "mono8",
