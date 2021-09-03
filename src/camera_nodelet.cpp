@@ -567,7 +567,7 @@ ifm3d_ros::CameraNodelet::Run()
       // Confidence image is invariant - no need to check the mask
       sensor_msgs::ImagePtr confidence_msg =
         cv_bridge::CvImage(optical_head,
-                           "mono8",
+                           "mono16",
                            confidence_img).toImageMsg();
       this->conf_pub_.publish(confidence_msg);
       NODELET_DEBUG_STREAM("after publishing confidence image");
