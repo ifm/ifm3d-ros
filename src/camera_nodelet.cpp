@@ -665,7 +665,7 @@ ifm3d_ros::CameraNodelet::Run()
       cv::Mat im_decode = cv::imdecode(rgb_img, cv::IMREAD_UNCHANGED);
       sensor_msgs::ImagePtr rgb_image_msg =
         cv_bridge::CvImage(optical_head,
-                            "rgb8",
+                            "bgr8",
                             im_decode).toImageMsg();
       this->rgb_image_pub_.publish(rgb_image_msg);
       NODELET_DEBUG_STREAM("after publishing rgb image");
