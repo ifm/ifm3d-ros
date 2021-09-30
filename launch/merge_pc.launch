@@ -6,12 +6,16 @@
   <arg name="nn2" default="camera2"/>
   <arg name="nn3" default="camera3"/>
   <arg name="nn4" default="camera4"/>
+  <arg name="nn5" default="camera5"/>
+  <arg name="nn6" default="camera6"/>
   <arg name="ip" default="192.168.0.69"/>
   <arg name="xmlrpc_port" default="80"/>
   <arg name="pcic_port_1" default="50010"/>
   <arg name="pcic_port_2" default="50011"/>
   <arg name="pcic_port_3" default="50012"/>
   <arg name="pcic_port_4" default="50013"/>
+  <arg name="pcic_port_5" default="50014"/>
+  <arg name="pcic_port_6" default="50015"/>
   <arg name="password" default=""/>
   <arg name="schema_mask" default="15"/>
   <arg name="timeout_millis" default="500"/>
@@ -76,6 +80,36 @@
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
     <arg name="frame_id_base" value="$(arg ns)/$(arg nn4)" />
+    <arg name="respawn" value="$(arg respawn)"/>
+    <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
+  </include>
+
+  <!-- node 5 2D RGB -->
+  <include ns="$(arg ns)" file="$(find ifm3d)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nn5)"/>
+    <arg name="ip" value="$(arg ip)"/>
+    <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
+    <arg name="pcic_port" value="$(arg pcic_port_5)"/>
+    <arg name="password" value="$(arg password)"/>
+    <arg name="schema_mask" value="$(arg schema_mask)"/>
+    <arg name="timeout_millis" value="$(arg timeout_millis)"/>
+    <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
+    <arg name="frame_id_base" value="$(arg ns)/$(arg nn5)" />
+    <arg name="respawn" value="$(arg respawn)"/>
+    <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
+  </include>
+
+  <!-- node 6 2D RGB -->
+  <include ns="$(arg ns)" file="$(find ifm3d)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nn6)"/>
+    <arg name="ip" value="$(arg ip)"/>
+    <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
+    <arg name="pcic_port" value="$(arg pcic_port_6)"/>
+    <arg name="password" value="$(arg password)"/>
+    <arg name="schema_mask" value="$(arg schema_mask)"/>
+    <arg name="timeout_millis" value="$(arg timeout_millis)"/>
+    <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
+    <arg name="frame_id_base" value="$(arg ns)/$(arg nn6)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
   </include>
