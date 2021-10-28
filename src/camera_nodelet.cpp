@@ -70,11 +70,11 @@ ifm3d_ros::CameraNodelet::onInit()
     }
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
-  ROS_INFO("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
+  NODELET_INFO("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
 
   this->np_.param("xmlrpc_port", xmlrpc_port, (int) ifm3d::DEFAULT_XMLRPC_PORT);
   this->np_.param("pcic_port", pcic_port, (int) ifm3d::DEFAULT_PCIC_PORT);
-  ROS_INFO("pcic port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
+  NODELET_INFO("pcic port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
 
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
   this->np_.param("schema_mask", schema_mask, (int) ifm3d::DEFAULT_SCHEMA_MASK);
@@ -372,7 +372,7 @@ ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t pcic_
 
       NODELET_INFO_STREAM("Initializing framegrabber...");
       this->fg_ = std::make_shared<ifm3d::FrameGrabber>(this->cam_, mask, this->pcic_port_);
-      ROS_INFO("Nodelet arguments: %d, %d", (int) mask, (int) this->pcic_port_);
+      NODELET_INFO("Nodelet arguments: %d, %d", (int) mask, (int) this->pcic_port_);
 
       NODELET_INFO_STREAM("Initializing image buffer...");
       this->im_ = std::make_shared<ifm3d::ImageBuffer>();
@@ -492,7 +492,7 @@ ifm3d_ros::CameraNodelet::Run()
       if ((ros::Time::now() - head.stamp) >
           ros::Duration(this->frame_latency_thresh_))
         {
-          ROS_INFO_ONCE("Camera's time and client's time are not synced");
+          NODELET_INFO_ONCE("Camera's time and client's time are not synced");
           head.stamp = ros::Time::now();
         }
       NODELET_DEBUG_STREAM("in header, before setting header to msgs");
@@ -514,12 +514,12 @@ ifm3d_ros::CameraNodelet::Run()
           lock.unlock();
           this->uvec_pub_.publish(uvec_msg);
           got_uvec = true;
-          ROS_INFO("Got unit vectors, restarting framegrabber with mask: %d",
+          NODELET_INFO("Got unit vectors, restarting framegrabber with mask: %d",
                    (int) this->schema_mask_);
 
           while (! this->InitStructures(this->schema_mask_, this->pcic_port_))
             {
-              ROS_WARN("Could not re-initialize pixel stream!");
+              NODELET_WARN("Could not re-initialize pixel stream!");
               ros::Duration(1.0).sleep();
             }
 
@@ -688,7 +688,7 @@ ifm3d_ros::CameraNodelet::Run()
         }
       catch (const std::out_of_range& ex)
         {
-          ROS_WARN("out-of-range error fetching extrinsics");
+          NODELET_WARN("out-of-range error fetching extrinsics");
         }
       this->extrinsics_pub_.publish(extrinsics_msg);
 
