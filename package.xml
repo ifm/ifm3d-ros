@@ -15,7 +15,7 @@
 
   <build_depend>rostest</build_depend>
 
-  <depend>ifm3d_core</depend>
+  <!-- <depend>ifm3d_core</depend> -->
   <depend>rospy</depend>
   <depend>image_transport</depend>
   <depend>pcl_ros</depend>

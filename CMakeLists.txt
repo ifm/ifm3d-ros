@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(ifm3d)
 
-find_package(ifm3d 0.19.0 CONFIG REQUIRED COMPONENTS
+find_package(ifm3d REQUIRED COMPONENTS
              camera
              framegrabber
              image
@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
              roscpp
              sensor_msgs
              std_msgs
-             tf
+             tf2_ros
              message_generation
              message_runtime
              rostest
