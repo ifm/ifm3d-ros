@@ -1,5 +1,6 @@
-#
-# Translation uints are mm, rotation units are degrees
+# 
+# Extrinsic parameters are SI units: please be aware of scaling between any extrinsic messages returned by the native C++ API - ifm3d
+# Translation uints are m, rotation units are radian
 #
 std_msgs/Header header
 float32 tx

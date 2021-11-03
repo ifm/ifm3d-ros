@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+# include <math.h>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <nodelet/nodelet.h>
@@ -679,12 +680,12 @@ ifm3d_ros::CameraNodelet::Run()
       extrinsics_msg.header = optical_head;
       try
         {
-          extrinsics_msg.tx = extrinsics.at(0);
-          extrinsics_msg.ty = extrinsics.at(1);
-          extrinsics_msg.tz = extrinsics.at(2);
-          extrinsics_msg.rot_x = extrinsics.at(3);
-          extrinsics_msg.rot_y = extrinsics.at(4);
-          extrinsics_msg.rot_z = extrinsics.at(5);
+          extrinsics_msg.tx = extrinsics.at(0)*1000;
+          extrinsics_msg.ty = extrinsics.at(1)*1000;
+          extrinsics_msg.tz = extrinsics.at(2)*1000;
+          extrinsics_msg.rot_x = extrinsics.at(3)*(M_PI/180);
+          extrinsics_msg.rot_y = extrinsics.at(4)*(M_PI/180);
+          extrinsics_msg.rot_z = extrinsics.at(5)*(M_PI/180);
         }
       catch (const std::out_of_range& ex)
         {
