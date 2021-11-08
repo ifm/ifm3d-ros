@@ -2,14 +2,14 @@
 
 ## ROS Interface
 
-The core `ifm3d-ros` sensor interface is implemented as a ROS nodelet. This allows for lower-latency data processing vs. the traditional out-of-process node-based ROS interface for applications that require it. However, we ship a launch file with this package that allows for using the core `ifm3d_ros` driver as a standard node. To launch the node, the following command can be used:
+The core `ifm3d-ros` sensor interface is implemented as a ROS nodelet. This allows for lower-latency data processing vs. the traditional out-of-process node-based ROS interface for applications that require it. However, we ship a launch file with this package that allows for using the core `ifm3d-ros` driver as a standard node. To launch the node, the following command can be used:
 
 ```
 $ roslaunch ifm3d_ros_examples camera.launch
 ```
 >Note: Please notice the use of the subpackage `ifm3d_ros_examples`.
 
-
+For further information about the internal ROS nodelet infrastructure and how to apply this to your application, please see our exemplary launch files and a short run down on the nodelet structure in the [ifm3d_ros_examples/README](../ifm3d_ros_examples/README.md).
 
 ### Nodelet - parameters
 
@@ -42,9 +42,7 @@ $ roslaunch ifm3d_ros_examples camera.launch
 | unit_vectors | sensor_msgs/Image | The rotated unit vectors. |
 | extrinsics | ifm3d/Extrinsics | The extrinsic calibration of the camera with respect to the camera optical frame. This 3D pose is encoded in mm and rad. |
 
->TODO: check if we keep the unit vectors. Currently, they are not implemented by the imf3d and therefore not published.   
->TODo: publish intrinsic values as well similar to the extrinsic parameters.  
-
+>Note: Some topics may have empty data fields. We are working on publishing data on all available topics, but have kept all previous topics active for the moment for legacy reasons.   
 
 ### Nodelet - subscribed Topics
 None.
@@ -58,24 +56,12 @@ None.
 | Config | ifm3d/Config | Provides a means to configure the VPU and Heads (imager settings), declaratively from a JSON (string) encoding of the desired settings. |
 | SoftOff | ifm3d/SoftOff | Sets the active application of the camera into software triggered mode which will turn off the active illumination reducing both power and heat. |
 | SoftOn | ifm3d/SoftOn | Sets the active application of the camera into free-running mode. Its intention is to act as the inverse of `SoftOff`. |
-| Trigger | ifm3d/Trigger | Requests the driver to software trigger the imager for data acquisition. |
+| Trigger | ifm3d/Trigger | Requests the driver to software trigger the imager for data acquisition. | 
 
-> TODO: check how implement / use the concept of starting and triggering in the future without applications.   
-> TODO: check how to implement triggers: distinction of software and hardware trigger.   
-
-### Known limitations of the software trigger use and verbose GLOG 
-[![O3R](https://img.shields.io/badge/O3R-grey.svg)]()
-[![O3D](https://img.shields.io/badge/O3D-blue.svg)]()
-[![O3X](https://img.shields.io/badge/O3X-blue.svg)]()
-> NOTE: test this with a O3R camera: Question how can this be fixed with software / hardware triggers in the future?  
-
-We note: due to the change in architecture from a standalone node to a nodelet, we have seen one behavior whose solution is not clear to have us provide backward compatible behavior with older versions of `ifm3d_ros`. Specifically, if you plan to run the camera in software triggered mode, you should launch then node as follows:
-
-```
-$ GLOG_minloglevel=3 roslaunch ifm3d camera.launch assume_sw_triggered:=true
-```
-
-The incompatibility here is that in prior versions, one would not need to explicitly set the `GLOG_` environment variable. While not strictly necessary, it is recommended for keeping the noise level of the `ifm3d` logs low.
+### Known limitations 
+[![O3R](https://img.shields.io/badge/O3R-lightgrey.svg)]()
+[![O3D](https://img.shields.io/badge/O3D-green.svg)]()
+[![O3X](https://img.shields.io/badge/O3X-green.svg)]()
 
 
 # Additional Documentation

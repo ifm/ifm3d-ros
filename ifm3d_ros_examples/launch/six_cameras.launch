@@ -1,32 +1,32 @@
 <?xml version="1.0"?>
 <launch>
+  <!-- This lauch file is an example for how to use six camera heads at the same time: their data will be transformed into a collective reference frame witout any relative calibration in 3D. -->
+
   <!-- Command-line arguments -->
-  <arg name="ns" default="ifm3d_ros_examples"/>
-  <arg name="nn1" default="camera1"/>
-  <arg name="nn2" default="camera2"/>
-  <arg name="nn3" default="camera3"/>
-  <arg name="nn4" default="camera4"/>
-  <arg name="nn5" default="camera5"/>
-  <arg name="nn6" default="camera6"/>
-  <arg name="ip" default="192.168.0.69"/>
-  <arg name="xmlrpc_port" default="80"/>
-  <arg name="pcic_port_1" default="50010"/>
-  <arg name="pcic_port_2" default="50011"/>
-  <arg name="pcic_port_3" default="50012"/>
-  <arg name="pcic_port_4" default="50013"/>
-  <arg name="pcic_port_5" default="50014"/>
-  <arg name="pcic_port_6" default="50015"/>
-  <arg name="password" default=""/>
-  <arg name="schema_mask" default="15"/>
-  <arg name="timeout_millis" default="500"/>
-  <arg name="timeout_tolerance_secs" default="5.0"/>
-  <arg name="frame_id_base" default="$(arg ns)/$(arg nn1)" />
-  <arg name="respawn" default="false"/>
-  <arg name="assume_sw_triggered" default="false"/>
+  <arg name="namespace" default="ifm3d_ros_examples" doc="Desired namespace for the camera nodelet" />
+  <arg name="nodelet_name1" default="camera1"/>
+  <arg name="nodelet_name2" default="camera2"/>
+  <arg name="nodelet_name3" default="camera3"/>
+  <arg name="nodelet_name4" default="camera4"/>
+  <arg name="ip" default="192.168.0.69" doc="The IP address of the VPU, i.e. main processing unit." />
+  <arg name="xmlrpc_port" default="80" doc="The TCP port the camera's xmlrpc server is listening on for requests."/>
+  <arg name="pcic_port_1" default="50010" doc="The TCP (data) port the first camera's pcic server is listening on for requests."/>
+  <arg name="pcic_port_2" default="50011" doc="The TCP (data) port the second camera's pcic server is listening on for requests."/>
+  <arg name="pcic_port_3" default="50012" doc="The TCP (data) port the third camera's pcic server is listening on for requests."/>
+  <arg name="pcic_port_4" default="50013" doc="The TCP (data) port the fourth camera's pcic server is listening on for requests."/>
+  <arg name="pcic_port_5" default="50014" doc="The TCP (data) port the fifth camera's pcic server is listening on for requests."/>
+  <arg name="pcic_port_6" default="50015" doc="The TCP (data) port the sixth camera's pcic server is listening on for requests."/>
+  <arg name="password" default="" doc="The password required to establish an edit session on the VPU."/>
+  <arg name="schema_mask" default="15" doc="The pcic schema mask to apply to the active session with the frame grabber. This determines which images are available for publication from the camera. More about pcic schemas can be gleaned from the https://www.ifm3d.com. May be replaced with a true JSON communication soon."/>
+  <arg name="timeout_millis" default="500" doc="The number of milliseconds to wait for the framegrabber to return new frame data before declaring a &quot;timeout&quot; and to stop blocking on new data."/>
+  <arg name="timeout_tolerance_secs" default="5.0" doc="The wall time to wait with no new data from the camera before trying to establish a new connection to the camera."/>
+  <arg name="frame_id_base" default="$(arg namespace)/$(arg nodelet_name1)" doc="This string provides a prefix into the `tf` tree for `ifm3d-ros` coordinate frames."/>
+  <arg name="respawn" default="false" doc="Restart the node automatically if it quits."/>
+  <arg name="assume_sw_triggered" default="false" doc="This provides a hint to the driver that the camera is configured for software triggering (as opposed to free running and hardware triggered modes - will follow soon)."/>
 
   <!-- node 1 -->
-  <include ns="$(arg ns)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
-    <arg name="camera" value="$(arg nn1)"/>
+  <include ns="$(arg namespace)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nodelet_name1)"/>
     <arg name="ip" value="$(arg ip)"/>
     <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
     <arg name="pcic_port" value="$(arg pcic_port_1)"/>
@@ -34,14 +34,14 @@
     <arg name="schema_mask" value="$(arg schema_mask)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
-    <arg name="frame_id_base" value="$(arg ns)/$(arg nn1)" />
+    <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name1)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
   </include>
 
   <!-- node 2 -->
-  <include ns="$(arg ns)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
-    <arg name="camera" value="$(arg nn2)"/>
+  <include ns="$(arg namespace)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nodelet_name2)"/>
     <arg name="ip" value="$(arg ip)"/>
     <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
     <arg name="pcic_port" value="$(arg pcic_port_2)"/>
@@ -49,14 +49,14 @@
     <arg name="schema_mask" value="$(arg schema_mask)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
-    <arg name="frame_id_base" value="$(arg ns)/$(arg nn2)" />
+    <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name2)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
   </include>
 
   <!-- node 3 -->
-  <include ns="$(arg ns)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
-    <arg name="camera" value="$(arg nn3)"/>
+  <include ns="$(arg namespace)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nodelet_name3)"/>
     <arg name="ip" value="$(arg ip)"/>
     <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
     <arg name="pcic_port" value="$(arg pcic_port_3)"/>
@@ -64,14 +64,14 @@
     <arg name="schema_mask" value="$(arg schema_mask)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
-    <arg name="frame_id_base" value="$(arg ns)/$(arg nn3)" />
+    <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name3)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
   </include>
 
   <!-- node 4 -->
-  <include ns="$(arg ns)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
-    <arg name="camera" value="$(arg nn4)"/>
+  <include ns="$(arg namespace)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nodelet_name4)"/>
     <arg name="ip" value="$(arg ip)"/>
     <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
     <arg name="pcic_port" value="$(arg pcic_port_4)"/>
@@ -79,14 +79,14 @@
     <arg name="schema_mask" value="$(arg schema_mask)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
-    <arg name="frame_id_base" value="$(arg ns)/$(arg nn4)" />
+    <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name4)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
   </include>
 
   <!-- node 5 -->
-  <include ns="$(arg ns)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
-    <arg name="camera" value="$(arg nn5)"/>
+  <include ns="$(arg namespace)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nodelet_name4)"/>
     <arg name="ip" value="$(arg ip)"/>
     <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
     <arg name="pcic_port" value="$(arg pcic_port_5)"/>
@@ -94,15 +94,14 @@
     <arg name="schema_mask" value="$(arg schema_mask)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
-    <arg name="frame_id_base" value="$(arg ns)/$(arg nn5)" />
+    <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name4)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
   </include>
 
-
-    <!-- node 6 -->
-  <include ns="$(arg ns)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
-    <arg name="camera" value="$(arg nn6)"/>
+  <!-- node 6 -->
+  <include ns="$(arg namespace)" file="$(find ifm3d_ros_examples)/launch/nodelet.launch">
+    <arg name="camera" value="$(arg nodelet_name4)"/>
     <arg name="ip" value="$(arg ip)"/>
     <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
     <arg name="pcic_port" value="$(arg pcic_port_6)"/>
@@ -110,7 +109,7 @@
     <arg name="schema_mask" value="$(arg schema_mask)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
-    <arg name="frame_id_base" value="$(arg ns)/$(arg nn6)" />
+    <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name4)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
   </include>

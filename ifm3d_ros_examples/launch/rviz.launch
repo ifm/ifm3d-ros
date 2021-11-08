@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="ns" default="ifm3d_ros_examples"/>
-  <arg name="nn" default="camera"/>
+  <arg name="namespace" default="ifm3d_ros_examples" doc="Desired namespace for the rviz node."/>
+  <arg name="nodelet_name" default="camera"/>
 
-  <group ns="$(arg ns)">
+  <group namespace="$(arg namespace)">
     <node pkg="rviz"
 	  type="rviz"
-	  name="$(arg nn)_rviz"
-	  args="-d $(find ifm3d_ros_examples)/config/rviz_config.rviz"/>
+	  name="$(arg nodelet_name)_rviz"
+	  args="-d $(find ifm3d_ros_examples)/launch/rviz_config.rviz"/>
   </group>
 </launch>
