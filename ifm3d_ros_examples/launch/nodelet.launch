@@ -3,15 +3,15 @@
 <launch>
   <!-- cmd line arguments -->
   <arg name="camera" default="camera"/>
-  <arg name="ip" default="192.168.0.69"/>
-  <arg name="xmlrpc_port" default="80"/>
-  <arg name="pcic_port" default="50010"/>
-  <arg name="password" default=""/>
-  <arg name="schema_mask" default="15"/>
-  <arg name="timeout_millis" default="500"/>
-  <arg name="timeout_tolerance_secs" default="5.0"/>
-  <arg name="respawn" default="false"/>
-  <arg name="assume_sw_triggered" default="false"/>
+  <arg name="ip" default="192.168.0.69" doc="The IP address of the VPU."/>
+  <arg name="xmlrpc_port" default="80" doc="The TCP port the camera's xmlrpc server is listening on for requests."/>
+  <arg name="pcic_port" default="50010" doc="The TCP (data) port the camera's pcic server is listening on for requests."/>
+  <arg name="password" default="" doc="The password required to establish an edit session on the VPU"/>
+  <arg name="schema_mask" default="15" doc="The pcic schema mask to apply to the active session with the frame grabber. This determines which images are available for publication from the camera. More about pcic schemas can be gleaned from https://www.ifm3d.com"/>
+  <arg name="timeout_millis" default="500" doc="The number of milliseconds to wait for the framegrabber to return new frame data before declaring a &quot;timeout&quot; and to stop blocking on new data."/>
+  <arg name="timeout_tolerance_secs" default="5.0" doc="The wall time to wait with no new data from the camera before trying to establish a new connection to the camera. This helps to providerobustness against camera cables becoming unplugged or other in-field pathologies which would cause the connection between the ROS node and the camera to be broken."/>
+  <arg name="respawn" default="false" doc="Restart the node automatically if it quits."/>
+  <arg name="assume_sw_triggered" default="false" doc="This provides a hint to the driver that the camera is configured for software triggering (as opposed to free running). In this mode, certain default values are applied to lessen the noise in terms of timeouts from the frame grabber."/>
   <arg name="frame_id_base" default="ifm3d/$(arg camera)" />
 
   <node pkg="nodelet"
