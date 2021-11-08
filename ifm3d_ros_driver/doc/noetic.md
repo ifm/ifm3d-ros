@@ -39,7 +39,8 @@ $ sudo apt-get install -y libboost-all-dev \
                        findutils \
                        cmake \
                        locales \
-                       ninja-build
+                       ninja-build \
+                       pybind11-dev
 ```
 
 4. Install ifm3d:  

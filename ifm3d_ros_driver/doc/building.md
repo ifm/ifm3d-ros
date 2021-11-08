@@ -83,7 +83,7 @@ $ roslaunch ifm3d_ros_examples rviz.launch
 ```
 > Note: `rviz.launch` does not include the camera node itself, but subscribes to published topics (distance, amplitude, etc). A camera node need to be running in parallel to rviz (you can use `camera.launch`).
 
-At this point, you should see an rviz window that looks something like:
+At this point, you should see an rviz window that looks something like the image below (note that this is the view from 3 camera heads):
 ![rviz1](figures/O3R_merged_point_cloud.png)
 
 Congratulations! You can now have complete control over the O3R perception platform from inside ROS.
