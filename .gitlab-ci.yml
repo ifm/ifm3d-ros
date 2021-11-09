@@ -1,0 +1,31 @@
+image: ubuntu:20.04
+
+stages:
+  - build
+
+build documentation:
+  stage: build
+  tags:
+    - shared_docker
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+  script:
+    - git config --global user.email "support.robotics@ifm.com"
+    - git config --global user.name "ifm-csr"
+
+    # get GH branch 
+    - git clone -b v1.0.x https://${IFM3D-ROS}:x-oauth-basic@github.com/ifm/ifm3d-ros.git repo
+    - cd repo
+
+    # add changes
+    - git add -A
+    - git commit -m "add latest dev changes and fixes"
+
+    # push changes
+    - git push  || true
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
