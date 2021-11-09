@@ -1,5 +1,8 @@
 image: ubuntu:20.04
 
+services:
+  - git:latest
+
 stages:
   - build
 
