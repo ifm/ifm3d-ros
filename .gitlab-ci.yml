@@ -1,7 +1,4 @@
-image: ubuntu:20.04
-
-services:
-  - git:latest
+image: gcc:latest
 
 stages:
   - build
