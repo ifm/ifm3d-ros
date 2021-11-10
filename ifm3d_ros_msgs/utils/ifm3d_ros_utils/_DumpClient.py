@@ -8,10 +8,10 @@ Mimics the `ifm3d dump` command but communicates through the ROS graph
 import json
 import rospy
 import sys
-from ifm3d.srv import Dump
+from ifm3d_ros_msgs.srv import Dump
 
 SRV_TIMEOUT = 2.0 # seconds
-SRV_NAME = "/ifm3d/camera/Dump"
+SRV_NAME = "/ifm3d_ros_examples/camera/Dump"
 
 class DumpClient(object):
 
