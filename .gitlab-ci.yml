@@ -27,7 +27,7 @@ copy content to GH:
     - cp -r ${CI_PROJECT_DIR}/ifm3d-ros .
     - cp -r ${CI_PROJECT_DIR}/ifm3d_ros_driver .
     - cp -r ${CI_PROJECT_DIR}/ifm3d_ros_msgs .
-    - cp -r ${CI_PROJECT_DIR}/ifm3d_ros_driver .
+    - cp -r ${CI_PROJECT_DIR}/ifm3d_ros_examples .
 
     # add changes
     - git add -A
