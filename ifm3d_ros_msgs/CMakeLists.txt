@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
 #######################################
 ## Declare ROS messages and services ##
 #######################################
+catkin_python_setup()
 
 add_message_files(
   DIRECTORY msg

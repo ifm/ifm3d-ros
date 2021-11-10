@@ -183,7 +183,7 @@ bool ifm3d_ros::CameraNodelet::Config(ifm3d_ros_msgs::Config::Request& req, ifm3
 
   try
   {
-    this->cam_->FromJSON(req.json);
+    this->cam_->FromJSON(json::parse(req.json));
   }
   catch (const ifm3d::error_t& ex)
   {

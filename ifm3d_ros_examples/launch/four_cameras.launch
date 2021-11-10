@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- This lauch file is an example for how to use four camera heads at the same time: their data will be transformed into a collective reference frame witout any relative calibration in 3D. -->
+  <!-- This lauch file is an example for how to use four camera heads at the same time: their data will be transformed into a collective reference frame without any relative calibration in 3D. -->
 
   <!-- Command-line arguments -->
   <arg name="namespace" default="ifm3d_ros_examples" doc="Desired namespace for the camera nodelet" />

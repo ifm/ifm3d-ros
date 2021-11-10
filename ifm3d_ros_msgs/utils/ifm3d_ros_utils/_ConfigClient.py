@@ -9,10 +9,10 @@ graph
 import json
 import rospy
 import sys
-from ifm3d.srv import Config
+from ifm3d_ros_msgs.srv import Config
 
 SRV_TIMEOUT = 2.0 # seconds
-SRV_NAME = "/ifm3d/camera/Config"
+SRV_NAME = "/ifm3d_ros_examples/camera/Config"
 
 class ConfigClient(object):
 
