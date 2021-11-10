@@ -3,7 +3,7 @@ image: gcc:latest
 stages:
   - build
 
-build documentation:
+copy content to GH:
   stage: build
   tags:
     - shared_docker
@@ -15,15 +15,31 @@ build documentation:
     - git config --global user.name "ifm-csr"
 
     # get GH branch 
-    - git clone -b v1.0.x https://${IFM3D-ROS}:x-oauth-basic@github.com/ifm/ifm3d-ros.git repo
+    - git clone -b v1.0.x https://${ROS1MIRROR}:x-oauth-basic@github.com/ifm/ifm3d-ros.git repo
     - cd repo
+    - rm -r *
+
+    # copy changes
+    - cp -r ${CI_PROJECT_DIR}/CHANGELOG.rst .
+    - cp -r ${CI_PROJECT_DIR}/.clang-format .
+    - cp -r ${CI_PROJECT_DIR}/LICENSE .
+    - cp -r ${CI_PROJECT_DIR}/README.md . 
+    - cp -r ${CI_PROJECT_DIR}/ifm3d-ros .
+    - cp -r ${CI_PROJECT_DIR}/ifm3d_ros_driver .
+    - cp -r ${CI_PROJECT_DIR}/ifm3d_ros_msgs .
+    - cp -r ${CI_PROJECT_DIR}/ifm3d_ros_driver .
 
     # add changes
     - git add -A
-    - git commit -m "add latest dev changes and fixes"
-
+    - git commit -m "add latest dev changes and fixes" --allow-empty
     # push changes
-    - git push  || true
+    - git push 
+
+    # # test mirror repo
+    # - git clone --bare https://github.com/exampleuser/old-repository.git
+    # - cd old-repository.git 
+    # - git push --mirror https://github.com/exampleuser/new-repository.git
+
   artifacts:
     paths:
       - public
