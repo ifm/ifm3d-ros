@@ -1,5 +1,10 @@
 # ifm3d-ros wrapper around the ifm3d library
 
+# Release versions
+
+:warning: Note that the `v1.0.x` branch is generally in a work in progress state, and you probably want to use a tagged [release version](https://github.com/ifm/ifm3d-ros/releases) for production.
+
+## ifm3d-ros for the O3R
 
 **NOTE: The ifm3d-ros package has had major changes recently. Please be aware that this might cause problems on your system for building pipelines based on our old build instructions.**  
 We tried to ensure backward compatibility where ever possible. If you find any major breaks, please let us know.  
@@ -12,19 +17,15 @@ ifm3d-ros is a wrapper around [ifm3d](https://github.com/ifm/ifm3d/) enabling th
 ## Software Compatibility Matrix
 
 |**ifm3d-ros version**|**ifm3d version**|**ROS distribution(s)**|
-|---|---|---|
-| 0.1.0 | 0.1.0 | Kinetic |
-| 0.2.0 | 0.2.0 | Kinetic, Indigo |
-| 0.3.0 | 0.2.0 | Kinetic, Indigo |
-| 0.4.0 | 0.3.0, 0.3.1, 0.3.2 | Kinetic, Indigo |
-| 0.4.1 | 0.3.3, 0.4.0, 0.5.0, 0.6.0, 0.7.0, 0.8.1 | Kinetic, Indigo |
-| 0.4.2 | 0.9.0 | Kinetic |
-| 0.5.0 | 0.9.0, 0.9.1 | Kinetic |
-| 0.5.1 | 0.9.2 | Kinetic, Melodic |
-| 0.6.0 | 0.9.2, 0.9.3, 0.10.0, 0.11.0, 0.11.2 | Kinetic, Melodic |
-| 0.6.1, 0.6.2 | 0.11.2, 0.12.0, 0.17.0 | Kinetic, Melodic |
-| 0.7.0 | NN - in dev - placeholder 0.91.0 | Noetic |
+| ------------ | ------------ | ------------ |
+| 1.0.0 | in development - latest version checked 0.91.0 | Noetic |
 
+### Internal ifm3d-ros subpackage version structure
+Please see the internal subpackage version structure for a known `ifm3d-ros version`.
+
+|**ifm3d-ros version**|**ifm3d_ros_driver**|**ifm3d_ros_msgs**|**ifm3d_ros_examples**|
+| ------------ | ------------ | ------------ | ------------ |
+| 1.0.0 | 0.7.0 | 0.1.0 | 0.1.0 |
 
 ## Organization of the software
 
