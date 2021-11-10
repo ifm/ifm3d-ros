@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+# -*- python -*-
+
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2021 ifm electronic, gmbh
+
+
+import sys
+from ifm3d import DumpClient
+
+if __name__ == '__main__':
+    sys.exit(DumpClient().run())
