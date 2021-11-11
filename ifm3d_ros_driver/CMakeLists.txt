@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
              ifm3d_ros_msgs
              )
 
-catkin_python_setup()
+# catkin_python_setup()
 
 option(CATKIN_ENABLE_TESTING "Build tests" OFF)
 

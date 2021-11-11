@@ -6,7 +6,7 @@
 
 
 import sys
-from ifm3d import ConfigClient
+from ifm3d_ros_utils import ConfigClient
 
 if __name__ == '__main__':
     sys.exit(ConfigClient().run())

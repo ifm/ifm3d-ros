@@ -6,7 +6,7 @@
 
 
 import sys
-from ifm3d import DumpClient
+from ifm3d_ros_utils import DumpClient
 
 if __name__ == '__main__':
     sys.exit(DumpClient().run())
