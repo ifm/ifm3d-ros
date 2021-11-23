@@ -35,11 +35,6 @@ copy content to GH:
     # push changes
     - git push 
 
-    # # test mirror repo
-    # - git clone --bare https://github.com/exampleuser/old-repository.git
-    # - cd old-repository.git 
-    # - git push --mirror https://github.com/exampleuser/new-repository.git
-
   artifacts:
     paths:
       - public
