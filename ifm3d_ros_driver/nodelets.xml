@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<library path="lib/libifm3d_ros">
+  <class name="ifm3d_ros/camera_nodelet"
+         type="ifm3d_ros::CameraNodelet"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Interface to the underlying ifm3d camera
+    </description>
+  </class>
+</library>

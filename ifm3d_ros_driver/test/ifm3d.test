@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<launch>
+  <include file="$(find ifm3d)/launch/camera.launch"/>
+  <test pkg="ifm3d" test-name="test_camera" type="test_camera.py"/>
+</launch>

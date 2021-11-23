@@ -1,0 +1,338 @@
+{
+    "device": {
+      "clock": {
+        "currentTime": 1581092244602229792
+      },
+      "diagnostic": {
+        "temperatures": [],
+        "upTime": 1599000000000
+      },
+      "info": {
+        "device": "0301",
+        "deviceTreeBinaryBlob": "tegra186-quill-p3310-1000-c03-00-base.dtb",
+        "features": {},
+        "name": "",
+        "partNumber": "M03903",
+        "productionState": "AA",
+        "serialNumber": "000201233338",
+        "vendor": "0001"
+      },
+      "network": {
+        "authorized_keys": "",
+        "ipAddressConfig": 0,
+        "macEth0": "00:04:4B:E4:DA:9E",
+        "macEth1": "00:02:01:23:33:38",
+        "networkSpeed": 1000,
+        "staticIPv4Address": "192.168.0.69",
+        "staticIPv4Gateway": "192.168.0.201",
+        "staticIPv4SubNetMask": "255.255.255.0",
+        "useDHCP": false
+      },
+      "state": {
+        "errorMessage": "",
+        "errorNumber": ""
+      },
+      "swVersion": {
+        "kernel": "4.9.140-l4t-r32.4+g231628d3fa15",
+        "l4t": "r32.4.3",
+        "os": "0.13.3-188",
+        "schema": "feature/O3R-4949",
+        "swu": "0.15.3"
+      }
+    },
+    "ports": {
+      "port0": {
+        "acquisition": {
+          "exposureLong": 5000,
+          "exposureShort": 400,
+          "framerate": 10.0,
+          "offset": 0.0,
+          "version": {
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+          }
+        },
+        "data": {
+          "algoDebugConfig": {},
+          "availablePCICOutput": [
+            "AMPLITUDE_COMPRESSED",
+            "CONFIDENCE",
+            "RADIAL_DISTANCE_COMPRESSED",
+            "RADIAL_DISTANCE_NOISE",
+            "REFLECTIVITY",
+            "TOF_INFO"
+          ],
+          "pcicTCPPort": 50010
+        },
+        "info": {
+          "device": "3101",
+          "deviceTreeBinaryBlobOverlay": "001-irs2381c.dtbo",
+          "features": {
+            "fov": {
+              "horizontal": 78,
+              "vertical": 105
+            },
+            "resolution": {
+              "height": 172,
+              "width": 224
+            },
+            "type": "3D"
+          },
+          "name": "",
+          "partNumber": "M03957",
+          "productionState": "AA",
+          "sensor": "IRS2381C",
+          "sensorID": "IRS2381C_105x78_4x2W_110x90_Csample",
+          "serialNumber": "000000000186",
+          "vendor": "0001"
+        },
+        "mode": "experimental_high_4m",
+        "processing": {
+          "diParam": {
+            "anfFilterSizeDiv2": 2,
+            "enableDynamicSymmetry": true,
+            "enableStraylight": true,
+            "enableTemporalFilter": true,
+            "excessiveCorrectionThreshAmp": 0.3,
+            "excessiveCorrectionThreshDist": 0.08,
+            "maxDistNoise": 0.02,
+            "maxSymmetry": 0.4,
+            "medianSizeDiv2": 0,
+            "minAmplitude": 20.0,
+            "minReflectivity": 0.0,
+            "mixedPixelFilterMode": 1,
+            "mixedPixelThresholdRad": 0.15
+          },
+          "extrinsicHeadToUser": {
+            "rotX": 0.0,
+            "rotY": 0.0,
+            "rotZ": 0.0,
+            "transX": 0.0,
+            "transY": 0.0,
+            "transZ": 0.0
+          },
+          "version": {
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+          }
+        },
+        "state": "RUN"
+      },
+      "port1": {
+        "acquisition": {
+          "exposureLong": 5000,
+          "exposureShort": 400,
+          "framerate": 10.0,
+          "offset": 0.0,
+          "version": {
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+          }
+        },
+        "data": {
+          "algoDebugConfig": {},
+          "availablePCICOutput": [
+            "AMPLITUDE_COMPRESSED",
+            "CONFIDENCE",
+            "RADIAL_DISTANCE_COMPRESSED",
+            "RADIAL_DISTANCE_NOISE",
+            "REFLECTIVITY",
+            "TOF_INFO"
+          ],
+          "pcicTCPPort": 50011
+        },
+        "info": {
+          "device": "3101",
+          "deviceTreeBinaryBlobOverlay": "001-irs2381c.dtbo",
+          "features": {
+            "fov": {
+              "horizontal": 78,
+              "vertical": 105
+            },
+            "resolution": {
+              "height": 172,
+              "width": 224
+            },
+            "type": "3D"
+          },
+          "name": "",
+          "partNumber": "M03957",
+          "productionState": "AA",
+          "sensor": "IRS2381C",
+          "sensorID": "IRS2381C_105x78_4x2W_110x90_Csample",
+          "serialNumber": "000000000192",
+          "vendor": "0001"
+        },
+        "mode": "experimental_high_4m",
+        "processing": {
+          "diParam": {
+            "anfFilterSizeDiv2": 2,
+            "enableDynamicSymmetry": true,
+            "enableStraylight": true,
+            "enableTemporalFilter": true,
+            "excessiveCorrectionThreshAmp": 0.3,
+            "excessiveCorrectionThreshDist": 0.08,
+            "maxDistNoise": 0.02,
+            "maxSymmetry": 0.4,
+            "medianSizeDiv2": 0,
+            "minAmplitude": 20.0,
+            "minReflectivity": 0.0,
+            "mixedPixelFilterMode": 1,
+            "mixedPixelThresholdRad": 0.15
+          },
+          "extrinsicHeadToUser": {
+            "rotX": 0.0,
+            "rotY": 0.0,
+            "rotZ": 0.0,
+            "transX": 0.0,
+            "transY": 0.0,
+            "transZ": 0.0
+          },
+          "version": {
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+          }
+        },
+        "state": "RUN"
+      },
+      "port2": {
+        "acquisition": {
+          "exposureLong": 5000,
+          "exposureShort": 400,
+          "framerate": 10.0,
+          "offset": 0.0,
+          "version": {
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+          }
+        },
+        "data": {
+          "algoDebugConfig": {},
+          "availablePCICOutput": [
+            "AMPLITUDE_COMPRESSED",
+            "CONFIDENCE",
+            "RADIAL_DISTANCE_COMPRESSED",
+            "RADIAL_DISTANCE_NOISE",
+            "REFLECTIVITY",
+            "TOF_INFO"
+          ],
+          "pcicTCPPort": 50012
+        },
+        "info": {
+          "device": "2301",
+          "deviceTreeBinaryBlobOverlay": "001-irs2381c.dtbo",
+          "features": {
+            "fov": {
+              "horizontal": 80,
+              "vertical": 127
+            },
+            "resolution": {
+              "height": 800,
+              "width": 1280
+            },
+            "type": "2D"
+          },
+          "name": "",
+          "partNumber": "M03934",
+          "productionState": "AA",
+          "sensor": "OV9782",
+          "sensorID": "OV9782_127x80_noIllu_Csample",
+          "serialNumber": "000000000094",
+          "vendor": "0001"
+        },
+        "mode": "experimental_high_4m",
+        "processing": {
+          "diParam": {
+            "anfFilterSizeDiv2": 2,
+            "enableDynamicSymmetry": true,
+            "enableStraylight": true,
+            "enableTemporalFilter": true,
+            "excessiveCorrectionThreshAmp": 0.3,
+            "excessiveCorrectionThreshDist": 0.08,
+            "maxDistNoise": 0.02,
+            "maxSymmetry": 0.4,
+            "medianSizeDiv2": 0,
+            "minAmplitude": 20.0,
+            "minReflectivity": 0.0,
+            "mixedPixelFilterMode": 1,
+            "mixedPixelThresholdRad": 0.15
+          },
+          "extrinsicHeadToUser": {
+            "rotX": 0.0,
+            "rotY": 0.0,
+            "rotZ": 0.0,
+            "transX": 0.0,
+            "transY": 0.0,
+            "transZ": 0.0
+          },
+          "version": {
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+          }
+        },
+        "state": "CONF"
+      },
+      "port5": {
+        "acquisition": {
+          "framerate": 10.0,
+          "version": {
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+          }
+        },
+        "data": {
+          "algoDebugConfig": {},
+          "availablePCICOutput": [
+            "RGB_INFO"
+          ],
+          "pcicTCPPort": 50015
+        },
+        "info": {
+          "device": "2301",
+          "deviceTreeBinaryBlobOverlay": "001-ov9782.dtbo",
+          "features": {
+            "fov": {
+              "horizontal": 80,
+              "vertical": 127
+            },
+            "resolution": {
+              "height": 800,
+              "width": 1280
+            },
+            "type": "2D"
+          },
+          "name": "",
+          "partNumber": "M03934",
+          "productionState": "AA",
+          "sensor": "OV9782",
+          "sensorID": "OV9782_127x80_noIllu_Csample",
+          "serialNumber": "000000000094",
+          "vendor": "0001"
+        },
+        "mode": "experimental_autoexposure2D",
+        "processing": {
+          "extrinsicHeadToUser": {
+            "rotX": 0.0,
+            "rotY": 0.0,
+            "rotZ": 0.0,
+            "transX": 0.0,
+            "transY": 0.0,
+            "transZ": 0.0
+          },
+          "version": {
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+          }
+        },
+        "state": "CONF"
+      }
+    }
+  }
