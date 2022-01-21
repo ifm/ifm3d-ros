@@ -64,9 +64,9 @@ None.
 [![O3X](https://img.shields.io/badge/O3X-green.svg)]()
 
 
-# Additional Documentation
+## Additional Documentation
 * [Inspecting and configuring the camera / imager settings](doc/dump_and_config.md)
 * [Troubleshooting](doc/troubleshooting.md)
 
-# LICENSE
+## LICENSE
 Please see the file called [LICENSE](LICENSE).

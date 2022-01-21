@@ -13,7 +13,7 @@ Braking changes:
 
 Changes between ifm3d_ros 0.6.x and 1.0.0:
 + Order of axis changed in 3D (cloud topic and extrinsic calibration parameters): This wrapper keeps the axis orientation as defined by the underlying API, ifm3d. Therefore, you may see a different axis order for the cloud message compared to older versions of the ifm3d and ifm cameras.
-+ Extrinsic calibration parameters: now conistent with SI units, e.g. translation are scaled in `m` and rotation parameters are scaled in `rad`.
++ Extrinsic calibration parameters: now consistent with SI units, e.g. translation are scaled in `m` and rotation parameters are scaled in `rad`.
 + Added publisher for 2D RGB data
 + Use CameraBase for compatibility with other O3 devices
 + Comment out methods / publisher which are not available for the O3RCamera (at the moment)

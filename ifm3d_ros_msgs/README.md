@@ -20,5 +20,5 @@ Don't forget to switch back to building all packages afterwards:
 catkin_make -DCATKIN_WHITELIST_PACKAGES=""
 ```
 
-# LICENSE
+## LICENSE
 Please see the file called [LICENSE](LICENSE).
