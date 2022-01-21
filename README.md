@@ -1,6 +1,6 @@
-# ifm3d-ros wrapper around the ifm3d library
+# ifm3d-ros
 
-# Release versions
+## Release versions
 
 :warning: Note that the `v1.0.x` branch is generally in a work in progress state, and you probably want to use a tagged [release version](https://github.com/ifm/ifm3d-ros/releases) for production.
 
@@ -10,7 +10,7 @@
 We tried to ensure backward compatibility where ever possible. If you find any major breaks, please let us know.  
 
 
-ifm3d-ros is a wrapper around [ifm3d](https://github.com/ifm/ifm3d/) enabling the usage of the O3R camera platform (ifm ToF cameras) from within [ROS](http://ros.org) software systems.  
+ifm3d-ros is a wrapper around [ifm3d](https://github.com/ifm/ifm3d/) enabling the usage of the O3R camera platform (ifm ToF cameras) from within [ROS](http://ros.org) software systems. Please make sure to use the `v1.0.x` branch for O3R compatibility. 
 
 ![rviz1](ifm3d_ros_driver/doc/figures/O3R_merged_point_cloud.png)
 
@@ -42,5 +42,5 @@ This ROS package has been split into three sub packages in an effort to facilita
 1. Preparing your system: [Noetic](ifm3d_ros_driver/doc/noetic.md)
 2. [Installing the ifm3d-ros node](ifm3d_ros_driver/doc/building.md)
 
-# LICENSE
+## LICENSE
 Please see the file called [LICENSE](LICENSE).
