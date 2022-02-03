@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+
+  <name>ifm3d-ros</name>
+  <version>1.0.0</version>
+  <description>metapackage for the ifm3d-ros package group which interacts with the ifm 3D ToF Camera ROS package</description>
+  <maintainer email="support.robotics@ifm.com">ifm CSR group</maintainer>
+  <license>Apache 2</license>
+  <author email="Philipp.Senger@ifm.com">CSR ifm sytron</author>
+
+  <url type="repository">https://github.com/ifm/ifm3d-ros/</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>ifm3d_ros_driver</exec_depend>
+  <exec_depend>ifm3d_ros_examples</exec_depend>
+  <exec_depend>ifm3d_ros_msgs</exec_depend>
+
+  <export>
+    <metapackage />
+
+  </export>
+</package>
