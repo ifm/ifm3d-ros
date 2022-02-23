@@ -45,7 +45,7 @@ Next, we need to get the code from GitHub. Please adapt the commands when not fo
 
 ```
 $ cd ~/catkin_ws/src
-$ git clone --branch o3r/dev https://github.com/ifm/ifm3d-ros.git
+$ git clone https://github.com/ifm/ifm3d-ros.git
 ```
 
 So, you should have a catkin workspace set up to build the ifm3d-ros code that looks similar to this:
@@ -70,8 +70,8 @@ $ catkin_make
 This will create a `devel` and `build` folder in your catkin workspace, which contains the required code for running the ROS node. To test this you can easily set-up your current shell and run: `source ~/catkin_ws/devel/setup.bash && roslaunch ifm3d_ros_examples camera.launch`.  
 
 
-The ROS package should now be installed in `~/ros/ifm3d-ros`. To test everything out you should open a fresh bash shell, and start up a ROS core:   
-(Please don't forget to source the ifm3d-ros package first if you haven't done it yet.)    
+To test everything out you should open a fresh bash shell, and start up a ROS core:   
+(Please don't forget to source the ifm3d-ros package first if you haven't done it yet. `source ~/catkin_ws/devel/setup.bash`)    
 ```
 $ roscore &
 $ roslaunch ifm3d_ros_examples camera.launch
