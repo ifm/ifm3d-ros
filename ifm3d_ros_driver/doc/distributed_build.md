@@ -2,7 +2,7 @@
 
 We have structured the ROS node into separate subpackages. This allows us to build only a subset of packages from the metapackage `ifm3d-ros`.
 
-## Building only one package from your catkin workspace
+## Building one package independently from your catkin workspace
 The command below allows you to selectively build only one of the existing packages in your joined catkin workspace. All the following commands can only be called on a device which already has ROS installed.
 
 
