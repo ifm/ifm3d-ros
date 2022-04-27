@@ -37,11 +37,9 @@ For further information about the internal ROS nodelet infrastructure and how to
 | cloud | sensor_msgs/PointCloud2 | The point cloud data, i.e. X-, Y-, Z-coordinates. |
 | distance | sensor_msgs/Image | The radial distance image. |
 | raw_amplitude | sensor_msgs/Image | The raw (non normalized) amplitude image. |
-| good_bad_pixels | sensor_msgs/Image | The binary image representation of the confidence image. |
-| xyz_imaege | sensor_msgs/Image | A 3-channel image encoding of the point cloud. Each of the three image channels represents a spatial data plane encoding the x, y, z Cartesian values respectively. |
 | unit_vectors | sensor_msgs/Image | The rotated unit vectors. |
 | extrinsics | ifm3d/Extrinsics | The extrinsic calibration of the camera with respect to the camera optical frame. This 3D pose is encoded in mm and rad. |
-
+| rgb_image/compressed | sensor_msgs::CompressedImage | The RGB image in compressed format. |
 >Note: Some topics may have empty data fields. We are working on publishing data on all available topics, but have kept all previous topics active for the moment for legacy reasons.   
 
 ### Nodelet - subscribed Topics

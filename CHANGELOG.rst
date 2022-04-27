@@ -5,11 +5,19 @@ Changelog for package ifm3d-ros
 1.0
 ===
 
+1.0.1 
+-----
+
+* Removed dependency to OpenCV and PCL.
+* The RGB jpeg image is published in a compressed format.
+* Removed the god_bad pixel publisher and the XYZ publisher (use `cloud`` instead).
+* The `/cloud` topic is published as `sensor_msgs::PointCloud2` instead of `pcl::PointCloud<ifm3d::PointT>`
+
 1.0.0
 ------
 
-Braking changes:
-+ Restructure the ifm3d-ros package into independent subpackages. Please check your path declarations again, especially for the launch files and messages and services.
+Breaking changes:
+* Restructure the ifm3d-ros package into independent subpackages. Please check your path declarations again, especially for the launch files and messages and services.
 
 Changes between ifm3d_ros 0.6.x and 1.0.0:
 + Order of axis changed in 3D (cloud topic and extrinsic calibration parameters): This wrapper keeps the axis orientation as defined by the underlying API, ifm3d. Therefore, you may see a different axis order for the cloud message compared to older versions of the ifm3d and ifm cameras.
@@ -23,10 +31,10 @@ Changes between ifm3d_ros 0.6.x and 1.0.0:
 + Changed service dump: coverts from json to str for displaying the message
 
 added:
-+ Added pcic_port to the list of framegrabber arguments
+* Added pcic_port to the list of framegrabber arguments
 
 known limitations:
-+ This version of the ifm3d-ros package only works with the O3R camera platform.
+* This version of the ifm3d-ros package only works with the O3R camera platform.
 
 
 0.6

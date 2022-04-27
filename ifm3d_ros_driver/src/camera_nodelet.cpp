@@ -5,6 +5,7 @@
 
 #include <ifm3d_ros_driver/camera_nodelet.h>
 
+#include <cmath>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -13,21 +14,15 @@
 #include <string>
 #include <vector>
 
-#include <math.h>
-#include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <nodelet/nodelet.h>
-#include <opencv2/opencv.hpp>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/point_cloud.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
+#include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/image_encodings.h>
 
-#include <ifm3d/camera/camera_base.h>
-#include <ifm3d/fg.h>
-#include <ifm3d/image.h>
 #include <ifm3d_ros_msgs/Config.h>
 #include <ifm3d_ros_msgs/Dump.h>
 #include <ifm3d_ros_msgs/Extrinsics.h>
@@ -36,6 +31,163 @@
 #include <ifm3d_ros_msgs/Trigger.h>
 
 #include <ifm3d/contrib/nlohmann/json.hpp>
+
+sensor_msgs::Image ifm3d_to_ros_image(ifm3d::Image& image,  // Need non-const image because image.begin(),
+                                                            // image.end() don't have const overloads.
+                                      const std_msgs::Header& header, const std::string& logger)
+{
+  static constexpr auto max_pixel_format = static_cast<std::size_t>(ifm3d::pixel_format::FORMAT_32F3);
+  static auto image_format_info = [] {
+    auto image_format_info = std::array<std::string, max_pixel_format + 1>{};
+
+    {
+      using namespace ifm3d;
+      using namespace sensor_msgs::image_encodings;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_8U)] = TYPE_8UC1;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_8S)] = TYPE_8SC1;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_16U)] = TYPE_16UC1;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_16S)] = TYPE_16SC1;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_32U)] = "32UC1";
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_32S)] = TYPE_32SC1;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_32F)] = TYPE_32FC1;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_64U)] = "64UC1";
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_64F)] = TYPE_64FC1;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_16U2)] = TYPE_16UC2;
+      image_format_info[static_cast<std::size_t>(pixel_format::FORMAT_32F3)] = TYPE_32FC3;
+    }
+
+    return image_format_info;
+  }();
+
+  const auto format = static_cast<std::size_t>(image.dataFormat());
+
+  sensor_msgs::Image result{};
+  result.header = header;
+  result.height = image.height();
+  result.width = image.width();
+  result.is_bigendian = 0;
+
+  if (image.begin<std::uint8_t>() == image.end<std::uint8_t>())
+  {
+    return result;
+  }
+
+  if (format >= max_pixel_format)
+  {
+    ROS_ERROR_NAMED(logger, "Pixel format out of range (%ld >= %ld)", format, max_pixel_format);
+    return result;
+  }
+
+  result.encoding = image_format_info.at(format);
+  result.step = result.width * sensor_msgs::image_encodings::bitDepth(image_format_info.at(format)) / 8;
+  result.data.insert(result.data.end(), image.ptr<>(0), std::next(image.ptr<>(0), result.step * result.height));
+
+  if (result.encoding.empty())
+  {
+    ROS_WARN_NAMED(logger, "Can't handle encoding %ld (32U == %ld, 64U == %ld)", format,
+                   static_cast<std::size_t>(ifm3d::pixel_format::FORMAT_32U),
+                   static_cast<std::size_t>(ifm3d::pixel_format::FORMAT_64U));
+    result.encoding = sensor_msgs::image_encodings::TYPE_8UC1;
+  }
+
+  return result;
+}
+
+sensor_msgs::Image ifm3d_to_ros_image(ifm3d::Image&& image, const std_msgs::Header& header, const std::string& logger)
+{
+  return ifm3d_to_ros_image(image, header, logger);
+}
+
+sensor_msgs::CompressedImage ifm3d_to_ros_compressed_image(ifm3d::Image& image,  // Need non-const image because
+                                                                                 // image.begin(), image.end()
+                                                                                 // don't have const overloads.
+                                                           const std_msgs::Header& header,
+                                                           const std::string& format,  // "jpeg" or "png"
+                                                           const std::string& logger)
+{
+  sensor_msgs::CompressedImage result{};
+  result.header = header;
+  result.format = format;
+
+  {
+    const auto dataFormat = image.dataFormat();
+    if (dataFormat != ifm3d::pixel_format::FORMAT_8S && dataFormat != ifm3d::pixel_format::FORMAT_8U)
+    {
+      ROS_ERROR_NAMED(logger, "Invalid data format for %s data (%ld)", format.c_str(),
+                      static_cast<std::size_t>(dataFormat));
+      return result;
+    }
+  }
+
+  result.data.insert(result.data.end(), image.ptr<>(0), std::next(image.ptr<>(0), image.width() * image.height()));
+  return result;
+}
+
+sensor_msgs::CompressedImage ifm3d_to_ros_compressed_image(ifm3d::Image&& image, const std_msgs::Header& header,
+                                                           const std::string& format, const std::string& logger)
+{
+  return ifm3d_to_ros_compressed_image(image, header, format, logger);
+}
+
+sensor_msgs::PointCloud2 ifm3d_to_ros_cloud(ifm3d::Image& image,  // Need non-const image because image.begin(),
+                                                                  // image.end() don't have const overloads.
+                                            const std_msgs::Header& header, const std::string& logger)
+{
+  sensor_msgs::PointCloud2 result{};
+  result.header = header;
+  result.height = image.height();
+  result.width = image.width();
+  result.is_bigendian = false;
+
+  if (image.begin<std::uint8_t>() == image.end<std::uint8_t>())
+  {
+    return result;
+  }
+
+  if (image.dataFormat() != ifm3d::pixel_format::FORMAT_32F3 && image.dataFormat() != ifm3d::pixel_format::FORMAT_32F)
+  {
+    ROS_ERROR_NAMED(logger, "Unsupported pixel format %ld for point cloud",
+                    static_cast<std::size_t>(image.dataFormat()));
+    return result;
+  }
+
+  sensor_msgs::PointField x_field{};
+  x_field.name = "x";
+  x_field.offset = 0;
+  x_field.datatype = sensor_msgs::PointField::FLOAT32;
+  x_field.count = 1;
+
+  sensor_msgs::PointField y_field{};
+  y_field.name = "y";
+  y_field.offset = 4;
+  y_field.datatype = sensor_msgs::PointField::FLOAT32;
+  y_field.count = 1;
+
+  sensor_msgs::PointField z_field{};
+  z_field.name = "z";
+  z_field.offset = 8;
+  z_field.datatype = sensor_msgs::PointField::FLOAT32;
+  z_field.count = 1;
+
+  result.fields = {
+    x_field,
+    y_field,
+    z_field,
+  };
+
+  result.point_step = result.fields.size() * sizeof(float);
+  result.row_step = result.point_step * result.width;
+  result.is_dense = true;
+  result.data.insert(result.data.end(), image.ptr<>(0), std::next(image.ptr<>(0), result.row_step * result.height));
+
+  return result;
+}
+
+sensor_msgs::PointCloud2 ifm3d_to_ros_cloud(ifm3d::Image&& image, const std_msgs::Header& header,
+                                            const std::string& logger)
+{
+  return ifm3d_to_ros_cloud(image, header, logger);
+}
 
 using json = nlohmann::json;
 namespace enc = sensor_msgs::image_encodings;
@@ -99,16 +251,14 @@ void ifm3d_ros::CameraNodelet::onInit()
   //-------------------
   // Published topics
   //-------------------
-  this->cloud_pub_ = this->np_.advertise<pcl::PointCloud<ifm3d::PointT>>("cloud", 1);
+  this->cloud_pub_ = this->np_.advertise<sensor_msgs::PointCloud2>("cloud", 1);
   this->distance_pub_ = this->it_->advertise("distance", 1);
-  // this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
+  this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
   this->amplitude_pub_ = this->it_->advertise("amplitude", 1);
   this->raw_amplitude_pub_ = this->it_->advertise("raw_amplitude", 1);
   this->conf_pub_ = this->it_->advertise("confidence", 1);
-  this->good_bad_pub_ = this->it_->advertise("good_bad_pixels", 1);
-  this->xyz_image_pub_ = this->it_->advertise("xyz_image", 1);
   this->gray_image_pub_ = this->it_->advertise("gray_image", 1);
-  this->rgb_image_pub_ = this->it_->advertise("rgb_image", 1);
+  this->rgb_image_pub_ = this->np_.advertise<sensor_msgs::CompressedImage>("rgb_image/compressed", 1);
 
   // we latch the unit vectors
   this->uvec_pub_ = this->np_.advertise<sensor_msgs::Image>("unit_vectors", 1, true);
@@ -332,7 +482,7 @@ bool ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t 
     NODELET_INFO("Nodelet arguments: %d, %d", (int)mask, (int)this->pcic_port_);
 
     NODELET_INFO_STREAM("Initializing image buffer...");
-    this->im_ = std::make_shared<ifm3d::ImageBuffer>();
+    this->im_ = std::make_shared<ifm3d::StlImageBuffer>();
 
     retval = true;
   }
@@ -382,17 +532,14 @@ void ifm3d_ros::CameraNodelet::Run()
     ros::Duration(1.0).sleep();
   }
 
-  pcl::PointCloud<ifm3d::PointT>::Ptr cloud(new pcl::PointCloud<ifm3d::PointT>());
-
-  cv::Mat confidence_img;
-  cv::Mat distance_img;
-  // cv::Mat distance_noise_img;
-  cv::Mat amplitude_img;
-  cv::Mat xyz_img;
-  cv::Mat raw_amplitude_img;
-  cv::Mat good_bad_pixels_img;
-  cv::Mat gray_img;
-  cv::Mat rgb_img;
+  ifm3d::Image confidence_img;
+  ifm3d::Image distance_img;
+  ifm3d::Image distance_noise_img;
+  ifm3d::Image amplitude_img;
+  ifm3d::Image xyz_img;
+  ifm3d::Image raw_amplitude_img;
+  ifm3d::Image gray_img;
+  ifm3d::Image rgb_img;
 
   NODELET_DEBUG_STREAM("after initializing the opencv buffers");
   std::vector<float> extrinsics(6);
@@ -455,9 +602,8 @@ void ifm3d_ros::CameraNodelet::Run()
     if (!got_uvec)
     {
       lock.lock();
-      sensor_msgs::ImagePtr uvec_msg =
-          cv_bridge::CvImage(optical_head, enc::TYPE_32FC3, this->im_->UnitVectors()).toImageMsg();
-      NODELET_INFO_STREAM("uvec image size: " << this->im_->UnitVectors().size());
+      sensor_msgs::Image uvec_msg = ifm3d_to_ros_image(this->im_->UnitVectors(), optical_head, getName());
+      NODELET_INFO_STREAM("uvec image size: " << uvec_msg.height * uvec_msg.width);
       lock.unlock();
       this->uvec_pub_.publish(uvec_msg);
       got_uvec = true;
@@ -482,11 +628,10 @@ void ifm3d_ros::CameraNodelet::Run()
     NODELET_DEBUG_STREAM("start getting data");
     try
     {
-      // boost::shared_ptr vs std::shared_ptr forces this copy
-      pcl::copyPointCloud(*(this->im_->Cloud().get()), *cloud);
       xyz_img = this->im_->XYZImage();
       confidence_img = this->im_->ConfidenceImage();
       distance_img = this->im_->DistanceImage();
+      distance_noise_img = this->im_->DistanceNoiseImage();
       amplitude_img = this->im_->AmplitudeImage();
       raw_amplitude_img = this->im_->RawAmplitudeImage();
       gray_img = this->im_->GrayImage();
@@ -511,93 +656,52 @@ void ifm3d_ros::CameraNodelet::Run()
 
     NODELET_DEBUG_STREAM("start publishing");
     // Confidence image is invariant - no need to check the mask
-    sensor_msgs::ImagePtr confidence_msg = cv_bridge::CvImage(optical_head, "mono16", confidence_img).toImageMsg();
-    this->conf_pub_.publish(confidence_msg);
+    this->conf_pub_.publish(ifm3d_to_ros_image(confidence_img, optical_head, getName()));
     NODELET_DEBUG_STREAM("after publishing confidence image");
 
     if ((this->schema_mask_ & ifm3d::IMG_CART) == ifm3d::IMG_CART)
     {
-      cloud->header = pcl_conversions::toPCL(head);
-      this->cloud_pub_.publish(cloud);
-
-      sensor_msgs::ImagePtr xyz_image_msg =
-          cv_bridge::CvImage(head, xyz_img.type() == CV_32FC3 ? enc::TYPE_32FC3 : enc::TYPE_16SC3, xyz_img)
-              .toImageMsg();
-      this->xyz_image_pub_.publish(xyz_image_msg);
+      this->cloud_pub_.publish(ifm3d_to_ros_cloud(xyz_img, head, getName()));
       NODELET_DEBUG_STREAM("after publishing xyz image");
     }
 
     if ((this->schema_mask_ & ifm3d::IMG_RDIS) == ifm3d::IMG_RDIS)
     {
-      sensor_msgs::ImagePtr distance_msg =
-          cv_bridge::CvImage(optical_head, distance_img.type() == CV_32FC1 ? enc::TYPE_32FC1 : enc::TYPE_16UC1,
-                             distance_img)
-              .toImageMsg();
-      this->distance_pub_.publish(distance_msg);
+      this->distance_pub_.publish(ifm3d_to_ros_image(distance_img, optical_head, getName()));
       NODELET_DEBUG_STREAM("after publishing distance image");
     }
 
-    // this image is currently not available via the ifm3d
-    // if ((this->schema_mask_ & ifm3d::IMG_DIS_NOISE) == ifm3d::IMG_DIS_NOISE)
-    //   {
-    //     sensor_msgs::ImagePtr distance_noise_msg =
-    //       cv_bridge::CvImage(optical_head,
-    //                          distance_noise_img.type() == CV_32FC1 ?
-    //                          enc::TYPE_32FC1 : enc::TYPE_16UC1,
-    //                          distance_noise_img).toImageMsg();
-    //     this->distance_noise_pub_.publish(distance_noise_msg);
-    //   }
+    if ((this->schema_mask_ & ifm3d::IMG_DIS_NOISE) == ifm3d::IMG_DIS_NOISE)
+    {
+      this->distance_noise_pub_.publish(ifm3d_to_ros_image(distance_noise_img, optical_head, getName()));
+      NODELET_DEBUG_STREAM("after publishing distance noise image");
+    }
 
     if ((this->schema_mask_ & ifm3d::IMG_AMP) == ifm3d::IMG_AMP)
     {
-      sensor_msgs::ImagePtr amplitude_msg =
-          cv_bridge::CvImage(optical_head, amplitude_img.type() == CV_32FC1 ? enc::TYPE_32FC1 : enc::TYPE_16UC1,
-                             amplitude_img)
-              .toImageMsg();
-      this->amplitude_pub_.publish(amplitude_msg);
+      this->amplitude_pub_.publish(ifm3d_to_ros_image(amplitude_img, optical_head, getName()));
       NODELET_DEBUG_STREAM("after publishing amplitude image");
     }
 
     if ((this->schema_mask_ & ifm3d::IMG_RAMP) == ifm3d::IMG_RAMP)
     {
-      sensor_msgs::ImagePtr raw_amplitude_msg =
-          cv_bridge::CvImage(optical_head, raw_amplitude_img.type() == CV_32FC1 ? enc::TYPE_32FC1 : enc::TYPE_16UC1,
-                             raw_amplitude_img)
-              .toImageMsg();
-      this->raw_amplitude_pub_.publish(raw_amplitude_msg);
+      this->raw_amplitude_pub_.publish(ifm3d_to_ros_image(raw_amplitude_img, optical_head, getName()));
       NODELET_DEBUG_STREAM("Raw amplitude image publisher is a dummy publisher - data will be added soon");
       NODELET_DEBUG_STREAM("after publishing raw amplitude image");
     }
 
     if ((this->schema_mask_ & ifm3d::IMG_GRAY) == ifm3d::IMG_GRAY)
     {
-      sensor_msgs::ImagePtr gray_image_msg =
-          cv_bridge::CvImage(optical_head, gray_img.type() == CV_32FC1 ? enc::TYPE_32FC1 : enc::TYPE_16UC1, gray_img)
-              .toImageMsg();
-      this->gray_image_pub_.publish(gray_image_msg);
+      this->gray_image_pub_.publish(ifm3d_to_ros_image(gray_img, optical_head, getName()));
       NODELET_DEBUG_STREAM("Gray image publisher is a dummy publisher - data will be added soon");
       NODELET_DEBUG_STREAM("after publishing gray image");
     }
 
-    // TODO: this casting of the confidence image to a boolean value image needs to be tested:
-    // inv cast might be reqiured depending on the interpretation of the binary image
-
-    int const min_binary_value = 0;
-    int const max_binary_value = 100;
-    cv::threshold(confidence_img, good_bad_pixels_img, min_binary_value, max_binary_value, cv::THRESH_BINARY);
-    good_bad_pixels_img.convertTo(good_bad_pixels_img, CV_8U);
-
-    sensor_msgs::ImagePtr good_bad_msg = cv_bridge::CvImage(optical_head, "mono8", good_bad_pixels_img).toImageMsg();
-    this->good_bad_pub_.publish(good_bad_msg);
-    NODELET_DEBUG_STREAM("after publishing good/bad pixel image image");
-
     // The 2D is not yet settable in the schema mask: publish all the time
 
-    if (!rgb_img.empty())
+    if (rgb_img.height() * rgb_img.width() > 0)
     {
-      cv::Mat im_decode = cv::imdecode(rgb_img, cv::IMREAD_UNCHANGED);
-      sensor_msgs::ImagePtr rgb_image_msg = cv_bridge::CvImage(optical_head, "bgr8", im_decode).toImageMsg();
-      this->rgb_image_pub_.publish(rgb_image_msg);
+      this->rgb_image_pub_.publish(ifm3d_to_ros_compressed_image(rgb_img, optical_head, "jpeg", getName()));
       NODELET_DEBUG_STREAM("after publishing rgb image");
     }
 
