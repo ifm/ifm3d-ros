@@ -17,7 +17,7 @@
 
 #include <ifm3d/camera/camera_base.h>
 #include <ifm3d/fg.h>
-#include <ifm3d/image.h>
+#include <ifm3d/stlimage.h>
 #include <ifm3d_ros_msgs/Config.h>
 #include <ifm3d_ros_msgs/Dump.h>
 #include <ifm3d_ros_msgs/Extrinsics.h>
@@ -39,7 +39,7 @@ private:
   //
   // Nodelet lifecycle functions
   //
-  virtual void onInit() override;
+  void onInit() override;
 
   //
   // ROS services
@@ -79,7 +79,7 @@ private:
 
   ifm3d::CameraBase::Ptr cam_;
   ifm3d::FrameGrabber::Ptr fg_;
-  ifm3d::ImageBuffer::Ptr im_;
+  ifm3d::StlImageBuffer::Ptr im_;
   std::mutex mutex_;
 
   ros::NodeHandle np_;
@@ -92,14 +92,12 @@ private:
   ros::Publisher uvec_pub_;
   ros::Publisher extrinsics_pub_;
   image_transport::Publisher distance_pub_;
-  // image_transport::Publisher distance_noise_pub_;
+  image_transport::Publisher distance_noise_pub_;
   image_transport::Publisher amplitude_pub_;
   image_transport::Publisher raw_amplitude_pub_;
   image_transport::Publisher conf_pub_;
-  image_transport::Publisher good_bad_pub_;
-  image_transport::Publisher xyz_image_pub_;
   image_transport::Publisher gray_image_pub_;
-  image_transport::Publisher rgb_image_pub_;
+  ros::Publisher rgb_image_pub_;
 
   //
   // Services we advertise

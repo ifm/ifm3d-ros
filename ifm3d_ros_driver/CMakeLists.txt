@@ -4,14 +4,12 @@ project(ifm3d_ros_driver)
 find_package(ifm3d REQUIRED COMPONENTS
              camera
              framegrabber
-             image
+             stlimage
              )
 
 find_package(catkin REQUIRED COMPONENTS
              rospy
              image_transport
-             pcl_ros
-             cv_bridge
              nodelet
              roscpp
              sensor_msgs
@@ -51,7 +49,7 @@ target_link_libraries(ifm3d_ros
   ${catkin_LIBRARIES}
   ifm3d::camera
   ifm3d::framegrabber
-  ifm3d::image
+  ifm3d::stlimage
   )
   
 #############

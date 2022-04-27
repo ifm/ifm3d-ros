@@ -20,30 +20,5 @@ Don't forget to switch back to building all packages afterwards:
 catkin_make -DCATKIN_WHITELIST_PACKAGES=""
 ```
 
-## How to call the custom services
-We implemented custom services for transferring JSON strings to configure the whole camera platform. They can be used as partial or full JSON strings.
-
-### Dump
-Example use:
-```
-rosservice call /ifm3d_ros_examples/camera/Dump
-```
-
-### Config
-Example use:
-```
-rosservice call /ifm3d_ros_examples/camera/Config '"{\"ports\":{\"port2\":{\"mode\":\"standard_range2m\"}}}"'
-```
-
-
-### Using the helper command line tools
-
-We provide helper tools that mimic the command line interface of ifm3d. They are working assuming that a single camera node is running from the `ifm3d_ros_examples` package (`roslaunch ifm3d_ros_examples camera.launch`):
-```
-$ rosrun ifm3d_ros_msgs dump | jq '.ports.port0.state="CONF"' | rosrun ifm3d_ros_msgs config
-$ rosrun ifm3d_ros_msgs dump | jq .ports.port0.state
-"CONF"
-```
-
-# LICENSE
+## LICENSE
 Please see the file called [LICENSE](LICENSE).
