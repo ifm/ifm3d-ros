@@ -2,18 +2,26 @@
 Changelog for package ifm3d-ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.7
+1.0
 ===
 
-0.7.0
+1.0.1 
+-----
+
+* Removed dependency to OpenCV and PCL.
+* The RGB jpeg image is published in a compressed format.
+* Removed the god_bad pixel publisher and the XYZ publisher (use `cloud`` instead).
+* The `/cloud` topic is published as `sensor_msgs::PointCloud2` instead of `pcl::PointCloud<ifm3d::PointT>`
+
+1.0.0
 ------
 
-Braking changes:
-+ Restructure the ifm3d-ros package into independent subpackages. Please check your path declarations again, especially for the launch files and messages and services.
+Breaking changes:
+* Restructure the ifm3d-ros package into independent subpackages. Please check your path declarations again, especially for the launch files and messages and services.
 
-Changes between ifm3d_ros 0.6.x and 0.7.0:
+Changes between ifm3d_ros 0.6.x and 1.0.0:
 + Order of axis changed in 3D (cloud topic and extrinsic calibration parameters): This wrapper keeps the axis orientation as defined by the underlying API, ifm3d. Therefore, you may see a different axis order for the cloud message compared to older versions of the ifm3d and ifm cameras.
-+ Extrinsic calibration parameters: now conistent with SI units, e.g. translation are scaled in `m` and rotation parameters are scaled in `rad`.
++ Extrinsic calibration parameters: now consistent with SI units, e.g. translation are scaled in `m` and rotation parameters are scaled in `rad`.
 + Added publisher for 2D RGB data
 + Use CameraBase for compatibility with other O3 devices
 + Comment out methods / publisher which are not available for the O3RCamera (at the moment)
@@ -23,10 +31,10 @@ Changes between ifm3d_ros 0.6.x and 0.7.0:
 + Changed service dump: coverts from json to str for displaying the message
 
 added:
-+ Added pcic_port to the list of framegrabber arguments
+* Added pcic_port to the list of framegrabber arguments
 
 known limitations:
-+ This version of the ifm3d-ros package only works with the O3R camera platform.
+* This version of the ifm3d-ros package only works with the O3R camera platform.
 
 
 0.6

@@ -2,7 +2,7 @@
 <package format="2">
 
   <name>ifm3d-ros</name>
-  <version>0.1.0</version>
+  <version>1.0.1</version>
   <description>metapackage for the ifm3d-ros package group which interacts with the ifm 3D ToF Camera ROS package</description>
   <maintainer email="support.robotics@ifm.com">ifm CSR group</maintainer>
   <license>Apache 2</license>

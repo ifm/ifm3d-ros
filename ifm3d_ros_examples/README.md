@@ -37,5 +37,5 @@ We provide the `head.launch` launchfile to handle a whole O3R camera head, that 
 ## Building launch files distributed systems
 >Note: This is WIR. We are currently working on Docker images which will allow you an easy deployment of our ROS node to the VPU.
 
-# LICENSE
+## LICENSE
 Please see the file called [LICENSE](LICENSE).
