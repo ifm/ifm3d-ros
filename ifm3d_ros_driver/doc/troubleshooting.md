@@ -5,6 +5,8 @@ You can use this guide to help you identify and resolve problems you may experie
 # List of contents:
 
 - [ifm3d-ros services provide no response.](#ifm3d-ros-services-provide-no-response)
+- [ifm3d-ros nodelet can not connect to O3R camera head](#ifm3d-ros-nodelet-can-not-connect-to-o3r-camera-head)
+- [RGB images not shown in RViz](#rgb-images-not-shown-in-rviz)
 
 ## ifm3d-ros services provide no response
 On systems utilizing a single core processor, you may find that the Dump, Config and Trigger services of ifm3d-ros package do not provide any response when invoked.
@@ -47,4 +49,11 @@ When these two port arguments don't match you will likely see something along th
 [ WARN] [1628860563.714658175]: Attempting to restart framegrabber...
 ```
 
-The fix for this is easy: just remember the first 4 digits of the PCIC port argument will stay the same, the last one corresponds to the physical port as marked on the VPU. 
+The fix for this is easy: just remember the first 4 digits of the PCIC port argument will stay the same, the last one corresponds to the physical port as marked on the VPU.
+
+## RGB images not shown in RViz
+If the rgb images are send (validate with `rostopic hz <topic_name>`) but RViz is unable to visualize them, you may be missing the needed `image_transport` plugins.
+The RViz error message will notify you about the missing plugin.
+
+As `image_transport` is defined as dependency in the `package.xml` of `ifm3d_ros_driver`, it can easily be install with `rosdep install`.
+If you prefer using `apt` directly, run `sudo apt install ros-noetic-image-transport`.
