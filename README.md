@@ -19,7 +19,8 @@ ifm3d-ros is a wrapper around [ifm3d](ifm3d/doc/sphinx/content/README:ifm3d%20Ov
 
 |**ifm3d-ros version**|**ifm3d version**|**ROS distribution(s)**|
 | ------------ | ------------ | ------------ |
-| 1.0.0 | in development - latest version checked 0.91.0 | Noetic |
+| 1.0.0 | 0.91.0 | Noetic |
+| 1.0.1 | 0.93.0 | Noetic |
 
 ### Internal ifm3d-ros subpackage version structure
 Please see the internal subpackage version structure for a known `ifm3d-ros version`.
@@ -27,6 +28,7 @@ Please see the internal subpackage version structure for a known `ifm3d-ros vers
 |**ifm3d-ros version**|**ifm3d_ros_driver**|**ifm3d_ros_msgs**|**ifm3d_ros_examples**|
 | ------------ | ------------ | ------------ | ------------ |
 | 1.0.0 | 0.7.0 | 0.1.0 | 0.1.0 |
+| 1.0.1 | 1.0.1 | 0.1.0 | 0.1.0 |
 
 ## Organization of the software
 
