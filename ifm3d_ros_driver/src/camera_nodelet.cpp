@@ -472,9 +472,7 @@ bool ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t 
     this->cam_.reset();
 
     NODELET_INFO_STREAM("Initializing camera...");
-    this->cam_ = ifm3d::CameraBase::MakeShared();
-    // this->cam_ = ifm3d::CameraBase::MakeShared(this->camera_ip_, this->xmlrpc_port_);
-    // this->cam_ = std::make_shared<ifm3d::CameraBase>(this->camera_ip_, this->xmlrpc_port_);
+    this->cam_ = ifm3d::CameraBase::MakeShared(this->camera_ip_, this->xmlrpc_port_);
     ros::Duration(1.0).sleep();
 
     NODELET_INFO_STREAM("Initializing framegrabber...");
