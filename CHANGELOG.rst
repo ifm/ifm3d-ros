@@ -4,6 +4,9 @@ Changelog for package ifm3d-ros
 
 1.0
 ===
+1.0.2
+-----
+* Fix the IP parameter that was not being used
 
 1.0.1 
 -----

@@ -2,7 +2,7 @@
 <package format="2">
 
   <name>ifm3d_ros_driver</name>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <description>ifm 3D ToF Camera ROS main driver package</description>
   <maintainer email="support.robotics@ifm.com">ifm CSR group</maintainer>
   <license>Apache 2</license>
