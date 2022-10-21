@@ -15,9 +15,8 @@
 #include <nodelet/nodelet.h>
 #include <ros/ros.h>
 
-#include <ifm3d/camera/camera_base.h>
+#include <ifm3d/device/device.h>
 #include <ifm3d/fg.h>
-#include <ifm3d/stlimage.h>
 #include <ifm3d_ros_msgs/Config.h>
 #include <ifm3d_ros_msgs/Dump.h>
 #include <ifm3d_ros_msgs/Extrinsics.h>
@@ -77,9 +76,8 @@ private:
   std::string frame_id_;
   std::string optical_frame_id_;
 
-  ifm3d::CameraBase::Ptr cam_;
+  ifm3d::Device::Ptr cam_;
   ifm3d::FrameGrabber::Ptr fg_;
-  ifm3d::StlImageBuffer::Ptr im_;
   std::mutex mutex_;
 
   ros::NodeHandle np_;

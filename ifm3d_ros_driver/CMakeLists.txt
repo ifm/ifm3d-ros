@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(ifm3d_ros_driver)
 
-find_package(ifm3d REQUIRED COMPONENTS
+find_package(ifm3d 1.0.0 REQUIRED COMPONENTS
              camera
              framegrabber
-             stlimage
              )
 
 find_package(catkin REQUIRED COMPONENTS

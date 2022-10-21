@@ -257,7 +257,6 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->amplitude_pub_ = this->it_->advertise("amplitude", 1);
   this->raw_amplitude_pub_ = this->it_->advertise("raw_amplitude", 1);
   this->conf_pub_ = this->it_->advertise("confidence", 1);
-  this->gray_image_pub_ = this->it_->advertise("gray_image", 1);
   this->rgb_image_pub_ = this->np_.advertise<sensor_msgs::CompressedImage>("rgb_image/compressed", 1);
 
   // we latch the unit vectors
@@ -467,27 +466,22 @@ bool ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t 
   try
   {
     NODELET_INFO_STREAM("Running dtors...");
-    this->im_.reset();
     this->fg_.reset();
     this->cam_.reset();
 
     NODELET_INFO_STREAM("Initializing camera...");
-    this->cam_ = ifm3d::CameraBase::MakeShared(this->camera_ip_, this->xmlrpc_port_);
+    this->cam_ = ifm3d::Device::MakeShared(this->camera_ip_, this->xmlrpc_port_);
     ros::Duration(1.0).sleep();
 
     NODELET_INFO_STREAM("Initializing framegrabber...");
     this->fg_ = std::make_shared<ifm3d::FrameGrabber>(this->cam_, mask, this->pcic_port_);
     NODELET_INFO("Nodelet arguments: %d, %d", (int)mask, (int)this->pcic_port_);
 
-    NODELET_INFO_STREAM("Initializing image buffer...");
-    this->im_ = std::make_shared<ifm3d::StlImageBuffer>();
-
     retval = true;
   }
   catch (const ifm3d::error_t& ex)
   {
     NODELET_WARN_STREAM(ex.code() << ": " << ex.what());
-    this->im_.reset();
     this->fg_.reset();
     this->cam_.reset();
     retval = false;
@@ -496,127 +490,7 @@ bool ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t mask, std::uint16_t 
   return retval;
 }
 
-// this is the helper function for retrieving complete pcic frames
-bool ifm3d_ros::CameraNodelet::AcquireFrame()
-{
-  std::lock_guard<std::mutex> lock(this->mutex_);
-  bool retval = false;
-  NODELET_DEBUG_STREAM("try receiving data via fg WaitForFrame");
-  try
-  {
-    retval = this->fg_->WaitForFrame(this->im_.get(), this->timeout_millis_);
-  }
-  catch (const ifm3d::error_t& ex)
-  {
-    NODELET_WARN_STREAM(ex.code() << ": " << ex.what());
-    retval = false;
-  }
-
-  return retval;
-}
-
-void ifm3d_ros::CameraNodelet::Run()
-{
-  std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
-
-  NODELET_DEBUG_STREAM("in Run");
-
-  // We need to account for the case of when the nodelet is being started prior
-  // to the camera being plugged in.
-
-  while (ros::ok() && (!this->InitStructures(ifm3d::IMG_UVEC, this->pcic_port_)))
-  {
-    NODELET_WARN_STREAM("Could not initialize pixel stream!");
-    ros::Duration(1.0).sleep();
-  }
-
-  ifm3d::Image confidence_img;
-  ifm3d::Image distance_img;
-  ifm3d::Image distance_noise_img;
-  ifm3d::Image amplitude_img;
-  ifm3d::Image xyz_img;
-  ifm3d::Image raw_amplitude_img;
-  ifm3d::Image gray_img;
-  ifm3d::Image rgb_img;
-
-  NODELET_DEBUG_STREAM("after initializing the opencv buffers");
-  std::vector<float> extrinsics(6);
-
-  // XXX: need to implement a nice strategy for getting the actual times
-  // from the camera which are registered to the frame data in the image
-  // buffer.
-  ros::Time last_frame = ros::Time::now();
-  bool got_uvec = false;
-
-  while (ros::ok())
-  {
-    if (!this->AcquireFrame())
-    {
-      if (!this->assume_sw_triggered_)
-      {
-        NODELET_WARN_STREAM("Timeout waiting for camera!");
-      }
-      else
-      {
-        ros::Duration(.001).sleep();
-      }
-
-      if ((ros::Time::now() - last_frame).toSec() > this->timeout_tolerance_secs_)
-      {
-        NODELET_WARN_STREAM("Attempting to restart framegrabber...");
-        while (!this->InitStructures(got_uvec ? this->schema_mask_ : ifm3d::IMG_UVEC, this->pcic_port_))
-        {
-          NODELET_WARN_STREAM("Could not re-initialize pixel stream!");
-          ros::Duration(1.0).sleep();
-        }
-
-        last_frame = ros::Time::now();
-      }
-
-      continue;
-    }
-
-    last_frame = ros::Time::now();
-
-    NODELET_DEBUG_STREAM("prepare header");
-    std_msgs::Header head = std_msgs::Header();
-    head.frame_id = this->frame_id_;
-    head.stamp = ros::Time(std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>(
-                               this->im_->TimeStamp().time_since_epoch())
-                               .count());
-    if ((ros::Time::now() - head.stamp) > ros::Duration(this->frame_latency_thresh_))
-    {
-      NODELET_INFO_ONCE("Camera's time and client's time are not synced");
-      head.stamp = ros::Time::now();
-    }
-    NODELET_DEBUG_STREAM("in header, before setting header to msgs");
-    std_msgs::Header optical_head = std_msgs::Header();
-    optical_head.stamp = head.stamp;
-    optical_head.frame_id = this->optical_frame_id_;
-
-    // currently the unit vector calculation seems to be missing in the ifm3d state: therefore we don't publish anything
-    // to the uvec pubisher publish unit vectors once on a latched topic, then re-initialize the framegrabber with the
-    // user's requested schema mask
-    if (!got_uvec)
-    {
-      lock.lock();
-      sensor_msgs::Image uvec_msg = ifm3d_to_ros_image(this->im_->UnitVectors(), optical_head, getName());
-      NODELET_INFO_STREAM("uvec image size: " << uvec_msg.height * uvec_msg.width);
-      lock.unlock();
-      this->uvec_pub_.publish(uvec_msg);
-      got_uvec = true;
-      NODELET_INFO("Got unit vectors, restarting framegrabber with mask: %d", (int)this->schema_mask_);
-
-      while (!this->InitStructures(this->schema_mask_, this->pcic_port_))
-      {
-        NODELET_WARN("Could not re-initialize pixel stream!");
-        ros::Duration(1.0).sleep();
-      }
-
-      NODELET_INFO_STREAM("Start streaming data");
-      continue;
-    }
-
+void Callback(ifm3d::Frame::Ptr frame){
     //
     // Pull out all the wrapped images so that we can release the "GIL"
     // while publishing
@@ -626,15 +500,14 @@ void ifm3d_ros::CameraNodelet::Run()
     NODELET_DEBUG_STREAM("start getting data");
     try
     {
-      xyz_img = this->im_->XYZImage();
-      confidence_img = this->im_->ConfidenceImage();
-      distance_img = this->im_->DistanceImage();
-      distance_noise_img = this->im_->DistanceNoiseImage();
-      amplitude_img = this->im_->AmplitudeImage();
-      raw_amplitude_img = this->im_->RawAmplitudeImage();
-      gray_img = this->im_->GrayImage();
-      extrinsics = this->im_->Extrinsics();
-      rgb_img = this->im_->JPEGImage();
+      xyz_img = frame->GetBuffer(ifm3d::buffer_id::XYZ);
+      confidence_img = frame->GetBuffer(ifm3d::buffer_id::CONFIDENCE_IMAGE);
+      distance_img = frame->GetBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE);
+      distance_noise_img = frame->GetBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_NOISE);
+      amplitude_img = frame->GetBuffer(ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE);
+      raw_amplitude_img = frame->GetBuffer(ifm3d::buffer_id::AMPLITUDE_IMAGE);
+      extrinsics = frame->GetBuffer(ifm3d::buffer_id::EXTRINSIC_CALIB);
+      rgb_img = frame->GetBuffer(ifm3d::buffer_id::JPEG_IMAGE);
     }
     catch (const ifm3d::error_t& ex)
     {
@@ -652,7 +525,6 @@ void ifm3d_ros::CameraNodelet::Run()
     // Now, do the publishing
     //
 
-    NODELET_DEBUG_STREAM("start publishing");
     // Confidence image is invariant - no need to check the mask
     this->conf_pub_.publish(ifm3d_to_ros_image(confidence_img, optical_head, getName()));
     NODELET_DEBUG_STREAM("after publishing confidence image");
@@ -688,13 +560,6 @@ void ifm3d_ros::CameraNodelet::Run()
       NODELET_DEBUG_STREAM("after publishing raw amplitude image");
     }
 
-    if ((this->schema_mask_ & ifm3d::IMG_GRAY) == ifm3d::IMG_GRAY)
-    {
-      this->gray_image_pub_.publish(ifm3d_to_ros_image(gray_img, optical_head, getName()));
-      NODELET_DEBUG_STREAM("Gray image publisher is a dummy publisher - data will be added soon");
-      NODELET_DEBUG_STREAM("after publishing gray image");
-    }
-
     // The 2D is not yet settable in the schema mask: publish all the time
 
     if (rgb_img.height() * rgb_img.width() > 0)
@@ -723,7 +588,132 @@ void ifm3d_ros::CameraNodelet::Run()
       NODELET_WARN("out-of-range error fetching extrinsics");
     }
     this->extrinsics_pub_.publish(extrinsics_msg);
+}
+// this is the helper function for retrieving complete pcic frames
+// bool ifm3d_ros::CameraNodelet::AcquireFrame()
+bool ifm3d_ros::CameraNodelet::StartStream()
+{
+  std::lock_guard<std::mutex> lock(this->mutex_);
+  bool retval = false;
+  NODELET_DEBUG_STREAM("Start streaming frames");
+  try
+  {
+    fg_->Start(this->schema_mask_);
+    fg_->OnNewFrame(&Callback);
+  }
+  catch (const ifm3d::error_t& ex)
+  {
+    NODELET_WARN_STREAM(ex.code() << ": " << ex.what());
+    retval = false;
+  }
 
+  return retval;
+}
+
+void ifm3d_ros::CameraNodelet::Run()
+{
+  std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
+
+  NODELET_DEBUG_STREAM("in Run");
+
+  // We need to account for the case of when the nodelet is being started prior
+  // to the camera being plugged in.
+
+  while (ros::ok() && (!this->InitStructures(ifm3d::IMG_UVEC, this->pcic_port_)))
+  {
+    NODELET_WARN_STREAM("Could not initialize pixel stream!");
+    ros::Duration(1.0).sleep();
+  }
+
+  ifm3d::Image confidence_img;
+  ifm3d::Image distance_img;
+  ifm3d::Image distance_noise_img;
+  ifm3d::Image amplitude_img;
+  ifm3d::Image xyz_img;
+  ifm3d::Image raw_amplitude_img;
+  ifm3d::Image rgb_img;
+
+  NODELET_DEBUG_STREAM("after initializing the buffers");
+  std::vector<float> extrinsics(6);
+
+  // XXX: need to implement a nice strategy for getting the actual times
+  // from the camera which are registered to the frame data in the image
+  // buffer.
+  ros::Time last_frame = ros::Time::now();
+  bool got_uvec = false;
+
+  this->StartStream();
+
+  while (ros::ok())
+  {
+    if (!this->frame) //HERE how to implement a timeout catch with the streaming function?
+    {
+      if (!this->assume_sw_triggered_)
+      {
+        NODELET_WARN_STREAM("Timeout waiting for camera!");
+      }
+      else
+      {
+        ros::Duration(.001).sleep();
+      }
+
+      if ((ros::Time::now() - last_frame).toSec() > this->timeout_tolerance_secs_)
+      {
+        NODELET_WARN_STREAM("Attempting to restart framegrabber...");
+        while (!this->InitStructures(got_uvec ? this->schema_mask_ : ifm3d::IMG_UVEC, this->pcic_port_))
+        {
+          NODELET_WARN_STREAM("Could not re-initialize pixel stream!");
+          ros::Duration(1.0).sleep();
+        }
+
+        last_frame = ros::Time::now();
+      }
+
+      continue;
+    }
+
+    last_frame = ros::Time::now();
+
+    NODELET_DEBUG_STREAM("prepare header");
+    std_msgs::Header head = std_msgs::Header();
+    head.frame_id = this->frame_id_;
+    head.stamp = ros::Time(std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>(
+                               this->im_->TimeStamp().time_since_epoch())
+                               .count()); //HERE
+    if ((ros::Time::now() - head.stamp) > ros::Duration(this->frame_latency_thresh_))
+    {
+      NODELET_INFO_ONCE("Camera's time and client's time are not synced");
+      head.stamp = ros::Time::now();
+    }
+    NODELET_DEBUG_STREAM("in header, before setting header to msgs");
+    std_msgs::Header optical_head = std_msgs::Header();
+    optical_head.stamp = head.stamp;
+    optical_head.frame_id = this->optical_frame_id_;
+
+    // currently the unit vector calculation seems to be missing in the ifm3d state: therefore we don't publish anything
+    // to the uvec pubisher publish unit vectors once on a latched topic, then re-initialize the framegrabber with the
+    // user's requested schema mask
+    if (!got_uvec)
+    {
+      lock.lock();
+      sensor_msgs::Image uvec_msg = ifm3d_to_ros_image(this->frame->GetBuffer(ifm3d::buffer_id::UNIT_VECTOR_ALL), optical_head, getName());
+      NODELET_INFO_STREAM("uvec image size: " << uvec_msg.height * uvec_msg.width);
+      lock.unlock();
+      this->uvec_pub_.publish(uvec_msg);
+      got_uvec = true;
+      NODELET_INFO("Got unit vectors, restarting framegrabber with mask: %d", (int)this->schema_mask_);
+
+      while (!this->InitStructures(this->schema_mask_, this->pcic_port_))
+      {
+        NODELET_WARN("Could not re-initialize pixel stream!");
+        ros::Duration(1.0).sleep();
+      }
+
+      NODELET_INFO_STREAM("Start streaming data");
+      continue;
+    }
+
+  fg_->Stop();
   }  // end: while (ros::ok()) { ... }
 }  // end: Run()
 

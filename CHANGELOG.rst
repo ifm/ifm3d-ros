@@ -4,6 +4,11 @@ Changelog for package ifm3d-ros
 
 1.0
 ===
+1.1.0
+-----
+* Remove gray_img publisher (deprecated in ifm3d). Use amplitude image instead.
+* Update camera nodelet for ifm3d >= v1.0.0
+
 1.0.2
 -----
 * Fix the IP parameter that was not being used
