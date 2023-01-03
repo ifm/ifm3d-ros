@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(ifm3d_ros_driver)
 
 find_package(ifm3d 1.0.0 REQUIRED COMPONENTS
-             camera
+             device
              framegrabber
              )
 
@@ -46,9 +46,8 @@ include_directories(
 add_library(ifm3d_ros src/camera_nodelet.cpp)
 target_link_libraries(ifm3d_ros
   ${catkin_LIBRARIES}
-  ifm3d::camera
+  ifm3d::device
   ifm3d::framegrabber
-  ifm3d::stlimage
   )
   
 #############

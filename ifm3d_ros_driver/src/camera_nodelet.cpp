@@ -32,7 +32,7 @@
 
 #include <ifm3d/contrib/nlohmann/json.hpp>
 
-sensor_msgs::Image ifm3d_to_ros_image(ifm3d::Image& image,  // Need non-const image because image.begin(),
+sensor_msgs::Image ifm3d_to_ros_image(ifm3d::Buffer& image,  // Need non-const image because image.begin(),
                                                             // image.end() don't have const overloads.
                                       const std_msgs::Header& header, const std::string& logger)
 {
@@ -93,12 +93,12 @@ sensor_msgs::Image ifm3d_to_ros_image(ifm3d::Image& image,  // Need non-const im
   return result;
 }
 
-sensor_msgs::Image ifm3d_to_ros_image(ifm3d::Image&& image, const std_msgs::Header& header, const std::string& logger)
+sensor_msgs::Image ifm3d_to_ros_image(ifm3d::Buffer&& image, const std_msgs::Header& header, const std::string& logger)
 {
   return ifm3d_to_ros_image(image, header, logger);
 }
 
-sensor_msgs::CompressedImage ifm3d_to_ros_compressed_image(ifm3d::Image& image,  // Need non-const image because
+sensor_msgs::CompressedImage ifm3d_to_ros_compressed_image(ifm3d::Buffer& image,  // Need non-const image because
                                                                                  // image.begin(), image.end()
                                                                                  // don't have const overloads.
                                                            const std_msgs::Header& header,
@@ -123,13 +123,13 @@ sensor_msgs::CompressedImage ifm3d_to_ros_compressed_image(ifm3d::Image& image, 
   return result;
 }
 
-sensor_msgs::CompressedImage ifm3d_to_ros_compressed_image(ifm3d::Image&& image, const std_msgs::Header& header,
+sensor_msgs::CompressedImage ifm3d_to_ros_compressed_image(ifm3d::Buffer&& image, const std_msgs::Header& header,
                                                            const std::string& format, const std::string& logger)
 {
   return ifm3d_to_ros_compressed_image(image, header, format, logger);
 }
 
-sensor_msgs::PointCloud2 ifm3d_to_ros_cloud(ifm3d::Image& image,  // Need non-const image because image.begin(),
+sensor_msgs::PointCloud2 ifm3d_to_ros_cloud(ifm3d::Buffer& image,  // Need non-const image because image.begin(),
                                                                   // image.end() don't have const overloads.
                                             const std_msgs::Header& header, const std::string& logger)
 {
@@ -183,7 +183,7 @@ sensor_msgs::PointCloud2 ifm3d_to_ros_cloud(ifm3d::Image& image,  // Need non-co
   return result;
 }
 
-sensor_msgs::PointCloud2 ifm3d_to_ros_cloud(ifm3d::Image&& image, const std_msgs::Header& header,
+sensor_msgs::PointCloud2 ifm3d_to_ros_cloud(ifm3d::Buffer&& image, const std_msgs::Header& header,
                                             const std::string& logger)
 {
   return ifm3d_to_ros_cloud(image, header, logger);
@@ -210,6 +210,7 @@ void ifm3d_ros::CameraNodelet::onInit()
   int xmlrpc_port;
   int pcic_port;
   std::string frame_id_base;
+  auto DEFAULT_SCHEMA_MASK = ifm3d::buffer_id::XYZ | ifm3d::buffer_id::CONFIDENCE_IMAGE | ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE | ifm3d::buffer_id::RADIAL_DISTANCE_NOISE | ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE | ifm3d::buffer_id::AMPLITUDE_IMAGE | ifm3d::buffer_id::EXTRINSIC_CALIB | ifm3d::buffer_id::JPEG_IMAGE;
 
   if ((nn.size() > 0) && (nn.at(0) == '/'))
   {
@@ -228,7 +229,7 @@ void ifm3d_ros::CameraNodelet::onInit()
   NODELET_INFO("pcic port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
 
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
-  this->np_.param("schema_mask", schema_mask, (int)ifm3d::DEFAULT_SCHEMA_MASK);
+  this->np_.param("schema_mask", schema_mask, DEFAULT_SCHEMA_MASK);
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
   this->np_.param("timeout_tolerance_secs", this->timeout_tolerance_secs_, 5.0);
   this->np_.param("assume_sw_triggered", this->assume_sw_triggered_, false);
@@ -619,19 +620,19 @@ void ifm3d_ros::CameraNodelet::Run()
   // We need to account for the case of when the nodelet is being started prior
   // to the camera being plugged in.
 
-  while (ros::ok() && (!this->InitStructures(ifm3d::IMG_UVEC, this->pcic_port_)))
+  while (ros::ok() && (!this->InitStructures(ifm3d::UNIT_VECTOR_ALL, this->pcic_port_)))
   {
     NODELET_WARN_STREAM("Could not initialize pixel stream!");
     ros::Duration(1.0).sleep();
   }
 
-  ifm3d::Image confidence_img;
-  ifm3d::Image distance_img;
-  ifm3d::Image distance_noise_img;
-  ifm3d::Image amplitude_img;
-  ifm3d::Image xyz_img;
-  ifm3d::Image raw_amplitude_img;
-  ifm3d::Image rgb_img;
+  ifm3d::Buffer confidence_img;
+  ifm3d::Buffer distance_img;
+  ifm3d::Buffer distance_noise_img;
+  ifm3d::Buffer amplitude_img;
+  ifm3d::Buffer xyz_img;
+  ifm3d::Buffer raw_amplitude_img;
+  ifm3d::Buffer rgb_img;
 
   NODELET_DEBUG_STREAM("after initializing the buffers");
   std::vector<float> extrinsics(6);
@@ -660,7 +661,7 @@ void ifm3d_ros::CameraNodelet::Run()
       if ((ros::Time::now() - last_frame).toSec() > this->timeout_tolerance_secs_)
       {
         NODELET_WARN_STREAM("Attempting to restart framegrabber...");
-        while (!this->InitStructures(got_uvec ? this->schema_mask_ : ifm3d::IMG_UVEC, this->pcic_port_))
+        while (!this->InitStructures(got_uvec ? this->schema_mask_ : ifm3d::UNIT_VECTOR_ALL, this->pcic_port_))
         {
           NODELET_WARN_STREAM("Could not re-initialize pixel stream!");
           ros::Duration(1.0).sleep();
