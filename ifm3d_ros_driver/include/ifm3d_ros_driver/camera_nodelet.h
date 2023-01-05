@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include <image_transport/image_transport.h>
 #include <nodelet/nodelet.h>
@@ -53,8 +54,9 @@ private:
   // This is our main publishing loop and its helper functions
   //
   void Run();
-  bool InitStructures(std::uint16_t mask, std::uint16_t pcic_port);
-  bool AcquireFrame();
+  bool InitStructures(std::uint16_t pcic_port);
+  void Callback(ifm3d::Frame::Ptr frame);
+  bool StartStream();
 
   //
   // state
@@ -63,7 +65,8 @@ private:
   std::uint16_t xmlrpc_port_;
   std::uint16_t pcic_port_;
   std::string password_;
-  std::uint16_t schema_mask_;
+  std::vector<ifm3d::buffer_id>& schema_mask_;
+  // ifm3d::FrameGrabber::BufferList schema_mask_;
   int timeout_millis_;
   double timeout_tolerance_secs_;
   bool assume_sw_triggered_;
@@ -79,6 +82,7 @@ private:
   ifm3d::Device::Ptr cam_;
   ifm3d::FrameGrabber::Ptr fg_;
   std::mutex mutex_;
+  bool receiving_;
 
   ros::NodeHandle np_;
   std::unique_ptr<image_transport::ImageTransport> it_;
@@ -110,6 +114,13 @@ private:
   // We use a ROS one-shot timer to kick off our publishing loop.
   //
   ros::Timer publoop_timer_;
+  
+  // 
+  // Message header used for publishing
+  // 
+  std_msgs::Header optical_head;
+  std_msgs::Header head;
+
 
 };  // end: class CameraNodelet
 
