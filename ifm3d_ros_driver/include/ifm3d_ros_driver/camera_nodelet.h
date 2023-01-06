@@ -65,7 +65,7 @@ private:
   std::uint16_t xmlrpc_port_;
   std::uint16_t pcic_port_;
   std::string password_;
-  std::vector<ifm3d::buffer_id>& schema_mask_;
+  const ifm3d::FrameGrabber::BufferList schema_mask_;
   // ifm3d::FrameGrabber::BufferList schema_mask_;
   int timeout_millis_;
   double timeout_tolerance_secs_;

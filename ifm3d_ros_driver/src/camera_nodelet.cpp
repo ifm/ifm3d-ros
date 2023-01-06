@@ -547,7 +547,7 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
     // Timestamps:
     this->head.stamp = ros::Time(
       std::chrono::duration_cast<std::chrono::duration<double, 
-      std::ratio<1>>>(this->frame->TimeStamps()[0].time_since_epoch()).count()
+      std::ratio<1>>>(frame->TimeStamps()[0].time_since_epoch()).count()
       );
     if ((ros::Time::now() - this->head.stamp) > ros::Duration(this->frame_latency_thresh_))
     {
