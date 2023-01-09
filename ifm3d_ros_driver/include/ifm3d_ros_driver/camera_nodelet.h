@@ -18,6 +18,7 @@
 
 #include <ifm3d/device/device.h>
 #include <ifm3d/fg.h>
+#include <ifm3d/fg/frame_grabber.h>
 #include <ifm3d_ros_msgs/Config.h>
 #include <ifm3d_ros_msgs/Dump.h>
 #include <ifm3d_ros_msgs/Extrinsics.h>
@@ -66,7 +67,8 @@ private:
   std::uint16_t pcic_port_;
   std::string password_;
   const ifm3d::FrameGrabber::BufferList schema_mask_;
-  // ifm3d::FrameGrabber::BufferList schema_mask_;
+  ifm3d::TimePointT last_frame_time_;
+
   int timeout_millis_;
   double timeout_tolerance_secs_;
   bool assume_sw_triggered_;

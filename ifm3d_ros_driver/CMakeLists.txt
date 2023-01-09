@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(ifm3d_ros_driver)
 
-set(CMAKE_CXX_EXTENSIONS OFF) # OFF -> -std=c++17, ON -> -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(ifm3d 1.0.0 REQUIRED COMPONENTS
              device
@@ -37,9 +38,6 @@ catkin_package(
 #############
 ##  Build  ##
 #############
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 include_directories(
   include

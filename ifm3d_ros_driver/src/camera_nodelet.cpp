@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <iomanip>
 
 #include <image_transport/image_transport.h>
 #include <nodelet/nodelet.h>
@@ -32,6 +33,28 @@
 #include <ifm3d_ros_msgs/Trigger.h>
 
 #include <ifm3d/contrib/nlohmann/json.hpp>
+
+
+using namespace std::chrono_literals;
+// This function formats the timestamps for proper display
+// a.k.a converts to local time
+std::string formatTimestamp(ifm3d::TimePointT timestamp)
+{
+  using namespace std::chrono;
+  std::time_t time = std::chrono::system_clock::to_time_t(
+    std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+      timestamp));
+
+  milliseconds milli = duration_cast<milliseconds>(
+    timestamp.time_since_epoch() -
+    duration_cast<seconds>(timestamp.time_since_epoch()));
+
+  std::ostringstream s;
+  s << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S") << ":"
+    << std::setw(3) << std::setfill('0') << milli.count();
+
+  return s.str();
+}
 
 sensor_msgs::Image ifm3d_to_ros_image(ifm3d::Buffer& image,  // Need non-const image because image.begin(),
                                                             // image.end() don't have const overloads.
@@ -527,6 +550,7 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
       raw_amplitude_img = frame->GetBuffer(ifm3d::buffer_id::AMPLITUDE_IMAGE);
       extrinsics = frame->GetBuffer(ifm3d::buffer_id::EXTRINSIC_CALIB);
       rgb_img = frame->GetBuffer(ifm3d::buffer_id::JPEG_IMAGE);
+      this->last_frame_time_ = frame->TimeStamps()[0];
     }
     catch (const ifm3d::Error& ex)
     {
@@ -558,6 +582,7 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
     // Confidence image is invariant - no need to check the mask
     this->conf_pub_.publish(ifm3d_to_ros_image(confidence_img, optical_head, getName()));
     NODELET_DEBUG_STREAM("after publishing confidence image");
+
     if (std::find(this->schema_mask_.begin(), this->schema_mask_.end(), ifm3d::buffer_id::XYZ) != this->schema_mask_.end())
     // if ((this->schema_mask_ & ifm3d::buffer_id::XYZ) == ifm3d::buffer_id::XYZ)
     {
@@ -636,7 +661,6 @@ bool ifm3d_ros::CameraNodelet::StartStream()
     // XXX: need to implement a nice strategy for getting the actual times
     // from the camera which are registered to the frame data in the image
     // buffer.
-    ros::Time last_frame = ros::Time::now();
     bool got_uvec = false;
 
     NODELET_DEBUG_STREAM("prepare header");
@@ -648,7 +672,7 @@ bool ifm3d_ros::CameraNodelet::StartStream()
     this->optical_head.stamp = head.stamp;
     this->optical_head.frame_id = this->optical_frame_id_;
 
-    fg_->OnNewFrame(this->Callback);
+    fg_->OnNewFrame(&ifm3d_ros::CameraNodelet::Callback(this));
   }
   catch (const ifm3d::Error& ex)
   {
@@ -680,35 +704,30 @@ void ifm3d_ros::CameraNodelet::Run()
 
   while (ros::ok())
   {
-    if (!this->frame) //HERE how to implement a timeout catch with the streaming function?
+    if ((ros::Time::now() - ros::Time().fromNSec(std::chrono::system_clock::to_time_t(
+    std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+      this->last_frame_time_)))) > ros::Duration().fromSec(this->timeout_tolerance_secs_))
     {
       if (!this->assume_sw_triggered_)
       {
         NODELET_WARN_STREAM("Timeout waiting for camera!");
-      }
-      else
-      {
-        ros::Duration(.001).sleep();
-      }
-
-      if ((ros::Time::now() - last_frame).toSec() > this->timeout_tolerance_secs_)
-      {
         NODELET_WARN_STREAM("Attempting to restart framegrabber...");
         while (!this->InitStructures(this->pcic_port_))
         {
           NODELET_WARN_STREAM("Could not re-initialize pixel stream!");
           ros::Duration(1.0).sleep();
         }
-
-        last_frame = ros::Time::now();
+      }
+      }
+      else
+      {
+        ros::Duration(.001).sleep();
       }
 
-      continue;
-    }
+    continue;
+  }
 
-    last_frame = ros::Time::now();
   fg_->Stop();
-  }  // end: while (ros::ok()) { ... }
 }  // end: Run()
 
 PLUGINLIB_EXPORT_CLASS(ifm3d_ros::CameraNodelet, nodelet::Nodelet)
