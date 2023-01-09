@@ -233,7 +233,7 @@ void ifm3d_ros::CameraNodelet::onInit()
   int xmlrpc_port;
   int pcic_port;
   std::string frame_id_base;
-  std::vector<ifm3d::buffer_id> DEFAULT_SCHEMA_MASK = {
+  const ifm3d::FrameGrabber::BufferList DEFAULT_SCHEMA_MASK = {
                               ifm3d::buffer_id::XYZ,
                               ifm3d::buffer_id::CONFIDENCE_IMAGE,
                               ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE,
@@ -261,7 +261,7 @@ void ifm3d_ros::CameraNodelet::onInit()
   NODELET_INFO("pcic port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
 
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
-  this->np_.param("schema_mask", this->schema_mask_, DEFAULT_SCHEMA_MASK);
+  this->np_.param<ifm3d::FrameGrabber::BufferList>("schema_mask", this->schema_mask_, DEFAULT_SCHEMA_MASK);
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
   this->np_.param("timeout_tolerance_secs", this->timeout_tolerance_secs_, 5.0);
   this->np_.param("assume_sw_triggered", this->assume_sw_triggered_, false);
@@ -672,7 +672,7 @@ bool ifm3d_ros::CameraNodelet::StartStream()
     this->optical_head.stamp = head.stamp;
     this->optical_head.frame_id = this->optical_frame_id_;
 
-    fg_->OnNewFrame(&ifm3d_ros::CameraNodelet::Callback(this));
+    fg_->OnNewFrame(std::bind(&ifm3d_ros::CameraNodelet::Callback, this, std::placeholders::_1));
   }
   catch (const ifm3d::Error& ex)
   {
