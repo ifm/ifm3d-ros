@@ -2,7 +2,7 @@
 
 ## Release versions
 
-:warning: Note that the `master` branch is generally in a work in progress, and you probably want to use a tagged [release version](https://github.com/ifm/ifm3d-ros/releases) for production.
+warning:: Note that the `master` branch is generally in a work in progress, and you probably want to use a tagged [release version](https://github.com/ifm/ifm3d-ros/releases) for production.
 
 ## ifm3d-ros for the O3R
 

@@ -2,8 +2,8 @@
 
 Our package `ìfm3d-ros`, more precisely the `ifm3d_ros_driver`, depends on the underling C++ API `ifm3d`. This needs to be installed first.  
 
->NOTE: The instructions below apply if you plan to build and install `ifm3d` from source.   
->NOTE: For older versions of the `ifm3d` (`0.12.0 <version < 0.17.0`) binary Debian packages exist. These don't contain the latest ifm3d version required for using the O3R camera platform. So please build from source as described below.  
+>**NOTE**: The instructions below apply if you plan to build and install `ifm3d` from source.   
+>**NOTE**: For older versions of the `ifm3d` (`0.12.0 <version < 0.17.0`) binary Debian packages exist. These don't contain the latest ifm3d version required for using the O3R camera platform. So please build from source as described below.  
 
 For further information about the ifm3d O3R hardware and software please see our [developer website](https://ifm3d.com/).
 
@@ -44,4 +44,15 @@ This article provides a quick-start guide for getting a fresh installation of Ub
     [ifm3d](ifm3d/doc/sphinx/content/README:ifm3d%20Overview) is the core underlying C++ driver that `ifm3d_ros` wraps. 
     To install `ifm3d`, please follow the instructions [here](ifm3d/doc/sphinx/content/installation_instructions/source_build:Installing%20ifm3d%20from%20source).
 
+    **NOTE**: Choose the correct ifm3d version. See [compatibility Matrix](https://ifm3d.com/ROS/ifm3d-ros/README.html#software-compatibility-matrix).
+
     You are now in position to install the `ifm3d-ros` wrapper. Please switch to the instructions [here](building.md).
+
+## Known Issues and Defects
+
+There is a bug in `ifm3d v0.93.0` that says you must have OpenCV installed for ifm3d_ros.  
+Run the following command to avoid the issue:
+
+```bash
+sudo sed -i.bak '22,44d' /usr/lib/cmake/ifm3d-0.93.0/ifm3d-config.cmake
+```
