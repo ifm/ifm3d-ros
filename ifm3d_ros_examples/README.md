@@ -10,7 +10,7 @@ Please see the list below for launch files shipped with the examples package:
 | ---- | ----------- |
 | `six_cameras.launch` | Launches six nodes, reading data streams on ports 0, 1, 2, 3, 4 and 5. Provide coordinate frame transforms for each node. Note: you can use this example for less than six heads, but you will get a `timeout` error where no heads are connected. This does not disrupt the proper functioning of the connected heads.|
 | `nodelet.launch` | This is handling the nodelet manager which makes it possible to launch a nodelet similarly as you would a simple node.|
-| `head.launch` | Launches two data streams for both the 2D RGB imager and 3D TOF imager on a camera head. Default ports are 0 (pcic_port:=50010) and 2 (pcic_port:=50012). For different port numbers input port as a parameter when launching. |
+| `head.launch` | Launches two data streams for both the 2D RGB imager and 3D TOF imager on a camera head. Default ports are 0 for 3D data (pcic_port_1:=50010) and 2 for 2D RGB data (pcic_port_2:=50012). For different port numbers input port as a parameter when launching. |
 | `camera.launch` | Launches a single camera stream - so only 3D data or 2D RGB data. This launch file is comparable to a single camera setup (O3Ds and O3Xs) | 
 
 ### Nodelet launch structure

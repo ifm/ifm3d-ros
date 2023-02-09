@@ -8,7 +8,7 @@ If you have reached this document via the [noetic ifm3d building instructions](n
 3. [ifm3d](https://github.com/ifm/ifm3d/tree/o3r/dev)
 
 
-> Note: Some users may require older ROS distributions for legacy reasons. The supplied ROS package may very well work with limited changes on older ROS distributions. At least previous version could be run as far back as Indigo and Kinetic. However, we didn't test this ourselves. Please be aware that if you chose to go this route no guarantee is given.
+> **NOTE**: Some users may require older ROS distributions for legacy reasons. The supplied ROS package may very well work with limited changes on older ROS distributions. At least previous version could be run as far back as Indigo and Kinetic. However, we didn't test this ourselves. Please be aware that if you chose to go this route no guarantee is given.
 
 ## Step-by-Step build instructions for the ROS node `ifm3d-ros`
 
@@ -19,7 +19,7 @@ Building and installing ifm3d-ros is accomplished by utilizing the ROS [catkin](
 ### Installation directory of ROS node
 First, we need to decide where we want our software to be installed. For purposes of this document, we will assume that we will install our ROS packages at `~/catkin_ws/src`.
 
->NOTE: Below we assume `noetic`. Adapting to other ROS distributions is left as an exercise for the reader.
+>**NOTE**: Below we assume `noetic`. Adapting to other ROS distributions is left as an exercise for the reader.
 
 ### Create and initialize your catkin workspace
 Next, we want to create a _catkin workspace_ that we can use to build and install that code from.
@@ -32,7 +32,7 @@ $ catkin_init_workspace
 ### Get the `ifm3d-ros` wrapper code from GitHub
 Next, we need to get the code from GitHub. Please adapt the commands when not following the suggested directory structure: `~/catkin_ws/src/`
 
-> Note that the `master` branch is generally a work in progress. Please use a  {{ '[tagged release]({})'.format(ifm3d_ros_latest_tag_url) }}.
+> **NOTE**: that the `master` branch is generally a work in progress. Please use a  {{ '[tagged release]({})'.format(ifm3d_ros_latest_tag_url) }}.
 ```
 $ cd ~/catkin_ws/src
 $ git clone https://github.com/ifm/ifm3d-ros.git
@@ -67,11 +67,13 @@ $ roscore &
 $ roslaunch ifm3d_ros_examples camera.launch
 ```
 
+> **NOTE**: This example expects the camera on PCIC port 50010. You can change the default value with `pcic_port`.
+
 Open another shell and start the rviz node to visualize the data coming from the camera:
 ```
 $ roslaunch ifm3d_ros_examples rviz.launch
 ```
-> Note: `rviz.launch` does not include the camera node itself, but subscribes to published topics (distance, amplitude, etc). A camera node need to be running in parallel to rviz (you can use `camera.launch`).
+> **NOTE**: `rviz.launch` does not include the camera node itself, but subscribes to published topics (distance, amplitude, etc). A camera node need to be running in parallel to rviz (you can use `camera.launch`).
 
 At this point, you should see an rviz window that looks something like the image below (note that this is the view from 3 camera heads):
 ![rviz1](figures/O3R_merged_point_cloud.png)

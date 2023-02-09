@@ -7,6 +7,6 @@
     <node pkg="rviz"
 	  type="rviz"
 	  name="$(arg nodelet_name)_rviz"
-	  args="-d $(find ifm3d_ros_examples)/launch/rviz_config.rviz"/>
+	  args="-d $(find ifm3d_ros_examples)/config/rviz_config.rviz"/>
   </group>
 </launch>
