@@ -40,7 +40,7 @@ For further information about the internal ROS nodelet infrastructure and how to
 | unit_vectors | sensor_msgs/Image | The rotated unit vectors. |
 | extrinsics | ifm3d/Extrinsics | The extrinsic calibration of the camera with respect to the camera optical frame. This 3D pose is encoded in mm and rad. |
 | rgb_image/compressed | sensor_msgs::CompressedImage | The RGB image in compressed format. |
->Note: Some topics may have empty data fields. We are working on publishing data on all available topics, but have kept all previous topics active for the moment for legacy reasons.   
+>Note: Some topics may have empty data fields. We are working on publishing data on all available topics, but have kept all previous topics active for the moment for legacy reasons.
 
 ### Nodelet - subscribed Topics
 None.
@@ -54,9 +54,9 @@ None.
 | Config | ifm3d/Config | Provides a means to configure the VPU and Heads (imager settings), declaratively from a JSON (string) encoding of the desired settings. |
 | SoftOff | ifm3d/SoftOff | Sets the active application of the camera into software triggered mode which will turn off the active illumination reducing both power and heat. |
 | SoftOn | ifm3d/SoftOn | Sets the active application of the camera into free-running mode. Its intention is to act as the inverse of `SoftOff`. |
-| Trigger | ifm3d/Trigger | Requests the driver to software trigger the imager for data acquisition. | 
+| Trigger | ifm3d/Trigger | Requests the driver to software trigger the imager for data acquisition. |
 
-### Known limitations 
+### Known limitations
 [![O3R](https://img.shields.io/badge/O3R-lightgrey.svg)]()
 [![O3D](https://img.shields.io/badge/O3D-green.svg)]()
 [![O3X](https://img.shields.io/badge/O3X-green.svg)]()
@@ -65,6 +65,9 @@ None.
 ## Additional Documentation
 * [Inspecting and configuring the camera / imager settings](doc/dump_and_config.md)
 * [Troubleshooting](doc/troubleshooting.md)
+* [Building the ROS node for distributed systems](doc/distributed_build.md)
+* [Configuring logging for embedded devices](doc/logging.md)
+* [Camera device specific error codes](doc/diagnosis_link.md)
 
 ## LICENSE
 Please see the file called [LICENSE](LICENSE).
