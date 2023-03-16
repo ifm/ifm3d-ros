@@ -5,10 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(ifm3d 1.0.0 REQUIRED COMPONENTS
+find_package(ifm3d 1.2.2 REQUIRED COMPONENTS
              device
              framegrabber
              )
+
+find_package(nlohmann_json 3.2.0 REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
              rospy
@@ -49,8 +51,9 @@ target_link_libraries(ifm3d_ros
   ${catkin_LIBRARIES}
   ifm3d::device
   ifm3d::framegrabber
+  nlohmann_json::nlohmann_json
   )
-  
+
 #############
 ## Install ##
 #############
