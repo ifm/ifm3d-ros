@@ -7,12 +7,20 @@
   <arg name="xmlrpc_port" default="80" doc="The TCP port the camera's xmlrpc server is listening on for requests."/>
   <arg name="pcic_port" default="50010" doc="The TCP (data) port the camera's pcic server is listening on for requests."/>
   <arg name="password" default="" doc="The password required to establish an edit session on the VPU"/>
-  <arg name="schema_mask" default="15" doc="The pcic schema mask to apply to the active session with the frame grabber. This determines which images are available for publication from the camera. More about pcic schemas can be gleaned from https://www.ifm3d.com"/>
   <arg name="timeout_millis" default="500" doc="The number of milliseconds to wait for the framegrabber to return new frame data before declaring a &quot;timeout&quot; and to stop blocking on new data."/>
-  <arg name="timeout_tolerance_secs" default="5.0" doc="The wall time to wait with no new data from the camera before trying to establish a new connection to the camera. This helps to providerobustness against camera cables becoming unplugged or other in-field pathologies which would cause the connection between the ROS node and the camera to be broken."/>
+  <arg name="timeout_tolerance_secs" default="5.0" doc="The wall time to wait with no new data from the camera before trying to establish a new connection to the camera. This helps to provide robustness against camera cables becoming unplugged or other in-field pathologies which would cause the connection between the ROS node and the camera to be broken."/>
   <arg name="respawn" default="false" doc="Restart the node automatically if it quits."/>
   <arg name="assume_sw_triggered" default="false" doc="This provides a hint to the driver that the camera is configured for software triggering (as opposed to free running). In this mode, certain default values are applied to lessen the noise in terms of timeouts from the frame grabber."/>
   <arg name="frame_id_base" default="ifm3d/$(arg camera)" />
+  <arg name="xyz_image_stream" default="true" doc="Enable xyz image streaming for 3D camera camera streams." />
+  <arg name="confidence_image_stream" default="true" doc="Enable confidence image streaming for 3D camera camera streams." />
+  <arg name="radial_distance_image_stream" default="true" doc="Enable radial distance image streaming for 3D camera camera streams." />
+  <arg name="radial_distance_noise_stream" default="true" doc="Enable distance noise image streaming for 3D camera camera streams." />
+  <arg name="norm_amplitude_image_stream" default="true" doc="Enable normalized amplitude image streaming for 3D camera camera streams." />
+  <arg name="amplitude_image_stream" default="true" doc="Enable amplitude image streaming for 3D camera camera streams." />
+  <arg name="extrinsic_image_stream" default="true" doc="Enable extrinsic values streaming for 3D camera camera streams." />
+  <arg name="intrinsic_image_stream" default="true" doc="Enable intrinsic values streaming for 3D camera camera streams." />
+  <arg name="rgb_image_stream" default="true" doc="Enable rgb image streaming for 3D camera camera streams." />
 
   <node pkg="nodelet"
         type="nodelet"
@@ -50,10 +58,6 @@
       #
       password: "$(arg password)"
 
-      #
-      # The PCIC schema mask to apply to the framegrabber
-      #
-      schema_mask: $(arg schema_mask)
 
       #
       # The number of milliseconds to wait for a frame before declaring a
@@ -105,6 +109,18 @@
     <!-- if assume_sw_triggered == True -->
     <param name="timeout_millis" value="500" if="$(arg assume_sw_triggered)"/>
     <param name="timeout_tolerance_secs" value="600.0" if="$(arg assume_sw_triggered)"/>
+
+    <!-- configure VPU (IPC) available data streams -->
+    <arg name="xyz_image_stream" value="$(arg xyz_image_stream)"/>
+    <arg name="confidence_image_stream" value="$(arg confidence_image_stream)"/>"
+    <arg name="radial_distance_image_stream" value="$(arg radial_distance_image_stream)"/>"
+    <arg name="radial_distance_noise_stream" value="$(arg radial_distance_noise_stream)"/>"
+    <arg name="norm_amplitude_image_stream" value="$(arg norm_amplitude_image_stream)"/>"
+    <arg name="amplitude_image_stream" value="$(arg amplitude_image_stream)"/>"
+    <arg name="extrinsic_image_stream" value="$(arg extrinsic_image_stream)"/>"
+    <arg name="intrinsic_image_stream" value="$(arg intrinsic_image_stream)"/>"
+    <arg name="rgb_image_stream" value="$(arg rgb_image_stream)"/>"
+
   </node>
 
   <!-- coord frame transform from optical frame to ROS sensor frame -->
