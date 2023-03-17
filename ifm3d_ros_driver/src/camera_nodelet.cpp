@@ -32,7 +32,6 @@
 #include <ifm3d_ros_msgs/SoftOn.h>
 #include <ifm3d_ros_msgs/Trigger.h>
 
-// #include <ifm3d/contrib/nlohmann/json.hpp>
 #include <ifm3d/device/json.hpp>
 
 
@@ -232,19 +231,38 @@ void ifm3d_ros::CameraNodelet::onInit()
   // parameter server.
   //
 
-  int schema_mask = { ifm3d_legacy::IMG_RDIS | ifm3d_legacy::IMG_AMP | ifm3d_legacy::IMG_RAMP | ifm3d_legacy::IMG_CART };
   int xmlrpc_port;
   int pcic_port;
+  std::string imager_type;
   std::string frame_id_base;
-  const ifm3d::FrameGrabber::BufferList DEFAULT_SCHEMA_MASK = {
+
+  bool xyz_image_stream;
+  bool confidence_image_stream;
+  bool radial_distance_image_stream;
+  bool radial_distance_noise_stream;
+  bool norm_amplitude_image_stream;
+  bool amplitude_image_stream;
+  bool extrinsic_image_stream;
+  bool intrinsic_image_stream;
+  bool rgb_image_stream;
+
+  std::list<ifm3d::buffer_id> buffer_list;
+
+  const ifm3d::FrameGrabber::BufferList DEFAULT_SCHEMA_MASK_3D = {
                               ifm3d::buffer_id::XYZ,
                               ifm3d::buffer_id::CONFIDENCE_IMAGE,
                               ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE,
                               ifm3d::buffer_id::RADIAL_DISTANCE_NOISE,
                               ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE,
-                              ifm3d::buffer_id::AMPLITUDE_IMAGE,
                               ifm3d::buffer_id::EXTRINSIC_CALIB,
-                              ifm3d::buffer_id::JPEG_IMAGE
+                              ifm3d::buffer_id::INTRINSIC_CALIB,
+                            };
+
+  const ifm3d::FrameGrabber::BufferList DEFAULT_SCHEMA_MASK_2D = {
+                              ifm3d::buffer_id::JPEG_IMAGE,
+                              ifm3d::buffer_id::EXTRINSIC_CALIB,
+                              ifm3d::buffer_id::INTRINSIC_CALIB,
+                              ifm3d::buffer_id::RGB_INFO,
                             };
 
   if ((nn.size() > 0) && (nn.at(0) == '/'))
@@ -257,16 +275,14 @@ void ifm3d_ros::CameraNodelet::onInit()
   }
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
-  NODELET_INFO("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
-
   this->np_.param("xmlrpc_port", xmlrpc_port, (int)ifm3d::DEFAULT_XMLRPC_PORT);
   this->np_.param("pcic_port", pcic_port, (int)ifm3d::DEFAULT_PCIC_PORT);
-  NODELET_INFO("pcic port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
-
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
-  // this->np_.param<ifm3d::FrameGrabber::BufferList>("schema_mask", this->schema_mask_, DEFAULT_SCHEMA_MASK);
+  // this->np_.param("imager_type", this->imager_type, '3D')
+  NODELET_INFO_ONCE("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
+  NODELET_INFO_ONCE("PCIC port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
+  NODELET_INFO_ONCE("XML-RPC port check: current %d, default %d", xmlrpc_port, ifm3d::DEFAULT_XMLRPC_PORT);
 
-  this->np_.param("schema_mask", schema_mask);
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
   this->np_.param("timeout_tolerance_secs", this->timeout_tolerance_secs_, 5.0);
   this->np_.param("assume_sw_triggered", this->assume_sw_triggered_, false);
@@ -277,9 +293,26 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->np_.param("frame_latency_thresh", this->frame_latency_thresh_, 60.0f);
   this->np_.param("frame_id_base", frame_id_base, frame_id_base);
 
+  // image stream ros parameter server setting
+  this->np_.param("xyz_image_stream", this->xyz_image_stream, true);
+  this->np_.param("confidence_image_stream", this->confidence_image_stream, true);
+  this->np_.param("radial_distance_image_stream", this->radial_distance_image_stream, true);
+  this->np_.param("radial_distance_noise_stream", this->radial_distance_noise_stream, true);
+  this->np_.param("amplitude_image_stream", this->amplitude_image_stream, true);
+  this->np_.param("extrinsic_image_stream", this->extrinsic_image_stream, true);
+  this->np_.param("intrinsic_image_stream", this->intrinsic_image_stream, true);
+  this->np_.param("rgb_image_stream", this->rgb_image_stream, true);
+
+  this->xyz_image_stream = static_cast<bool>(xyz_image_stream);
+  this->confidence_image_stream = static_cast<bool>(confidence_image_stream);
+  this->radial_distance_image_stream = static_cast<bool>(radial_distance_image_stream);
+  this->radial_distance_noise_stream = static_cast<bool>(radial_distance_noise_stream);
+  this->norm_amplitude_image_stream = static_cast<bool>(norm_amplitude_image_stream);
+
+
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
-  this->schema_mask_ = static_cast<std::uint16_t>(schema_mask);
-  this->schema_mask_default_ = DEFAULT_SCHEMA_MASK;
+  this->schema_mask_default_3d_ = DEFAULT_SCHEMA_MASK_3D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
+  this->schema_mask_default_2d_ = DEFAULT_SCHEMA_MASK_2D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
   this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
 
   NODELET_DEBUG_STREAM("setup ros node parameters finished");
@@ -290,19 +323,40 @@ void ifm3d_ros::CameraNodelet::onInit()
   //-------------------
   // Published topics
   //-------------------
-  this->cloud_pub_ = this->np_.advertise<sensor_msgs::PointCloud2>("cloud", 1);
-  this->distance_pub_ = this->it_->advertise("distance", 1);
-  this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
-  this->amplitude_pub_ = this->it_->advertise("amplitude", 1);
-  this->raw_amplitude_pub_ = this->it_->advertise("raw_amplitude", 1);
-  this->conf_pub_ = this->it_->advertise("confidence", 1);
-  this->rgb_image_pub_ = this->np_.advertise<sensor_msgs::CompressedImage>("rgb_image/compressed", 1);
-
-  // we latch the unit vectors
-  this->uvec_pub_ = this->np_.advertise<sensor_msgs::Image>("unit_vectors", 1, true);
-
-  this->extrinsics_pub_ = this->np_.advertise<ifm3d_ros_msgs::Extrinsics>("extrinsics", 1);
+  if (this->xyz_image_stream)
+  {
+      this->cloud_pub_ = this->np_.advertise<sensor_msgs::PointCloud2>("cloud", 1);
+  }
+  if (this->radial_distance_image_stream)
+  {
+    this->distance_pub_ = this->it_->advertise("distance", 1);
+  }
+  if (this->radial_distance_noise_stream)
+  {
+    this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
+  }
+  if (this->amplitude_image_stream)
+  {
+    this->amplitude_pub_ = this->it_->advertise("amplitude", 1);
+  }
+  if (this->confidence_image_stream)
+  {
+    this->conf_pub_ = this->it_->advertise("confidence", 1);
+  }
+  if (this->rgb_image_stream)
+  {
+    this->rgb_image_pub_ = this->np_.advertise<sensor_msgs::CompressedImage>("rgb_image/compressed", 1);
+  }
+  if (this->extrinsic_image_stream)
+  {
+    this->extrinsics_pub_ = this->np_.advertise<ifm3d_ros_msgs::Extrinsics>("extrinsics", 1);
+  }
+  if (this->intrinsic_image_stream)
+  // {
+  //   this->intrinsics_pub_ = this->np_.advertise<ifm3d_ros_msgs::Intrinsics>("intrinsics", 1);
+  // }
   NODELET_DEBUG_STREAM("after advertising the publishers");
+
   //---------------------
   // Advertised Services
   //---------------------
@@ -416,8 +470,7 @@ bool ifm3d_ros::CameraNodelet::Trigger(ifm3d_ros_msgs::Trigger::Request& req, if
   return true;
 }
 
-// this is a dummy method for the moment:  the idea of applications is not supported for the O3RCamera
-// we keep this in to possibly keep it comparable / interoperable with the ROS wrappers for other ifm cameras
+
 bool ifm3d_ros::CameraNodelet::SoftOff(ifm3d_ros_msgs::SoftOff::Request& req, ifm3d_ros_msgs::SoftOff::Response& res)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
@@ -430,7 +483,7 @@ bool ifm3d_ros::CameraNodelet::SoftOff(ifm3d_ros_msgs::SoftOff::Request& req, if
     port_arg = static_cast<int>(this->pcic_port_) % 50010;
 
     // Configure the device from a json string
-    this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"IDLE\"}}}");
+    this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"CONF\"}}}");
 
     this->assume_sw_triggered_ = false;
     this->timeout_millis_ = this->soft_on_timeout_millis_;
@@ -443,14 +496,13 @@ bool ifm3d_ros::CameraNodelet::SoftOff(ifm3d_ros_msgs::SoftOff::Request& req, if
     return false;
   }
 
-  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - we use IDLE and RUN states instead");
-  res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"IDLE\"}}}";
+  NODELET_DEBUG_STREAM("Switched state to CONF");
+  res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"CONF\"}}}";
 
   return true;
 }
 
-// this is a dummy method for the moment:  the idea of applications is not supported for the O3RCamera
-// we keep this in to possibly keep it comparable / interoperable with the ROS wrappers for other ifm cameras
+
 bool ifm3d_ros::CameraNodelet::SoftOn(ifm3d_ros_msgs::SoftOn::Request& req, ifm3d_ros_msgs::SoftOn::Response& res)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
@@ -460,22 +512,6 @@ bool ifm3d_ros::CameraNodelet::SoftOn(ifm3d_ros_msgs::SoftOn::Request& req, ifm3
   try
   {
     port_arg = static_cast<int>(this->pcic_port_) % 50010;
-
-    // try getting a current configuration as an ifm3d dump
-    // this way a a-priori test before setting the state can be tested
-    // try
-    // {
-    //   json j = this->cam_->ToJSON();
-    // }
-    // catch (const ifm3d::Error& ex)
-    // {
-    //   NODELET_WARN_STREAM(ex.code());
-    //   NODELET_WARN_STREAM(ex.what());
-    // }
-    // catch (const std::exception& std_ex)
-    //   {
-    //     NODELET_WARN_STREAM(std_ex.what());
-    // }
 
     // Configure the device from a json string
     this->cam_->FromJSONStr("{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"RUN\"}}}");
@@ -491,7 +527,7 @@ bool ifm3d_ros::CameraNodelet::SoftOn(ifm3d_ros_msgs::SoftOn::Request& req, ifm3
     return false;
   }
 
-  NODELET_WARN_STREAM("The concept of applications is not available for the O3R - we use IDLE and RUN states instead");
+  NODELET_DEBUG_STREAM("Switched state to RUN");
   res.msg = "{\"ports\":{\"port" + std::to_string(port_arg) + "\": {\"state\": \"RUN\"}}}";
 
   return true;
@@ -504,17 +540,17 @@ bool ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t pcic_port)
 
   try
   {
-    NODELET_INFO_STREAM("Running dtors...");
+    NODELET_INFO_ONCE("Running dtors...");
     this->fg_.reset();
     this->cam_.reset();
 
-    NODELET_INFO_STREAM("Initializing camera...");
+    NODELET_INFO_ONCE("Initializing camera...");
     this->cam_ = ifm3d::Device::MakeShared(this->camera_ip_, this->xmlrpc_port_);
     ros::Duration(1.0).sleep();
 
-    NODELET_INFO_STREAM("Initializing framegrabber...");
+    NODELET_INFO_ONCE("Initializing framegrabber...");
     this->fg_ = std::make_shared<ifm3d::FrameGrabber>(this->cam_, this->pcic_port_);
-    NODELET_INFO("Nodelet argument: %d", (int)this->pcic_port_);
+    NODELET_INFO_ONCE("Nodelet argument: %d", (int)this->pcic_port_);
 
     retval = true;
   }
@@ -541,7 +577,6 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
     ifm3d::Buffer distance_img;
     ifm3d::Buffer distance_noise_img;
     ifm3d::Buffer amplitude_img;
-    ifm3d::Buffer raw_amplitude_img;
     ifm3d::Buffer extrinsics;
     ifm3d::Buffer rgb_img;
 
@@ -553,9 +588,7 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
       distance_img = frame->GetBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE);
       distance_noise_img = frame->GetBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_NOISE);
       amplitude_img = frame->GetBuffer(ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE);
-      raw_amplitude_img = frame->GetBuffer(ifm3d::buffer_id::AMPLITUDE_IMAGE);
       extrinsics = frame->GetBuffer(ifm3d::buffer_id::EXTRINSIC_CALIB);
-      rgb_img = frame->GetBuffer(ifm3d::buffer_id::JPEG_IMAGE);
       this->last_frame_time_ = frame->TimeStamps()[0];
 
     }
@@ -586,16 +619,16 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
       this->head.stamp = ros::Time::now();
     }
 
-    if (frame->HasBuffer(ifm3d::buffer_id::JPEG_IMAGE))
-    {
-      this->rgb_image_pub_.publish(ifm3d_to_ros_compressed_image(rgb_img, optical_head, "jpeg", getName()));
-      NODELET_DEBUG_STREAM("after publishing rgb image");
-    }
+    // if (frame->HasBuffer(ifm3d::buffer_id::JPEG_IMAGE))
+    // {
+    //   this->rgb_image_pub_.publish(ifm3d_to_ros_compressed_image(rgb_img, optical_head, "jpeg", getName()));
+    //   NODELET_DEBUG_STREAM("after publishing rgb image");
+    // }
 
-    if (frame->HasBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE))
+        if (frame->HasBuffer(ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE))
     {
-      this->distance_pub_.publish(ifm3d_to_ros_image(distance_img, optical_head, getName()));
-      NODELET_DEBUG_STREAM("after publishing distance image");
+      this->amplitude_pub_.publish(ifm3d_to_ros_image(amplitude_img, optical_head, getName()));
+      NODELET_DEBUG_STREAM("after publishing norm amplitude image");
     }
 
     if (frame->HasBuffer(ifm3d::buffer_id::CONFIDENCE_IMAGE))
@@ -604,22 +637,10 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
       NODELET_DEBUG_STREAM("after publishing confidence image");
     }
 
-    if (frame->HasBuffer(ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE))
+    if (frame->HasBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE))
     {
-      this->amplitude_pub_.publish(ifm3d_to_ros_image(amplitude_img, optical_head, getName()));
-      NODELET_DEBUG_STREAM("after publishing amplitude image");
-    }
-
-    if (frame->HasBuffer(ifm3d::buffer_id::AMPLITUDE_IMAGE))
-    {
-      this->raw_amplitude_pub_.publish(ifm3d_to_ros_image(raw_amplitude_img, optical_head, getName()));
-      NODELET_DEBUG_STREAM("after publishing norm amplitude image");
-    }
-
-    if (frame->HasBuffer(ifm3d::buffer_id::XYZ))
-    {
-      this->cloud_pub_.publish(ifm3d_to_ros_cloud(xyz_img, head, getName()));
-      NODELET_DEBUG_STREAM("after publishing point cloud image");
+      this->distance_pub_.publish(ifm3d_to_ros_image(distance_img, optical_head, getName()));
+      NODELET_DEBUG_STREAM("after publishing distance image");
     }
 
     if (frame->HasBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_NOISE))
@@ -628,54 +649,11 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
       NODELET_DEBUG_STREAM("after publishing distance noise image");
     }
 
-    // // Confidence image is invariant - no need to check the mask
-    // this->conf_pub_.publish(ifm3d_to_ros_image(confidence_img, optical_head, getName()));
-    // NODELET_DEBUG_STREAM("after publishing confidence image");
-
-    // if (std::find(this->schema_mask_.begin(), this->schema_mask_.end(), ifm3d::buffer_id::XYZ) != this->schema_mask_.end())
-    // // if ((this->schema_mask_ & ifm3d::buffer_id::XYZ) == ifm3d::buffer_id::XYZ)
-    // {
-    //   this->cloud_pub_.publish(ifm3d_to_ros_cloud(xyz_img, head, getName()));
-    //   NODELET_DEBUG_STREAM("after publishing xyz image");
-    // }
-
-    // if (std::find(this->schema_mask_.begin(), this->schema_mask_.end(), ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE) != this->schema_mask_.end())
-    // // if ((this->schema_mask_ & ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE) == ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE)
-    // {
-    //   this->distance_pub_.publish(ifm3d_to_ros_image(distance_img, optical_head, getName()));
-    //   NODELET_DEBUG_STREAM("after publishing distance image");
-    // }
-
-
-    // if (std::find(this->schema_mask_.begin(), this->schema_mask_.end(), ifm3d::buffer_id::RADIAL_DISTANCE_NOISE) != this->schema_mask_.end())
-    // // if ((this->schema_mask_ & ifm3d::buffer_id::RADIAL_DISTANCE_NOISE) == ifm3d::buffer_id::RADIAL_DISTANCE_NOISE)
-    // {
-    //   this->distance_noise_pub_.publish(ifm3d_to_ros_image(distance_noise_img, optical_head, getName()));
-    //   NODELET_DEBUG_STREAM("after publishing distance noise image");
-    // }
-
-    // if (std::find(this->schema_mask_.begin(), this->schema_mask_.end(), ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE) != this->schema_mask_.end())
-    // // if ((this->schema_mask_ & ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE) == ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE)
-    // {
-    //   this->amplitude_pub_.publish(ifm3d_to_ros_image(amplitude_img, optical_head, getName()));
-    //   NODELET_DEBUG_STREAM("after publishing amplitude image");
-    // }
-
-    // if (std::find(this->schema_mask_.begin(), this->schema_mask_.end(), ifm3d::buffer_id::AMPLITUDE_IMAGE) != this->schema_mask_.end())
-    // // if ((this->schema_mask_ & ifm3d::buffer_id::AMPLITUDE_IMAGE) == ifm3d::buffer_id::AMPLITUDE_IMAGE)
-    // {
-    //   this->raw_amplitude_pub_.publish(ifm3d_to_ros_image(raw_amplitude_img, optical_head, getName()));
-    //   NODELET_DEBUG_STREAM("Raw amplitude image publisher is a dummy publisher - data will be added soon");
-    //   NODELET_DEBUG_STREAM("after publishing raw amplitude image");
-    // }
-
-    // // The 2D is not yet settable in the schema mask: publish all the time
-
-    // if (rgb_img.height() * rgb_img.width() > 0)
-    // {
-    //   this->rgb_image_pub_.publish(ifm3d_to_ros_compressed_image(rgb_img, optical_head, "jpeg", getName()));
-    //   NODELET_DEBUG_STREAM("after publishing rgb image");
-    // }
+    if (frame->HasBuffer(ifm3d::buffer_id::XYZ))
+    {
+      this->cloud_pub_.publish(ifm3d_to_ros_cloud(xyz_img, head, getName()));
+      NODELET_DEBUG_STREAM("after publishing point cloud image");
+    }
 
 
 
@@ -701,6 +679,7 @@ void ifm3d_ros::CameraNodelet::Callback(ifm3d::Frame::Ptr frame){
     }
     this->extrinsics_pub_.publish(extrinsics_msg);
 }
+
 // this is the helper function for retrieving complete pcic frames
 bool ifm3d_ros::CameraNodelet::StartStream()
 {
@@ -708,7 +687,7 @@ bool ifm3d_ros::CameraNodelet::StartStream()
   NODELET_DEBUG_STREAM("Start streaming frames");
   try
   {
-    fg_->Start(this->schema_mask_default_);
+    fg_->Start(this->schema_mask_default_3d_);
     NODELET_INFO_STREAM("Framegabbber initialized with default schema mask");
 
     // XXX: need to implement a nice strategy for getting the actual times
@@ -740,10 +719,10 @@ void ifm3d_ros::CameraNodelet::Run()
 {
   std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
 
-  NODELET_DEBUG_STREAM("in Run");
+  NODELET_DEBUG_STREAM("in CameraNodelet Run");
 
   // We need to account for the case of when the nodelet is being started prior
-  // to the camera being plugged in.
+  // to the camera being plugged in / camera is still in boot-up phase and camera streams are not ready
 
   while (ros::ok() && (!this->InitStructures(this->pcic_port_)))
   {
