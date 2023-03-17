@@ -78,17 +78,10 @@ RUN cd /home/ifm/ \
 
 RUN cp -r /install/* /usr
 
-# # Modify cmake to remove bug: reference to OpenCV in ifm3d v0.93.0
-# RUN sed -i.bak '22,44d' /usr/lib/cmake/ifm3d-0.93.0/ifm3d-config.cmake
 
 # Initialize catkin workspace
 RUN mkdir -p catkin_ws/ifm3d-ros/src
 RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros/src; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace'
-
-# # Clone and build ifm3d-ros repo
-# ARG IFM3D_ROS_CLONE_REPO
-# RUN cd /home/ifm/catkin_ws/ifm3d-ros/src && \
-#     git clone ${IFM3D_ROS_CLONE_REPO}
 
 RUN apt-get update && apt-get install -y nlohmann-json3-dev
 
