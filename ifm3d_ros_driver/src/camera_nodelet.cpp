@@ -237,6 +237,7 @@ void ifm3d_ros::CameraNodelet::onInit()
   int xmlrpc_port;
   int pcic_port;
   std::string imager_type;
+  std::string imager_type_req;
   std::string frame_id_base;
   bool xyz_image_stream;
   bool confidence_image_stream;
@@ -261,9 +262,7 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->np_.param("xmlrpc_port", xmlrpc_port, (int)ifm3d::DEFAULT_XMLRPC_PORT);
   this->np_.param("pcic_port", pcic_port, (int)ifm3d::DEFAULT_PCIC_PORT);
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
-  this->np_.param("imager_type", imager_type, std::string("3D"));
 
-  NODELET_INFO_ONCE("Imager type current: %s, default %s", imager_type.c_str(), "3D");
   NODELET_INFO_ONCE("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
   NODELET_INFO_ONCE("PCIC port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
   NODELET_INFO_ONCE("XML-RPC port check: current %d, default %d", xmlrpc_port, ifm3d::DEFAULT_XMLRPC_PORT);
@@ -312,13 +311,28 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->radial_distance_image_stream_ = static_cast<bool>(radial_distance_image_stream);
   this->radial_distance_noise_stream_ = static_cast<bool>(radial_distance_noise_stream);
   this->amplitude_image_stream_ = static_cast<bool>(amplitude_image_stream);
-  this->imager_type_ = imager_type;
+  this->rgb_image_stream_ = static_cast<bool>(rgb_image_stream);
+  this->extrinsic_image_stream_ = static_cast<bool>(extrinsic_image_stream);
+  this->intrinsic_image_stream_ = static_cast<bool>(intrinsic_image_stream);
+
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_default_3d_ = DEFAULT_SCHEMA_MASK_3D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
   this->schema_mask_default_2d_ = DEFAULT_SCHEMA_MASK_2D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
   this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
 
+  // lastly get the camera type based on PortsInfo
+  std::string imager_type_ = GetCameraType(this->pcic_port_);
+  this->np_.param("imager_type", imager_type_ , std::string("3D"));
+  this->np_.param("imager_type_req", imager_type_req, std::string("3D"));
+
+  if (! this->imager_type_.compare(imager_type_req))
+  {
+    NODELET_WARN_ONCE("Requested imager type does NOT match the connected imager type");
+  }
+
+  NODELET_INFO_ONCE("Imager type current: %s, default %s", imager_type_.c_str(), "3D");
   NODELET_DEBUG_STREAM("setup ros node parameters finished");
+
 
   this->frame_id_ = frame_id_base + "_link";
   this->optical_frame_id_ = frame_id_base + "_optical_link";
@@ -326,52 +340,64 @@ void ifm3d_ros::CameraNodelet::onInit()
   //-------------------
   // Published topics
   //-------------------
-  if (this->xyz_image_stream_)
+  if (strcmp(this->imager_type_.c_str(), "3D") == 0 && this->xyz_image_stream_)
   {
     this->cloud_pub_ = this->np_.advertise<sensor_msgs::PointCloud2>("cloud", 1);
     NODELET_INFO_ONCE("Point cloud publisher active");
   }
-  if (this->radial_distance_image_stream_)
+
+  if (strcmp(this->imager_type_.c_str(), "3D") == 0 && this->radial_distance_image_stream_)
   {
     this->distance_pub_ = this->it_->advertise("distance", 1);
     NODELET_INFO_ONCE("Distance image publisher active");
   }
-  if (this->radial_distance_noise_stream_)
+
+  if (strcmp(this->imager_type_.c_str(), "3D") == 0 && this->radial_distance_noise_stream_)
   {
     this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
     NODELET_INFO_ONCE("Distance noise image publisher active");
   }
-  if (this->amplitude_image_stream_)
+
+  if (strcmp(this->imager_type_.c_str(), "3D") == 0 && this->amplitude_image_stream_)
   {
     this->amplitude_pub_ = this->it_->advertise("amplitude", 1);
     NODELET_INFO_ONCE("Amplitude image publisher active");
   }
-  if (this->confidence_image_stream_)
+
+  if (strcmp(this->imager_type_.c_str(), "3D") == 0 && this->confidence_image_stream_)
   {
     this->conf_pub_ = this->it_->advertise("confidence", 1);
     NODELET_INFO_ONCE("Confidence image publisher active");
   }
-  if (this->rgb_image_stream_)
+
+  if (strcmp(this->imager_type_.c_str(), "2D") == 0 && this->rgb_image_stream_)
   {
     this->rgb_image_pub_ = this->np_.advertise<sensor_msgs::CompressedImage>("rgb_image/compressed", 1);
     NODELET_INFO_ONCE("2D RGB image publisher active");
   }
+
   if (this->extrinsic_image_stream_)
   {
     this->extrinsics_pub_ = this->np_.advertise<ifm3d_ros_msgs::Extrinsics>("extrinsics", 1);
     NODELET_INFO_ONCE("Extrinsics parameter publisher active");
   }
+
   // if (this->intrinsic_image_stream)
   // {
   //   this->intrinsics_pub_ = this->np_.advertise<ifm3d_ros_msgs::Intrinsics>("intrinsics", 1);
   // }
   NODELET_DEBUG_STREAM("after advertising the publishers");
 
+
+
   //---------------------
   // Advertised Services
   //---------------------
   this->dump_srv_ = this->np_.advertiseService<ifm3d_ros_msgs::Dump::Request, ifm3d_ros_msgs::Dump::Response>(
       "Dump", std::bind(&CameraNodelet::Dump, this, std::placeholders::_1, std::placeholders::_2));
+
+  this->dump_json_schema_srv_ = this->np_.advertiseService<ifm3d_ros_msgs::DumpJSONSchema::Request, ifm3d_ros_msgs::DumpJSONSchema::Response>(
+      "DumpJSONSchema", std::bind(&CameraNodelet::DumpJSONSchema, this, std::placeholders::_1, std::placeholders::_2));
 
   this->config_srv_ = this->np_.advertiseService<ifm3d_ros_msgs::Config::Request, ifm3d_ros_msgs::Config::Response>(
       "Config", std::bind(&CameraNodelet::Config, this, std::placeholders::_1, std::placeholders::_2));
@@ -386,6 +412,7 @@ void ifm3d_ros::CameraNodelet::onInit()
       "SoftOn", std::bind(&CameraNodelet::SoftOn, this, std::placeholders::_1, std::placeholders::_2));
 
   NODELET_DEBUG_STREAM("after advertise service");
+
   //----------------------------------
   // Fire off our main publishing loop
   //----------------------------------
@@ -426,6 +453,42 @@ bool ifm3d_ros::CameraNodelet::Dump(ifm3d_ros_msgs::Dump::Request& req, ifm3d_ro
 
   return true;
 }
+
+
+bool ifm3d_ros::CameraNodelet::DumpJSONSchema(ifm3d_ros_msgs::DumpJSONSchema::Request& req, ifm3d_ros_msgs::DumpJSONSchema::Response& res)
+{
+  std::lock_guard<std::mutex> lock(this->mutex_);
+  res.status = 0;
+
+  try
+  {
+    ifm3d::O3R::Ptr cam_O3R = std::static_pointer_cast<ifm3d::O3R>(this->cam_);
+    json j = cam_O3R->GetSchema();
+    res.config = j.dump();
+  }
+  catch (const ifm3d::Error& ex)
+  {
+    res.status = ex.code();
+    NODELET_WARN_STREAM(ex.what());
+  }
+  catch (const std::exception& std_ex)
+  {
+    res.status = -1;
+    NODELET_WARN_STREAM(std_ex.what());
+  }
+  catch (...)
+  {
+    res.status = -2;
+  }
+
+  if (res.status != 0)
+  {
+    NODELET_WARN_STREAM("Dump: " << res.status);
+  }
+
+  return true;
+}
+
 
 bool ifm3d_ros::CameraNodelet::Config(ifm3d_ros_msgs::Config::Request& req, ifm3d_ros_msgs::Config::Response& res)
 {
@@ -543,10 +606,29 @@ bool ifm3d_ros::CameraNodelet::SoftOn(ifm3d_ros_msgs::SoftOn::Request& req, ifm3
   return true;
 }
 
+std::string ifm3d_ros::CameraNodelet::GetCameraType(std::uint16_t pcic_port)
+{
+  std::lock_guard<std::mutex> lock(this->mutex_);
+
+  this->cam_ = ifm3d::Device::MakeShared(this->camera_ip_, this->xmlrpc_port_);
+  ros::Duration(1.0).sleep();
+
+  ifm3d::O3R::Ptr cam_O3R = std::static_pointer_cast<ifm3d::O3R>(cam_);
+  std::vector<ifm3d::PortInfo> ports_vector_ = cam_O3R->Ports();
+
+  int port_arg = static_cast<int>(this->pcic_port_) % 50010;
+  std::string port_type_ = cam_O3R->Port("port" + std::to_string(port_arg)).type;
+  NODELET_INFO_ONCE("Imager type as retrieved from API device info: PCIC port %d, type %s", (int) this->pcic_port_, port_type_.c_str());
+
+  return port_type_;
+}
+
 bool ifm3d_ros::CameraNodelet::InitStructures(std::uint16_t pcic_port)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
   bool retval = false;
+
+  int port_arg = -1;
 
   try
   {
@@ -584,6 +666,7 @@ void ifm3d_ros::CameraNodelet::Callback2D(ifm3d::Frame::Ptr frame){
     lock.lock();
     ifm3d::Buffer extrinsics;
     ifm3d::Buffer rgb_img;
+    this->last_frame_local_time_ = ros::Time::now();
     // ifm3d::Buffer rgb_img_info;
 
 
@@ -623,43 +706,11 @@ void ifm3d_ros::CameraNodelet::Callback2D(ifm3d::Frame::Ptr frame){
       this->head.stamp = ros::Time::now();
     }
 
-    if (frame->HasBuffer(ifm3d::buffer_id::JPEG_IMAGE))
+    if (this->rgb_image_stream_ && frame->HasBuffer(ifm3d::buffer_id::JPEG_IMAGE))
     {
       this->rgb_image_pub_.publish(ifm3d_to_ros_compressed_image(rgb_img, optical_head, "jpeg", getName()));
       NODELET_DEBUG_STREAM("after publishing rgb image");
     }
-
-    // if (frame->HasBuffer(ifm3d::buffer_id::RGB_INFO))
-    // {
-    //   // TODO
-    //   NODELET_DEBUG_STREAM("after publishing rgb image chunk");
-    // }
-
-
-    //
-    // publish extrinsics
-    //
-    // if (frame->HasBuffer(ifm3d::buffer_id::EXTRINSIC_CALIB))
-    // {
-    //   NODELET_DEBUG_STREAM("start publishing extrinsics");
-    //   ifm3d_ros_msgs::Extrinsics extrinsics_msg;
-    //   extrinsics_msg.header = optical_head;
-    //   try
-    //   {
-    //     ifm3d::Buffer_<float> ext = extrinsics;
-    //     extrinsics_msg.tx = ext.at(0);
-    //     extrinsics_msg.ty = ext.at(1);
-    //     extrinsics_msg.tz = ext.at(2);
-    //     extrinsics_msg.rot_x = ext.at(3);
-    //     extrinsics_msg.rot_y = ext.at(4);
-    //     extrinsics_msg.rot_z = ext.at(5);
-    //   }
-    //   catch (const std::out_of_range& ex)
-    //   {
-    //     NODELET_WARN("out-of-range error fetching extrinsics");
-    //   }
-    //   this->extrinsics_pub_.publish(extrinsics_msg);
-    // }
 
 }
 
@@ -688,6 +739,7 @@ void ifm3d_ros::CameraNodelet::Callback3D(ifm3d::Frame::Ptr frame){
       amplitude_img = frame->GetBuffer(ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE);
       extrinsics = frame->GetBuffer(ifm3d::buffer_id::EXTRINSIC_CALIB);
       this->last_frame_time_ = frame->TimeStamps()[0];
+      this->last_frame_local_time_ = ros::Time::now();
 
     }
     catch (const ifm3d::Error& ex)
@@ -818,6 +870,9 @@ bool ifm3d_ros::CameraNodelet::StartStream()
     {
       fg_->OnNewFrame(std::bind(&ifm3d_ros::CameraNodelet::Callback2D, this, std::placeholders::_1));
     }
+
+    this->last_frame_local_time_ = ros::Time::now();
+
   }
   catch (const ifm3d::Error& ex)
   {
@@ -850,25 +905,23 @@ void ifm3d_ros::CameraNodelet::Run()
 
   while (ros::ok())
   {
-    // if ((ros::Time::now() - ros::Time().fromNSec(std::chrono::system_clock::to_time_t(
-    // std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-    //   this->last_frame_time_)))) > ros::Duration().fromSec(this->timeout_tolerance_secs_))
-    // {
-    //   if (!this->assume_sw_triggered_)
-    //   {
-    //     NODELET_WARN_STREAM("Timeout waiting for camera!");
-    //     NODELET_WARN_STREAM("Attempting to restart framegrabber...");
-    //     while (!this->InitStructures(this->pcic_port_))
-    //     {
-    //       NODELET_WARN_STREAM("Could not re-initialize pixel stream!");
-    //       ros::Duration(1.0).sleep();
-    //     }
-    //   }
-    // }
-    // else
-    // {
-    //   ros::Duration(.001).sleep();
-    // }
+    if ((ros::Time::now() - last_frame_local_time_).toSec() > this->timeout_tolerance_secs_)
+    {
+      if (!this->assume_sw_triggered_)
+      {
+        NODELET_WARN_ONCE("Timeout waiting for camera!");
+        NODELET_WARN_ONCE("Attempting to restart framegrabber...");
+        while (!this->InitStructures(this->pcic_port_))
+        {
+          NODELET_WARN_ONCE("Could not re-initialize pixel stream!");
+          ros::Duration(1.0).sleep();
+        }
+      }
+    }
+    else
+    {
+      ros::Duration(.001).sleep();
+    }
 
     continue;
   }

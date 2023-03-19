@@ -16,11 +16,13 @@
 #include <nodelet/nodelet.h>
 #include <ros/ros.h>
 
+#include <ifm3d/device/o3r.h>
 #include <ifm3d/device/device.h>
 #include <ifm3d/fg.h>
 #include <ifm3d/fg/frame_grabber.h>
 #include <ifm3d_ros_msgs/Config.h>
 #include <ifm3d_ros_msgs/Dump.h>
+#include <ifm3d_ros_msgs/DumpJSONSchema.h>
 #include <ifm3d_ros_msgs/Extrinsics.h>
 #include <ifm3d_ros_msgs/SoftOff.h>
 #include <ifm3d_ros_msgs/SoftOn.h>
@@ -46,6 +48,7 @@ private:
   // ROS services
   //
   bool Dump(ifm3d_ros_msgs::Dump::Request& req, ifm3d_ros_msgs::Dump::Response& res);
+  bool DumpJSONSchema(ifm3d_ros_msgs::DumpJSONSchema::Request& req, ifm3d_ros_msgs::DumpJSONSchema::Response& res);
   bool Config(ifm3d_ros_msgs::Config::Request& req, ifm3d_ros_msgs::Config::Response& res);
   bool Trigger(ifm3d_ros_msgs::Trigger::Request& req, ifm3d_ros_msgs::Trigger::Response& res);
   bool SoftOff(ifm3d_ros_msgs::SoftOff::Request& req, ifm3d_ros_msgs::SoftOff::Response& res);
@@ -59,6 +62,7 @@ private:
   void Callback2D(ifm3d::Frame::Ptr frame);
   void Callback3D(ifm3d::Frame::Ptr frame);
   bool StartStream();
+  std::string GetCameraType(std::uint16_t);
 
   //
   // state
@@ -68,7 +72,9 @@ private:
   std::uint16_t pcic_port_;
   std::string password_;
   std::string imager_type_;
+  std::string imager_type_req;
   ifm3d::TimePointT last_frame_time_;
+  ros::Time last_frame_local_time_;
 
   bool xyz_image_stream_;
   bool confidence_image_stream_;
@@ -122,6 +128,7 @@ private:
   // Services we advertise
   //
   ros::ServiceServer dump_srv_;
+  ros::ServiceServer dump_json_schema_srv_;
   ros::ServiceServer config_srv_;
   ros::ServiceServer trigger_srv_;
   ros::ServiceServer soft_off_srv_;
