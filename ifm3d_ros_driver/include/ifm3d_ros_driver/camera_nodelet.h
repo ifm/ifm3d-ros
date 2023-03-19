@@ -56,7 +56,8 @@ private:
   //
   void Run();
   bool InitStructures(std::uint16_t pcic_port);
-  void Callback(ifm3d::Frame::Ptr frame);
+  void Callback2D(ifm3d::Frame::Ptr frame);
+  void Callback3D(ifm3d::Frame::Ptr frame);
   bool StartStream();
 
   //
@@ -66,14 +67,13 @@ private:
   std::uint16_t xmlrpc_port_;
   std::uint16_t pcic_port_;
   std::string password_;
-  std::string imager_type;
+  std::string imager_type_;
   ifm3d::TimePointT last_frame_time_;
 
   bool xyz_image_stream;
   bool confidence_image_stream;
   bool radial_distance_image_stream;
   bool radial_distance_noise_stream;
-  bool norm_amplitude_image_stream;
   bool amplitude_image_stream;
   bool extrinsic_image_stream;
   bool intrinsic_image_stream;
