@@ -70,14 +70,14 @@ private:
   std::string imager_type_;
   ifm3d::TimePointT last_frame_time_;
 
-  bool xyz_image_stream;
-  bool confidence_image_stream;
-  bool radial_distance_image_stream;
-  bool radial_distance_noise_stream;
-  bool amplitude_image_stream;
-  bool extrinsic_image_stream;
-  bool intrinsic_image_stream;
-  bool rgb_image_stream;
+  bool xyz_image_stream_;
+  bool confidence_image_stream_;
+  bool radial_distance_image_stream_;
+  bool radial_distance_noise_stream_;
+  bool amplitude_image_stream_;
+  bool extrinsic_image_stream_;
+  bool intrinsic_image_stream_;
+  bool rgb_image_stream_;
 
   std::list<ifm3d::buffer_id> buffer_list;
   ifm3d::FrameGrabber::BufferList schema_mask_default_3d_;

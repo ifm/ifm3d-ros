@@ -217,6 +217,11 @@ sensor_msgs::PointCloud2 ifm3d_to_ros_cloud(ifm3d::Buffer&& image, const std_msg
 using json = ifm3d::json;
 namespace enc = sensor_msgs::image_encodings;
 
+inline const char * const BoolToString(bool b)
+{
+  return b ? "true" : "false";
+}
+
 void ifm3d_ros::CameraNodelet::onInit()
 {
   std::string nn = this->getName();
@@ -274,14 +279,14 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->np_.param("frame_id_base", frame_id_base, frame_id_base);
 
   // image stream ros parameter server setting
-  this->np_.param("xyz_image_stream", this->xyz_image_stream, true);
-  this->np_.param("confidence_image_stream", this->confidence_image_stream, true);
-  this->np_.param("radial_distance_image_stream", this->radial_distance_image_stream, true);
-  this->np_.param("radial_distance_noise_stream", this->radial_distance_noise_stream, true);
-  this->np_.param("amplitude_image_stream", this->amplitude_image_stream, true);
-  this->np_.param("extrinsic_image_stream", this->extrinsic_image_stream, true);
-  this->np_.param("intrinsic_image_stream", this->intrinsic_image_stream, true);
-  this->np_.param("rgb_image_stream", this->rgb_image_stream, true);
+  this->np_.param("xyz_image_stream", xyz_image_stream, true);
+  this->np_.param("confidence_image_stream", confidence_image_stream, true);
+  this->np_.param("radial_distance_image_stream", radial_distance_image_stream, true);
+  this->np_.param("radial_distance_noise_stream", radial_distance_noise_stream, true);
+  this->np_.param("amplitude_image_stream", amplitude_image_stream, true);
+  this->np_.param("extrinsic_image_stream", extrinsic_image_stream, true);
+  this->np_.param("intrinsic_image_stream", intrinsic_image_stream, true);
+  this->np_.param("rgb_image_stream", rgb_image_stream, true);
 
   // default schema masks
   std::list<ifm3d::buffer_id> buffer_list;
@@ -302,12 +307,11 @@ void ifm3d_ros::CameraNodelet::onInit()
                               ifm3d::buffer_id::RGB_INFO,
                             };
 
-  this->xyz_image_stream = static_cast<bool>(xyz_image_stream);
-  this->confidence_image_stream = static_cast<bool>(confidence_image_stream);
-  this->radial_distance_image_stream = static_cast<bool>(radial_distance_image_stream);
-  this->radial_distance_noise_stream = static_cast<bool>(radial_distance_noise_stream);
-  this->amplitude_image_stream = static_cast<bool>(amplitude_image_stream);
-
+  this->xyz_image_stream_ = static_cast<bool>(xyz_image_stream);
+  this->confidence_image_stream_ = static_cast<bool>(confidence_image_stream);
+  this->radial_distance_image_stream_ = static_cast<bool>(radial_distance_image_stream);
+  this->radial_distance_noise_stream_ = static_cast<bool>(radial_distance_noise_stream);
+  this->amplitude_image_stream_ = static_cast<bool>(amplitude_image_stream);
   this->imager_type_ = imager_type;
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_default_3d_ = DEFAULT_SCHEMA_MASK_3D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
@@ -322,33 +326,40 @@ void ifm3d_ros::CameraNodelet::onInit()
   //-------------------
   // Published topics
   //-------------------
-  if (this->xyz_image_stream)
+  if (this->xyz_image_stream_)
   {
     this->cloud_pub_ = this->np_.advertise<sensor_msgs::PointCloud2>("cloud", 1);
+    NODELET_INFO_ONCE("Point cloud publisher active");
   }
-  if (this->radial_distance_image_stream)
+  if (this->radial_distance_image_stream_)
   {
     this->distance_pub_ = this->it_->advertise("distance", 1);
+    NODELET_INFO_ONCE("Distance image publisher active");
   }
-  if (this->radial_distance_noise_stream)
+  if (this->radial_distance_noise_stream_)
   {
     this->distance_noise_pub_ = this->it_->advertise("distance_noise", 1);
+    NODELET_INFO_ONCE("Distance noise image publisher active");
   }
-  if (this->amplitude_image_stream)
+  if (this->amplitude_image_stream_)
   {
     this->amplitude_pub_ = this->it_->advertise("amplitude", 1);
+    NODELET_INFO_ONCE("Amplitude image publisher active");
   }
-  if (this->confidence_image_stream)
+  if (this->confidence_image_stream_)
   {
     this->conf_pub_ = this->it_->advertise("confidence", 1);
+    NODELET_INFO_ONCE("Confidence image publisher active");
   }
-  if (this->rgb_image_stream)
+  if (this->rgb_image_stream_)
   {
     this->rgb_image_pub_ = this->np_.advertise<sensor_msgs::CompressedImage>("rgb_image/compressed", 1);
+    NODELET_INFO_ONCE("2D RGB image publisher active");
   }
-  if (this->extrinsic_image_stream)
+  if (this->extrinsic_image_stream_)
   {
     this->extrinsics_pub_ = this->np_.advertise<ifm3d_ros_msgs::Extrinsics>("extrinsics", 1);
+    NODELET_INFO_ONCE("Extrinsics parameter publisher active");
   }
   // if (this->intrinsic_image_stream)
   // {
@@ -708,31 +719,31 @@ void ifm3d_ros::CameraNodelet::Callback3D(ifm3d::Frame::Ptr frame){
 
 
 
-    if (this->amplitude_image_stream && frame->HasBuffer(ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE))
+    if (this->amplitude_image_stream_ && frame->HasBuffer(ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE))
     {
       this->amplitude_pub_.publish(ifm3d_to_ros_image(amplitude_img, optical_head, getName()));
       NODELET_DEBUG_STREAM("after publishing norm amplitude image");
     }
 
-    if (frame->HasBuffer(ifm3d::buffer_id::CONFIDENCE_IMAGE))
+    if (this->confidence_image_stream_ && frame->HasBuffer(ifm3d::buffer_id::CONFIDENCE_IMAGE))
     {
       this->conf_pub_.publish(ifm3d_to_ros_image(confidence_img, optical_head, getName()));
       NODELET_DEBUG_STREAM("after publishing confidence image");
     }
 
-    if (frame->HasBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE))
+    if (this->radial_distance_image_stream_ && frame->HasBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE))
     {
       this->distance_pub_.publish(ifm3d_to_ros_image(distance_img, optical_head, getName()));
       NODELET_DEBUG_STREAM("after publishing distance image");
     }
 
-    if (frame->HasBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_NOISE))
+    if (this->radial_distance_noise_stream_ && frame->HasBuffer(ifm3d::buffer_id::RADIAL_DISTANCE_NOISE))
     {
       this->distance_noise_pub_.publish(ifm3d_to_ros_image(distance_noise_img, optical_head, getName()));
       NODELET_DEBUG_STREAM("after publishing distance noise image");
     }
 
-    if (frame->HasBuffer(ifm3d::buffer_id::XYZ))
+    if (this->xyz_image_stream_ && frame->HasBuffer(ifm3d::buffer_id::XYZ))
     {
       this->cloud_pub_.publish(ifm3d_to_ros_cloud(xyz_img, head, getName()));
       NODELET_DEBUG_STREAM("after publishing point cloud image");
@@ -742,24 +753,27 @@ void ifm3d_ros::CameraNodelet::Callback3D(ifm3d::Frame::Ptr frame){
     //
     // publish extrinsics
     //
-    NODELET_DEBUG_STREAM("start publishing extrinsics");
-    ifm3d_ros_msgs::Extrinsics extrinsics_msg;
-    extrinsics_msg.header = optical_head;
-    try
+    if (this->extrinsic_image_stream_ && frame->HasBuffer(ifm3d::buffer_id::EXTRINSIC_CALIB))
     {
-      ifm3d::Buffer_<float> ext = extrinsics;
-      extrinsics_msg.tx = ext.at(0);
-      extrinsics_msg.ty = ext.at(1);
-      extrinsics_msg.tz = ext.at(2);
-      extrinsics_msg.rot_x = ext.at(3);
-      extrinsics_msg.rot_y = ext.at(4);
-      extrinsics_msg.rot_z = ext.at(5);
+      NODELET_DEBUG_STREAM("start publishing extrinsics");
+      ifm3d_ros_msgs::Extrinsics extrinsics_msg;
+      extrinsics_msg.header = optical_head;
+      try
+      {
+        ifm3d::Buffer_<float> ext = extrinsics;
+        extrinsics_msg.tx = ext.at(0);
+        extrinsics_msg.ty = ext.at(1);
+        extrinsics_msg.tz = ext.at(2);
+        extrinsics_msg.rot_x = ext.at(3);
+        extrinsics_msg.rot_y = ext.at(4);
+        extrinsics_msg.rot_z = ext.at(5);
+      }
+      catch (const std::out_of_range& ex)
+      {
+        NODELET_WARN("out-of-range error fetching extrinsics");
+      }
+      this->extrinsics_pub_.publish(extrinsics_msg);
     }
-    catch (const std::out_of_range& ex)
-    {
-      NODELET_WARN("out-of-range error fetching extrinsics");
-    }
-    this->extrinsics_pub_.publish(extrinsics_msg);
 }
 
 // this is the helper function for retrieving complete pcic frames
