@@ -58,7 +58,7 @@ ARG IFM3D_CLONE_REPO
 # | BUILD_MODULE_PCICCLIENT | Build the pcicclient module | OFF |
 
 RUN cd /home/ifm/ \
-    && git clone --branch v1.2.2 ${IFM3D_CLONE_REPO} ifm3d \
+    && git clone ${IFM3D_CLONE_REPO} ifm3d \
     && mkdir -p /home/ifm/ifm3d/build \
     && cd /home/ifm/ifm3d/build \
     && cmake -GNinja \
