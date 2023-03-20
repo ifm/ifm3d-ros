@@ -7,12 +7,20 @@
   <arg name="xmlrpc_port" default="80" doc="The TCP port the camera's xmlrpc server is listening on for requests."/>
   <arg name="pcic_port" default="50010" doc="The TCP (data) port the camera's pcic server is listening on for requests."/>
   <arg name="password" default="" doc="The password required to establish an edit session on the VPU"/>
-  <arg name="schema_mask" default="15" doc="The pcic schema mask to apply to the active session with the frame grabber. This determines which images are available for publication from the camera. More about pcic schemas can be gleaned from the https://www.ifm3d.com."/>
+  <arg name="imager_type" default="3D" doc="The imager type of the requested camera head"/>
   <arg name="timeout_millis" default="500" doc="The number of milliseconds to wait for the framegrabber to return new frame data before declaring a &quot;timeout&quot; and to stop blocking on new data."/>
   <arg name="timeout_tolerance_secs" default="5.0" doc="The wall time to wait with no new data from the camera before trying to establish a new connection to the camera."/>
   <arg name="frame_id_base" default="$(arg namespace)/$(arg nodelet_name)" doc="This string provides a prefix into the `tf` tree for `ifm3d-ros` coordinate frames."/>
   <arg name="respawn" default="false" doc="Restart the node automatically if it quits."/>
   <arg name="assume_sw_triggered" default="false" doc="This mode means the driver of the the camera is configured for software triggering (as opposed to free running and hardware triggered modes - will follow soon)." />
+  <arg name="xyz_image_stream" default="true" doc="Enable xyz image streaming for 3D camera camera streams." />
+  <arg name="confidence_image_stream" default="true" doc="Enable confidence image streaming for 3D camera camera streams." />
+  <arg name="radial_distance_image_stream" default="true" doc="Enable radial distance image streaming for 3D camera camera streams." />
+  <arg name="radial_distance_noise_stream" default="true" doc="Enable distance noise image streaming for 3D camera camera streams." />
+  <arg name="amplitude_image_stream" default="true" doc="Enable amplitude image streaming for 3D camera camera streams." />
+  <arg name="extrinsic_image_stream" default="true" doc="Enable extrinsic values streaming for 3D camera camera streams." />
+  <arg name="intrinsic_image_stream" default="false" doc="Enable intrinsic values streaming for 3D camera camera streams." />
+  <arg name="rgb_image_stream" default="false" doc="Enable rgb image streaming for 3D camera camera streams." />
 
   <include ns="$(arg namespace)" file="$(find ifm3d_ros_driver)/launch/nodelet.launch">
     <arg name="camera" value="$(arg nodelet_name)"/>
@@ -20,12 +28,21 @@
     <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
     <arg name="pcic_port" value="$(arg pcic_port)"/>
     <arg name="password" value="$(arg password)"/>
-    <arg name="schema_mask" value="$(arg schema_mask)"/>
+    <arg name="imager_type" value="$(arg imager_type)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
     <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
+    <!-- configure VPU (IPC) available data streams -->
+    <arg name="xyz_image_stream" value="$(arg xyz_image_stream)"/>
+    <arg name="confidence_image_stream" value="$(arg confidence_image_stream)"/>"
+    <arg name="radial_distance_image_stream" value="$(arg radial_distance_image_stream)"/>"
+    <arg name="radial_distance_noise_stream" value="$(arg radial_distance_noise_stream)"/>"
+    <arg name="amplitude_image_stream" value="$(arg amplitude_image_stream)"/>"
+    <arg name="extrinsic_image_stream" value="$(arg extrinsic_image_stream)"/>"
+    <arg name="intrinsic_image_stream" value="$(arg intrinsic_image_stream)"/>"
+    <arg name="rgb_image_stream" value="$(arg rgb_image_stream)"/>"
   </include>
 
 </launch>

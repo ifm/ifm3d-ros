@@ -22,6 +22,7 @@ add_service_files(
   DIRECTORY srv
   FILES
   Dump.srv
+  DumpJSONSchema.srv
   Config.srv
   Trigger.srv
   SoftOff.srv

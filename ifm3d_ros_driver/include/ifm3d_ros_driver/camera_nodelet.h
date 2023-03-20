@@ -16,51 +16,17 @@
 #include <nodelet/nodelet.h>
 #include <ros/ros.h>
 
+#include <ifm3d/device/o3r.h>
 #include <ifm3d/device/device.h>
 #include <ifm3d/fg.h>
 #include <ifm3d/fg/frame_grabber.h>
 #include <ifm3d_ros_msgs/Config.h>
 #include <ifm3d_ros_msgs/Dump.h>
+#include <ifm3d_ros_msgs/DumpJSONSchema.h>
 #include <ifm3d_ros_msgs/Extrinsics.h>
 #include <ifm3d_ros_msgs/SoftOff.h>
 #include <ifm3d_ros_msgs/SoftOn.h>
 #include <ifm3d_ros_msgs/Trigger.h>
-
-namespace ifm3d_legacy
-{
-  const std::uint16_t IMG_RDIS = (1 << 0);        // 2**0
-  const std::uint16_t IMG_AMP = (1 << 1);         // 2**1
-  const std::uint16_t IMG_RAMP = (1 << 2);        // 2**2
-  const std::uint16_t IMG_CART = (1 << 3);        // 2**3
-//  const std::uint16_t IMG_UVEC = (1 << 4);        // 2**4
-//  const std::uint16_t EXP_TIME = (1 << 5);        // 2**5
-//  const std::uint16_t IMG_GRAY = (1 << 6);        // 2**6
-//  const std::uint16_t ILLU_TEMP = (1 << 7);       // 2**7
-//  const std::uint16_t INTR_CAL = (1 << 8);        // 2**8
-//  const std::uint16_t INV_INTR_CAL = (1 << 9);    // 2**9
-//  const std::uint16_t JSON_MODEL = (1 << 10);     // 2**10
-//  const std::uint16_t IMG_DIS_NOISE = (1 << 11);  // 2**11
-
-  std::map<std::uint16_t, ifm3d::buffer_id> schema_mask_buffer_id_map{
-    {IMG_RDIS, ifm3d::buffer_id::RADIAL_DISTANCE_IMAGE},
-    {IMG_AMP, ifm3d::buffer_id::NORM_AMPLITUDE_IMAGE},
-    {IMG_RAMP, ifm3d::buffer_id::AMPLITUDE_IMAGE},
-    {IMG_CART, ifm3d::buffer_id::XYZ}
-  };
-
-  ifm3d::FrameGrabber::BufferList buffer_list_from_schema_mask(const std::uint16_t mask)
-  {
-    ifm3d::FrameGrabber::BufferList buffer_list;
-
-    for (auto& [schema_mask, buffer_id]: schema_mask_buffer_id_map) {
-      if ((mask & schema_mask) == schema_mask)
-      {
-        buffer_list.emplace_back(buffer_id);
-      }
-    }
-    return buffer_list;
-  }
-}  // namespace ifm3d_legacy
 
 namespace ifm3d_ros
 {
@@ -82,6 +48,7 @@ private:
   // ROS services
   //
   bool Dump(ifm3d_ros_msgs::Dump::Request& req, ifm3d_ros_msgs::Dump::Response& res);
+  bool DumpJSONSchema(ifm3d_ros_msgs::DumpJSONSchema::Request& req, ifm3d_ros_msgs::DumpJSONSchema::Response& res);
   bool Config(ifm3d_ros_msgs::Config::Request& req, ifm3d_ros_msgs::Config::Response& res);
   bool Trigger(ifm3d_ros_msgs::Trigger::Request& req, ifm3d_ros_msgs::Trigger::Response& res);
   bool SoftOff(ifm3d_ros_msgs::SoftOff::Request& req, ifm3d_ros_msgs::SoftOff::Response& res);
@@ -92,8 +59,10 @@ private:
   //
   void Run();
   bool InitStructures(std::uint16_t pcic_port);
-  void Callback(ifm3d::Frame::Ptr frame);
+  void Callback2D(ifm3d::Frame::Ptr frame);
+  void Callback3D(ifm3d::Frame::Ptr frame);
   bool StartStream();
+  std::string GetCameraType(std::uint16_t);
 
   //
   // state
@@ -102,9 +71,23 @@ private:
   std::uint16_t xmlrpc_port_;
   std::uint16_t pcic_port_;
   std::string password_;
-  ifm3d::FrameGrabber::BufferList schema_mask_default_;
-  std::uint16_t schema_mask_;
+  std::string imager_type_;
+  std::string imager_type_req;
   ifm3d::TimePointT last_frame_time_;
+  ros::Time last_frame_local_time_;
+
+  bool xyz_image_stream_;
+  bool confidence_image_stream_;
+  bool radial_distance_image_stream_;
+  bool radial_distance_noise_stream_;
+  bool amplitude_image_stream_;
+  bool extrinsic_image_stream_;
+  bool intrinsic_image_stream_;
+  bool rgb_image_stream_;
+
+  std::list<ifm3d::buffer_id> buffer_list;
+  ifm3d::FrameGrabber::BufferList schema_mask_default_3d_;
+  ifm3d::FrameGrabber::BufferList schema_mask_default_2d_;
 
   int timeout_millis_;
   double timeout_tolerance_secs_;
@@ -132,6 +115,7 @@ private:
   ros::Publisher cloud_pub_;
   ros::Publisher uvec_pub_;
   ros::Publisher extrinsics_pub_;
+  ros::Publisher intrinsics_pub_;
   image_transport::Publisher distance_pub_;
   image_transport::Publisher distance_noise_pub_;
   image_transport::Publisher amplitude_pub_;
@@ -144,6 +128,7 @@ private:
   // Services we advertise
   //
   ros::ServiceServer dump_srv_;
+  ros::ServiceServer dump_json_schema_srv_;
   ros::ServiceServer config_srv_;
   ros::ServiceServer trigger_srv_;
   ros::ServiceServer soft_off_srv_;
