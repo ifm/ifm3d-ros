@@ -320,8 +320,8 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->schema_mask_default_2d_ = DEFAULT_SCHEMA_MASK_2D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
 
   // lastly get the camera type based on PortsInfo
-  this->imager_type_ = GetCameraType(this->pcic_port_);
   this->np_.param("imager_type", this->imager_type_ , std::string("3D"));
+  this->imager_type_ = GetCameraType(this->pcic_port_);
 
   NODELET_INFO_ONCE("Imager type current: %s, default %s", imager_type_.c_str(), "3D");
   NODELET_DEBUG_STREAM("setup ros node parameters finished");
