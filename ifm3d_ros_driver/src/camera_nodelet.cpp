@@ -237,7 +237,6 @@ void ifm3d_ros::CameraNodelet::onInit()
   int xmlrpc_port;
   int pcic_port;
   std::string imager_type;
-  std::string imager_type_req;
   std::string frame_id_base;
   bool xyz_image_stream;
   bool confidence_image_stream;
@@ -321,14 +320,8 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
 
   // lastly get the camera type based on PortsInfo
-  std::string imager_type_ = GetCameraType(this->pcic_port_);
+  this->imager_type_ = GetCameraType(this->pcic_port_);
   this->np_.param("imager_type", imager_type_ , std::string("3D"));
-  this->np_.param("imager_type_req", imager_type_req, std::string("3D"));
-
-  if (! this->imager_type_.compare(imager_type_req))
-  {
-    NODELET_WARN_ONCE("Requested imager type does NOT match the connected imager type");
-  }
 
   NODELET_INFO_ONCE("Imager type current: %s, default %s", imager_type_.c_str(), "3D");
   NODELET_DEBUG_STREAM("setup ros node parameters finished");
@@ -835,17 +828,6 @@ bool ifm3d_ros::CameraNodelet::StartStream()
   NODELET_DEBUG_STREAM("Start streaming frames");
   try
   {
-    if (strcmp(this->imager_type_.c_str(), "3D") == 0)
-    {
-      fg_->Start(this->schema_mask_default_3d_);
-      NODELET_INFO_STREAM("Framegabbber initialized with default 3D schema mask");
-    }
-
-    if (strcmp(this->imager_type_.c_str(), "2D") == 0)
-    {
-      fg_->Start(this->schema_mask_default_2d_);
-      NODELET_INFO_STREAM("Framegabbber initialized with default 2D schema mask");
-    }
     // need to implement a strategy for getting the imager type based on port information instead of ros_param input
 
     // XXX: need to implement a nice strategy for getting the actual times
@@ -863,14 +845,22 @@ bool ifm3d_ros::CameraNodelet::StartStream()
 
     if (strcmp(this->imager_type_.c_str(), "3D") == 0)
     {
+      fg_->Start(this->schema_mask_default_3d_);
+      NODELET_INFO_STREAM("Framegabbber initialized with default 3D schema mask");
       fg_->OnNewFrame(std::bind(&ifm3d_ros::CameraNodelet::Callback3D, this, std::placeholders::_1));
     }
 
-    if (strcmp(this->imager_type_.c_str(), "2D") == 0)
+    else if (strcmp(this->imager_type_.c_str(), "2D") == 0)
     {
+      fg_->Start(this->schema_mask_default_2d_);
+      NODELET_INFO_STREAM("Framegabbber initialized with default 2D schema mask");
       fg_->OnNewFrame(std::bind(&ifm3d_ros::CameraNodelet::Callback2D, this, std::placeholders::_1));
     }
 
+    else
+    {
+      NODELET_DEBUG_STREAM("Unknown imager type");
+    }
     this->last_frame_local_time_ = ros::Time::now();
 
   }
