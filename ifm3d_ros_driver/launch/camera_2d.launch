@@ -27,7 +27,6 @@
     <arg name="xmlrpc_port" value="$(arg xmlrpc_port)"/>
     <arg name="pcic_port" value="$(arg pcic_port)"/>
     <arg name="password" value="$(arg password)"/>
-    <arg name="imager_type" value="$(arg imager_type)"/>
     <arg name="timeout_millis" value="$(arg timeout_millis)"/>
     <arg name="timeout_tolerance_secs" value="$(arg timeout_tolerance_secs)"/>
     <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name)" />
