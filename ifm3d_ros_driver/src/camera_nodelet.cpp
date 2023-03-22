@@ -603,7 +603,7 @@ std::string ifm3d_ros::CameraNodelet::GetCameraType(std::uint16_t pcic_port)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
 
-  ifm3d::O3R::Ptr cam_O3R = std::static_pointer_cast<ifm3d::O3R>(cam_);
+  auto cam_O3R = std::make_shared<ifm3d::O3R>(this->camera_ip_, this->xmlrpc_port_);
   std::vector<ifm3d::PortInfo> ports_vector_ = cam_O3R->Ports();
 
   int port_arg = static_cast<int>(this->pcic_port_) % 50010;
