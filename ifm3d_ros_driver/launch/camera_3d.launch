@@ -7,7 +7,6 @@
   <arg name="xmlrpc_port" default="80" doc="The TCP port the camera's xmlrpc server is listening on for requests."/>
   <arg name="pcic_port" default="50010" doc="The TCP (data) port the camera's pcic server is listening on for requests."/>
   <arg name="password" default="" doc="The password required to establish an edit session on the VPU"/>
-  <arg name="imager_type" default="3D" doc="The imager type of the requested camera head"/>
   <arg name="timeout_millis" default="500" doc="The number of milliseconds to wait for the framegrabber to return new frame data before declaring a &quot;timeout&quot; and to stop blocking on new data."/>
   <arg name="timeout_tolerance_secs" default="5.0" doc="The wall time to wait with no new data from the camera before trying to establish a new connection to the camera."/>
   <arg name="frame_id_base" default="$(arg namespace)/$(arg nodelet_name)" doc="This string provides a prefix into the `tf` tree for `ifm3d-ros` coordinate frames."/>

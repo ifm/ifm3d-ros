@@ -236,7 +236,6 @@ void ifm3d_ros::CameraNodelet::onInit()
 
   int xmlrpc_port;
   int pcic_port;
-  std::string imager_type;
   std::string frame_id_base;
   bool xyz_image_stream;
   bool confidence_image_stream;
@@ -259,12 +258,15 @@ void ifm3d_ros::CameraNodelet::onInit()
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
   this->np_.param("xmlrpc_port", xmlrpc_port, (int)ifm3d::DEFAULT_XMLRPC_PORT);
+  this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->np_.param("pcic_port", pcic_port, (int)ifm3d::DEFAULT_PCIC_PORT);
+  this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
+
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
 
   NODELET_INFO_ONCE("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
-  NODELET_INFO_ONCE("PCIC port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
-  NODELET_INFO_ONCE("XML-RPC port check: current %d, default %d", xmlrpc_port, ifm3d::DEFAULT_XMLRPC_PORT);
+  NODELET_INFO_ONCE("PCIC port check: current %d, default %d", this->pcic_port_, ifm3d::DEFAULT_PCIC_PORT);
+  NODELET_INFO_ONCE("XML-RPC port check: current %d, default %d", this->xmlrpc_port_, ifm3d::DEFAULT_XMLRPC_PORT);
 
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
   this->np_.param("timeout_tolerance_secs", this->timeout_tolerance_secs_, 5.0);
@@ -314,14 +316,12 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->extrinsic_image_stream_ = static_cast<bool>(extrinsic_image_stream);
   this->intrinsic_image_stream_ = static_cast<bool>(intrinsic_image_stream);
 
-  this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->schema_mask_default_3d_ = DEFAULT_SCHEMA_MASK_3D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
   this->schema_mask_default_2d_ = DEFAULT_SCHEMA_MASK_2D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
-  this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
 
   // lastly get the camera type based on PortsInfo
   this->imager_type_ = GetCameraType(this->pcic_port_);
-  this->np_.param("imager_type", imager_type_ , std::string("3D"));
+  this->np_.param("imager_type", this->imager_type_ , std::string("3D"));
 
   NODELET_INFO_ONCE("Imager type current: %s, default %s", imager_type_.c_str(), "3D");
   NODELET_DEBUG_STREAM("setup ros node parameters finished");
@@ -602,9 +602,6 @@ bool ifm3d_ros::CameraNodelet::SoftOn(ifm3d_ros_msgs::SoftOn::Request& req, ifm3
 std::string ifm3d_ros::CameraNodelet::GetCameraType(std::uint16_t pcic_port)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
-
-  this->cam_ = ifm3d::Device::MakeShared(this->camera_ip_, this->xmlrpc_port_);
-  ros::Duration(1.0).sleep();
 
   ifm3d::O3R::Ptr cam_O3R = std::static_pointer_cast<ifm3d::O3R>(cam_);
   std::vector<ifm3d::PortInfo> ports_vector_ = cam_O3R->Ports();
