@@ -258,9 +258,7 @@ void ifm3d_ros::CameraNodelet::onInit()
 
   this->np_.param("ip", this->camera_ip_, ifm3d::DEFAULT_IP);
   this->np_.param("xmlrpc_port", xmlrpc_port, (int)ifm3d::DEFAULT_XMLRPC_PORT);
-  this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
   this->np_.param("pcic_port", pcic_port, (int)ifm3d::DEFAULT_PCIC_PORT);
-  this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
 
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
 
@@ -316,6 +314,8 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->extrinsic_image_stream_ = static_cast<bool>(extrinsic_image_stream);
   this->intrinsic_image_stream_ = static_cast<bool>(intrinsic_image_stream);
 
+  this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
+  this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
   this->schema_mask_default_3d_ = DEFAULT_SCHEMA_MASK_3D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
   this->schema_mask_default_2d_ = DEFAULT_SCHEMA_MASK_2D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
 
