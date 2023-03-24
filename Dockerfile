@@ -5,7 +5,7 @@ FROM $BASE_IMAGE:$BASE_IMAGE_TAG AS build
 ARG ROS_DISTRO=noetic
 ARG LSB_RELEASE=focal
 ARG CMAKE_VERSION=3.20.6
-ARG IFM3D_TAG=tags/v1.2.2
+ARG IFM3D_TAG=tags/v1.2.3
 
 # Create the ifm user
 RUN id ifm 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U ifm
@@ -82,8 +82,6 @@ RUN cp -r /install/* /usr
 # Initialize catkin workspace
 RUN mkdir -p catkin_ws/ifm3d-ros/src
 RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros/src; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace'
-
-RUN apt-get update && apt-get install -y nlohmann-json3-dev
 
 ADD . /home/ifm/catkin_ws/ifm3d-ros/src
 RUN cd /home/ifm/catkin_ws/ifm3d-ros/src
