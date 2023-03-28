@@ -10,8 +10,6 @@ find_package(ifm3d 1.2.2 REQUIRED COMPONENTS
              framegrabber
              )
 
-find_package(nlohmann_json 3.2.0 REQUIRED)
-
 find_package(catkin REQUIRED COMPONENTS
              rospy
              image_transport
@@ -51,7 +49,6 @@ target_link_libraries(ifm3d_ros
   ${catkin_LIBRARIES}
   ifm3d::device
   ifm3d::framegrabber
-  nlohmann_json::nlohmann_json
   )
 
 #############
