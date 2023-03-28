@@ -236,8 +236,6 @@ void ifm3d_ros::CameraNodelet::onInit()
 
   int xmlrpc_port;
   int pcic_port;
-  std::string imager_type;
-  std::string imager_type_req;
   std::string frame_id_base;
   bool xyz_image_stream;
   bool confidence_image_stream;
@@ -262,11 +260,6 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->np_.param("xmlrpc_port", xmlrpc_port, (int)ifm3d::DEFAULT_XMLRPC_PORT);
   this->np_.param("pcic_port", pcic_port, (int)ifm3d::DEFAULT_PCIC_PORT);
   this->np_.param("password", this->password_, ifm3d::DEFAULT_PASSWORD);
-
-  NODELET_INFO_ONCE("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
-  NODELET_INFO_ONCE("PCIC port check: current %d, default %d", pcic_port, ifm3d::DEFAULT_PCIC_PORT);
-  NODELET_INFO_ONCE("XML-RPC port check: current %d, default %d", xmlrpc_port, ifm3d::DEFAULT_XMLRPC_PORT);
-
   this->np_.param("timeout_millis", this->timeout_millis_, 500);
   this->np_.param("timeout_tolerance_secs", this->timeout_tolerance_secs_, 5.0);
   this->np_.param("assume_sw_triggered", this->assume_sw_triggered_, false);
@@ -316,19 +309,19 @@ void ifm3d_ros::CameraNodelet::onInit()
   this->intrinsic_image_stream_ = static_cast<bool>(intrinsic_image_stream);
 
   this->xmlrpc_port_ = static_cast<std::uint16_t>(xmlrpc_port);
-  this->schema_mask_default_3d_ = DEFAULT_SCHEMA_MASK_3D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
-  this->schema_mask_default_2d_ = DEFAULT_SCHEMA_MASK_2D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
   this->pcic_port_ = static_cast<std::uint16_t>(pcic_port);
 
-  // lastly get the camera type based on PortsInfo
-  std::string imager_type_ = GetCameraType(this->pcic_port_);
-  this->np_.param("imager_type", imager_type_ , std::string("3D"));
-  this->np_.param("imager_type_req", imager_type_req, std::string("3D"));
+  NODELET_INFO_ONCE("IP default: %s, current %s", ifm3d::DEFAULT_IP.c_str(), this->camera_ip_.c_str());
+  NODELET_INFO_ONCE("PCIC port check: current %d, default %d", this->pcic_port_, ifm3d::DEFAULT_PCIC_PORT);
+  NODELET_INFO_ONCE("XML-RPC port check: current %d, default %d", this->xmlrpc_port_, ifm3d::DEFAULT_XMLRPC_PORT);
 
-  if (! this->imager_type_.compare(imager_type_req))
-  {
-    NODELET_WARN_ONCE("Requested imager type does NOT match the connected imager type");
-  }
+
+  this->schema_mask_default_3d_ = DEFAULT_SCHEMA_MASK_3D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
+  this->schema_mask_default_2d_ = DEFAULT_SCHEMA_MASK_2D;   // use DEFAULT_SCHEMA_MASK until implemented as yml file: list of strings
+
+  // lastly get the camera type based on PortsInfo
+  this->np_.param("imager_type", this->imager_type_ , std::string("3D"));
+  this->imager_type_ = GetCameraType(this->pcic_port_);
 
   NODELET_INFO_ONCE("Imager type current: %s, default %s", imager_type_.c_str(), "3D");
   NODELET_DEBUG_STREAM("setup ros node parameters finished");
@@ -610,10 +603,7 @@ std::string ifm3d_ros::CameraNodelet::GetCameraType(std::uint16_t pcic_port)
 {
   std::lock_guard<std::mutex> lock(this->mutex_);
 
-  this->cam_ = ifm3d::Device::MakeShared(this->camera_ip_, this->xmlrpc_port_);
-  ros::Duration(1.0).sleep();
-
-  ifm3d::O3R::Ptr cam_O3R = std::static_pointer_cast<ifm3d::O3R>(cam_);
+  auto cam_O3R = std::make_shared<ifm3d::O3R>(this->camera_ip_, this->xmlrpc_port_);
   std::vector<ifm3d::PortInfo> ports_vector_ = cam_O3R->Ports();
 
   int port_arg = static_cast<int>(this->pcic_port_) % 50010;
@@ -835,17 +825,6 @@ bool ifm3d_ros::CameraNodelet::StartStream()
   NODELET_DEBUG_STREAM("Start streaming frames");
   try
   {
-    if (strcmp(this->imager_type_.c_str(), "3D") == 0)
-    {
-      fg_->Start(this->schema_mask_default_3d_);
-      NODELET_INFO_STREAM("Framegabbber initialized with default 3D schema mask");
-    }
-
-    if (strcmp(this->imager_type_.c_str(), "2D") == 0)
-    {
-      fg_->Start(this->schema_mask_default_2d_);
-      NODELET_INFO_STREAM("Framegabbber initialized with default 2D schema mask");
-    }
     // need to implement a strategy for getting the imager type based on port information instead of ros_param input
 
     // XXX: need to implement a nice strategy for getting the actual times
@@ -863,14 +842,22 @@ bool ifm3d_ros::CameraNodelet::StartStream()
 
     if (strcmp(this->imager_type_.c_str(), "3D") == 0)
     {
+      fg_->Start(this->schema_mask_default_3d_);
+      NODELET_INFO_STREAM("Framegabbber initialized with default 3D schema mask");
       fg_->OnNewFrame(std::bind(&ifm3d_ros::CameraNodelet::Callback3D, this, std::placeholders::_1));
     }
 
-    if (strcmp(this->imager_type_.c_str(), "2D") == 0)
+    else if (strcmp(this->imager_type_.c_str(), "2D") == 0)
     {
+      fg_->Start(this->schema_mask_default_2d_);
+      NODELET_INFO_STREAM("Framegabbber initialized with default 2D schema mask");
       fg_->OnNewFrame(std::bind(&ifm3d_ros::CameraNodelet::Callback2D, this, std::placeholders::_1));
     }
 
+    else
+    {
+      NODELET_DEBUG_STREAM("Unknown imager type");
+    }
     this->last_frame_local_time_ = ros::Time::now();
 
   }

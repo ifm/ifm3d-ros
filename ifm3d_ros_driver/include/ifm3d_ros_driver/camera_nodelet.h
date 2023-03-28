@@ -72,7 +72,6 @@ private:
   std::uint16_t pcic_port_;
   std::string password_;
   std::string imager_type_;
-  std::string imager_type_req;
   ifm3d::TimePointT last_frame_time_;
   ros::Time last_frame_local_time_;
 
