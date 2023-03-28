@@ -87,60 +87,60 @@ RUN apt-get update && apt-get install -y nlohmann-json3-dev
 
 ADD . /home/ifm/catkin_ws/ifm3d-ros/src
 RUN cd /home/ifm/catkin_ws/ifm3d-ros/src
-RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make'
+RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make --only-pkg-with-deps ifm3d_ros_msgs'
+RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make  --only-pkg-with-deps ifm3d-ros'
 
 
+# multistage and switch to bare ros image
+ARG BASE_IMAGE
+ARG BASE_IMAGE_TAG
 
-# # multistage and switch to bare ros image
-# ARG BASE_IMAGE
-# ARG BASE_IMAGE_TAG
+FROM $BASE_IMAGE:$BASE_IMAGE_TAG
 
-# FROM $BASE_IMAGE:$BASE_IMAGE_TAG
+ARG DEBIAN_FRONTEND=noninteractive
+COPY --from=build /install/ /usr/
+COPY --from=build /home/ifm/catkin_ws/ /home/ifm/catkin_ws/
 
-# ARG DEBIAN_FRONTEND=noninteractive
-# COPY --from=build /install/ /usr/
-# COPY --from=build /home/ifm/catkin_ws/ /home/ifm/catkin_ws/
+ARG ROS_DISTRO=noetic
+ARG DEBIAN_FRONTEND=noninteractive
 
-# ARG ROS_DISTRO=noetic
-# ARG DEBIAN_FRONTEND=noninteractive
-
-# # Install runtime requirements
-# RUN apt-get update \
-#     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-#         libgoogle-glog0v5 \
-#         libxmlrpc-c++8v5 \
-#         locales \
-#         sudo \
-#     && rm -rf /var/lib/apt/lists/*
+# Install runtime requirements
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libgoogle-glog0v5 \
+        libxmlrpc-c++8v5 \
+        locales \
+        sudo \
+    && rm -rf /var/lib/apt/lists/*
 
 
-# # install additional run dependencies of ifm3d-ros
-# RUN apt-get update && apt-get install -y --no-install-recommends ros-${ROS_DISTRO}-nodelet \
-#     ros-${ROS_DISTRO}-tf2-ros \
-#     ros-${ROS_DISTRO}-robot=1.5.0-1* \
-#     ros-${ROS_DISTRO}-image-transport \
-#     && rm -rf /var/lib/apt/lists/* \
-#     && apt-get clean && rm -rf /var/lib/apt/lists/*s \
-#     && apt-get autoremove -y
-#     # && dpkg -r --force-depends perl-modules-5.30 gfortran-8 perl-modules-5.30 humanity-icon-theme \
-#     # && dpkg -r --force-depends libicu-dev \
-#     # && dpkg -r --force-depends libpython3.8-dev cmake-data libapr1-dev libgcc-7-dev \
-#     # libmysqlclient-dev libstdc++-7-dev libc6-dev cmake perl-modules-5.30 libpython3.8-dev libperl5.30 \
-#     # && dpkg -r --force-depends libgl1-mesa-dri
+# install additional run dependencies of ifm3d-ros
+RUN apt-get update && apt-get install -y --no-install-recommends ros-${ROS_DISTRO}-nodelet \
+    ros-${ROS_DISTRO}-tf2-ros \
+    ros-${ROS_DISTRO}-robot=1.5.0-1* \
+    ros-${ROS_DISTRO}-image-transport \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*s \
+    && apt-get autoremove -y
+    # && dpkg -r --force-depends perl-modules-5.30 gfortran-8 perl-modules-5.30 humanity-icon-theme \
+    # && dpkg -r --force-depends libicu-dev \
+    # && dpkg -r --force-depends libpython3.8-dev cmake-data libapr1-dev libgcc-7-dev \
+    # libmysqlclient-dev libstdc++-7-dev libc6-dev cmake perl-modules-5.30 libpython3.8-dev libperl5.30 \
+    # && dpkg -r --force-depends libgl1-mesa-dri
 
-# # Setup localisation
-# RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
-#     locale-gen en_US.UTF-8 && \
-#     /usr/sbin/update-locale LANG=en_US.UTF-8
+# Setup localisation
+RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
+    locale-gen en_US.UTF-8 && \
+    /usr/sbin/update-locale LANG=en_US.UTF-8
 
-# ENV LANG en_US.UTF-8
-# ENV LANGUAGE en_US:en
-# ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
-# # Create the rosuser user
-# RUN id rosuser 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U rosuser
-# RUN echo "rosuser ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/rosuser
+# Create the rosuser user
+RUN id rosuser 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U rosuser
+RUN echo "rosuser ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/rosuser
 
-# # USER rosuser
-# # COPY ./noetic/focal/ros_entrypoint.sh /
-# #  ENTRYPOINT [ "/ros-entrypoint.sh" ]
+# USER rosuser
+# COPY ./noetic/focal/ros_entrypoint.sh /
+#  ENTRYPOINT [ "/ros-entrypoint.sh" ]
