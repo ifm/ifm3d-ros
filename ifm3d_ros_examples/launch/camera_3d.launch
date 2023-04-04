@@ -16,11 +16,10 @@
   <arg name="confidence_image_stream" default="true" doc="Enable confidence image streaming for 3D camera camera streams." />
   <arg name="radial_distance_image_stream" default="true" doc="Enable radial distance image streaming for 3D camera camera streams." />
   <arg name="radial_distance_noise_stream" default="true" doc="Enable distance noise image streaming for 3D camera camera streams." />
-  <arg name="norm_amplitude_image_stream" default="true" doc="Enable normalized amplitude image streaming for 3D camera camera streams." />
   <arg name="amplitude_image_stream" default="true" doc="Enable amplitude image streaming for 3D camera camera streams." />
   <arg name="extrinsic_image_stream" default="true" doc="Enable extrinsic values streaming for 3D camera camera streams." />
-  <arg name="intrinsic_image_stream" default="true" doc="Enable intrinsic values streaming for 3D camera camera streams." />
-  <arg name="rgb_image_stream" default="true" doc="Enable rgb image streaming for 3D camera camera streams." />
+  <arg name="intrinsic_image_stream" default="false" doc="Enable intrinsic values streaming for 3D camera camera streams." />
+  <arg name="rgb_image_stream" default="false" doc="Enable rgb image streaming for 3D camera camera streams." />
 
   <include ns="$(arg namespace)" file="$(find ifm3d_ros_driver)/launch/nodelet.launch">
     <arg name="camera" value="$(arg nodelet_name)"/>
@@ -33,18 +32,15 @@
     <arg name="frame_id_base" value="$(arg namespace)/$(arg nodelet_name)" />
     <arg name="respawn" value="$(arg respawn)"/>
     <arg name="assume_sw_triggered" value="$(arg assume_sw_triggered)"/>
-
     <!-- configure VPU (IPC) available data streams -->
     <arg name="xyz_image_stream" value="$(arg xyz_image_stream)"/>
     <arg name="confidence_image_stream" value="$(arg confidence_image_stream)"/>"
     <arg name="radial_distance_image_stream" value="$(arg radial_distance_image_stream)"/>"
     <arg name="radial_distance_noise_stream" value="$(arg radial_distance_noise_stream)"/>"
-    <arg name="norm_amplitude_image_stream" value="$(arg norm_amplitude_image_stream)"/>"
     <arg name="amplitude_image_stream" value="$(arg amplitude_image_stream)"/>"
     <arg name="extrinsic_image_stream" value="$(arg extrinsic_image_stream)"/>"
     <arg name="intrinsic_image_stream" value="$(arg intrinsic_image_stream)"/>"
     <arg name="rgb_image_stream" value="$(arg rgb_image_stream)"/>"
-
   </include>
 
 </launch>

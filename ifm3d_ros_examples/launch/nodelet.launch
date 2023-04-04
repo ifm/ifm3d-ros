@@ -7,6 +7,7 @@
   <arg name="xmlrpc_port" default="80" doc="The TCP port the camera's xmlrpc server is listening on for requests."/>
   <arg name="pcic_port" default="50010" doc="The TCP (data) port the camera's pcic server is listening on for requests."/>
   <arg name="password" default="" doc="The password required to establish an edit session on the VPU"/>
+  <arg name="imager_type" default="3D" doc="The imager type of the requested camera head"/>
   <arg name="timeout_millis" default="500" doc="The number of milliseconds to wait for the framegrabber to return new frame data before declaring a &quot;timeout&quot; and to stop blocking on new data."/>
   <arg name="timeout_tolerance_secs" default="5.0" doc="The wall time to wait with no new data from the camera before trying to establish a new connection to the camera. This helps to provide robustness against camera cables becoming unplugged or other in-field pathologies which would cause the connection between the ROS node and the camera to be broken."/>
   <arg name="respawn" default="false" doc="Restart the node automatically if it quits."/>
@@ -16,11 +17,10 @@
   <arg name="confidence_image_stream" default="true" doc="Enable confidence image streaming for 3D camera camera streams." />
   <arg name="radial_distance_image_stream" default="true" doc="Enable radial distance image streaming for 3D camera camera streams." />
   <arg name="radial_distance_noise_stream" default="true" doc="Enable distance noise image streaming for 3D camera camera streams." />
-  <arg name="norm_amplitude_image_stream" default="true" doc="Enable normalized amplitude image streaming for 3D camera camera streams." />
   <arg name="amplitude_image_stream" default="true" doc="Enable amplitude image streaming for 3D camera camera streams." />
   <arg name="extrinsic_image_stream" default="true" doc="Enable extrinsic values streaming for 3D camera camera streams." />
-  <arg name="intrinsic_image_stream" default="true" doc="Enable intrinsic values streaming for 3D camera camera streams." />
-  <arg name="rgb_image_stream" default="true" doc="Enable rgb image streaming for 3D camera camera streams." />
+  <arg name="intrinsic_image_stream" default="false" doc="Enable intrinsic values streaming for 3D camera camera streams." />
+  <arg name="rgb_image_stream" default="false" doc="Enable rgb image streaming for 3D camera camera streams." />
 
   <node pkg="nodelet"
         type="nodelet"
@@ -46,7 +46,7 @@
       #
       # The on-camera TCP port that the XMLRPC server is listening to
       #
-      xmlrpc_port: $(arg xmlrpc_port)
+      xmlrpc_port: "$(arg xmlrpc_port)"
 
       #
       # The on-camera TCP port that the PCIC server is listening to
@@ -58,6 +58,10 @@
       #
       password: "$(arg password)"
 
+      #
+      # The imager type of the requested camera head
+      #
+      imager_type: "$(arg imager_type)"
 
       #
       # The number of milliseconds to wait for a frame before declaring a
@@ -93,14 +97,55 @@
       #
       frame_latency_thresh: 60.0
 
+
+      #
+      # Streaming of the XYZ point cloud image via the ros node
+      #
+      xyz_image_stream: $(arg xyz_image_stream)
+
+      #
+      # Streaming of the confidence image via ros node
+      #
+      confidence_image_stream: $(arg confidence_image_stream)
+
+      #
+      # Streaming of the radial distance image via ros node
+      #
+      radial_distance_image_stream: $(arg radial_distance_image_stream)
+
+      #
+      # Streaming of the distance noise image via ros node
+      #
+      radial_distance_noise_stream: $(arg radial_distance_noise_stream)
+
+      #
+      # Streaming of the amplitude image via ros node
+      #
+      amplitude_image_stream: $(arg amplitude_image_stream)
+
+      #
+      # Streaming of the extrinsics parameters via ros node
+      #
+      extrinsic_image_stream: $(arg extrinsic_image_stream)
+
+      #
+      # Streaming of the intrinsics parameters via ros node
+      #
+      intrinsic_image_stream: $(arg intrinsic_image_stream)
+
+      #
+      # Streaming of the 2D RGB image via ros node
+      #
+      rgb_image_stream: $(arg rgb_image_stream)
+
+
+
       #
       # Get rid of the errors when running `rosbag -a'
       #
       distance/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
       amplitude/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
-      raw_amplitude/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
       confidence/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
-      good_bad_pixels/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
       xyz_image/disable_pub_plugins: ['image_transport/compressedDepth', 'image_transport/theora']
     </rosparam>
 
@@ -111,15 +156,14 @@
     <param name="timeout_tolerance_secs" value="600.0" if="$(arg assume_sw_triggered)"/>
 
     <!-- configure VPU (IPC) available data streams -->
-    <arg name="xyz_image_stream" value="$(arg xyz_image_stream)"/>
-    <arg name="confidence_image_stream" value="$(arg confidence_image_stream)"/>"
-    <arg name="radial_distance_image_stream" value="$(arg radial_distance_image_stream)"/>"
-    <arg name="radial_distance_noise_stream" value="$(arg radial_distance_noise_stream)"/>"
-    <arg name="norm_amplitude_image_stream" value="$(arg norm_amplitude_image_stream)"/>"
-    <arg name="amplitude_image_stream" value="$(arg amplitude_image_stream)"/>"
-    <arg name="extrinsic_image_stream" value="$(arg extrinsic_image_stream)"/>"
-    <arg name="intrinsic_image_stream" value="$(arg intrinsic_image_stream)"/>"
-    <arg name="rgb_image_stream" value="$(arg rgb_image_stream)"/>"
+    <param name="xyz_image_stream" value="$(arg xyz_image_stream)"/>
+    <param name="confidence_image_stream" value="$(arg confidence_image_stream)"/>"
+    <param name="radial_distance_image_stream" value="$(arg radial_distance_image_stream)"/>"
+    <param name="radial_distance_noise_stream" value="$(arg radial_distance_noise_stream)"/>"
+    <param name="amplitude_image_stream" value="$(arg amplitude_image_stream)"/>"
+    <param name="extrinsic_image_stream" value="$(arg extrinsic_image_stream)"/>"
+    <param name="intrinsic_image_stream" value="$(arg intrinsic_image_stream)"/>"
+    <param name="rgb_image_stream" value="$(arg rgb_image_stream)"/>"
 
   </node>
 
