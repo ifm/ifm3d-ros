@@ -1,130 +1,90 @@
-ARG BASE_IMAGE
-ARG BASE_IMAGE_TAG
-FROM $BASE_IMAGE:$BASE_IMAGE_TAG AS build
+ARG ARCH="amd64"
+ARG BASE_IMAGE="amd64/ros"
+ARG BUILD_IMAGE_TAG="noetic"
+ARG FINAL_IMAGE_TAG="noetic-ros-core"
+ARG IFM3D_VERSION="1.2.6"
+ARG IFM3D_ROS2_REPO="https://github.com/ifm/ifm3d-ros.git"
+ARG IFM3D_ROS2_BRANCH="master"
+ARG UBUNTU_VERSION="20.04"
 
-ARG ROS_DISTRO=noetic
-ARG LSB_RELEASE=focal
-ARG CMAKE_VERSION=3.20.6
-ARG IFM3D_TAG=tags/v1.2.3
+FROM ${BASE_IMAGE}:${BUILD_IMAGE_TAG} AS build
+ARG IFM3D_VERSION
+ARG IFM3D_ROS_REPO
+ARG IFM3D_ROS_BRANCH
+ARG ARCH
+ARG UBUNTU_VERSION
 
 # Create the ifm user
 RUN id ifm 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U ifm
 WORKDIR /home/ifm
 
+# Dependencies for both ifm3d and ifm3d-ros2
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     git \
     jq \
-    libcurl4-openssl-dev \
-    libgtest-dev libgoogle-glog-dev  \
     libxmlrpc-c++8-dev \
     libproj-dev \
     build-essential \
     coreutils \
     cmake \
-    ninja-build \
     wget \
-    libssl-dev\
-    libboost-all-dev
+    libssl-dev \
+    libgoogle-glog-dev \
+    libgoogle-glog0v5 \
+    python3-rosdep
 
-RUN apt-get clean
+# Install ifm3d using the deb files
+RUN mkdir /home/ifm/ifm3d
+ADD https://github.com/ifm/ifm3d/releases/download/v${IFM3D_VERSION}/ifm3d-ubuntu-${UBUNTU_VERSION}-${ARCH}-debs_${IFM3D_VERSION}.tar /home/ifm/ifm3d
+RUN cd /home/ifm/ifm3d &&\
+    tar -xf ifm3d-ubuntu-${UBUNTU_VERSION}-${ARCH}-debs_${IFM3D_VERSION}.tar &&  \
+    dpkg -i *.deb
 
-# Install cmake
-RUN wget -O - "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -i).tar.gz" \
-    | tar -xz --strip-components=1 -C /usr
+# Clone and build ifm3d-ros repo
+SHELL ["/bin/bash", "-c"]
+# RUN mkdir -p /home/ifm/catkin_ws/src && \
+#     cd /home/ifm/catkin_ws/src && \
+    # git clone ${IFM3D_ROS_REPO} -b ${IFM3D_ROS_BRANCH} --single-branch 
+ADD . /home/ifm/catkin_ws/src
+RUN cd /home/ifm/catkin_ws && \
+    rosdep update --rosdistro=${ROS_DISTRO} && \
+    rosdep install --from-path src -y --ignore-src
 
+RUN cd /home/ifm/catkin_ws && \
+    source /opt/ros/${ROS_DISTRO}/setup.bash && \
+    catkin_make
 
-# clone and install ifm3d frmom tag
-ARG IFM3D_CLONE_REPO
-
-# | Flag name | Description | Default value |
-# | --------- | ----------- | ------------- |
-# | BUILD_MODULE_FRAMEGRABBER | Build the framegrabber module | ON |
-# | BUILD_MODULE_STLIMAGE | Build the stl image module (Only relies on standard c++ libraries) | OFF |
-# | BUILD_MODULE_IMAGE **DEPRECATED**| Build the image module (Depends on OpenCV and PCL) | OFF |
-# | BUILD_MODULE_OPENCV **DEPRECATED**| Build the OpenCV-only image container | OFF |
-# | BUILD_MODULE_TOOLS | Build the command-line utility | ON |
-# | BUILD_IN_DEPS | Download and build dependencies | ON |
-# | BUILD_MODULE_PYBIND11 | Build the ifm3dpy python package (it can also be installed directly through `pip`) | OFF |
-# | USE_LEGACY_COORDINATES | Use the legacy coordinates (ifm3d <= 0.92.x) with swapped axis | OFF |
-# | BUILD_MODULE_SWUPDATER | Build the swupdater module | ON |
-# | BUILD_SDK_PKG | Build install packages for development purposes | ON |
-# | FORCE_OPENCV3 | Force the build to require OpenCV 3 | OFF |
-# | FORCE_OPENCV2 | Force the build to require OpenCV 2.4 | OFF |
-# | BUILD_SHARED_LIBS | Build modules as shared libraries | ON |
-# | BUILD_EXAMPLES | Build the examples | OFF |
-# | BUILD_DOC | Build documentation | OFF |
-# | BUILD_TESTS | Build unit tests | ON
-# | BUILD_MODULE_PCICCLIENT | Build the pcicclient module | OFF |
-
-RUN cd /home/ifm/ \
-    && git clone ${IFM3D_CLONE_REPO} ifm3d \
-    && mkdir -p /home/ifm/ifm3d/build \
-    && cd /home/ifm/ifm3d/build \
-    && cmake -GNinja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/install \
-    -DBUILD_MODULE_OPENCV=OFF \
-    -DBUILD_MODULE_PCICCLIENT=ON \
-    -DBUILD_MODULE_PYBIND11=OFF \
-    -DBUILD_MODULE_TOOLS=ON\
-    -DBUILD_MODULE_SWUPDATER=OFF\
-    -DBUILD_SDK_PKG=ON\
-    -DBUILD_EXAMPLES=OFF\
-    -DBUILD_TESTS=OFF\
-    .. \
-    && cmake --build . \
-    && cmake --build . --target install
-
-RUN cp -r /install/* /usr
-
-
-# Initialize catkin workspace
-RUN mkdir -p catkin_ws/ifm3d-ros/src
-RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros/src; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace'
-
-ADD . /home/ifm/catkin_ws/ifm3d-ros/src
-RUN cd /home/ifm/catkin_ws/ifm3d-ros/src
-RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make --only-pkg-with-deps ifm3d_ros_msgs'
-RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make  --only-pkg-with-deps ifm3d-ros'
-
-
-# multistage and switch to bare ros image
+# Multistage build to reduce image size
 ARG BASE_IMAGE
-ARG BASE_IMAGE_TAG
+FROM ${BASE_IMAGE}:${FINAL_IMAGE_TAG}
+# Copy files built in previous stage
+COPY --from=build /home/ifm/catkin_ws /home/ifm/catkin_ws
+COPY --from=build /home/ifm/ifm3d/*.deb /home/ifm/ifm3d/
+WORKDIR /home/ifm
 
-FROM $BASE_IMAGE:$BASE_IMAGE_TAG
-
+# Install ifm3d and ifm3d-ros2 runtime dependencies
 ARG DEBIAN_FRONTEND=noninteractive
-COPY --from=build /install/ /usr/
-COPY --from=build /home/ifm/catkin_ws/ /home/ifm/catkin_ws/
-
-ARG ROS_DISTRO=noetic
-ARG DEBIAN_FRONTEND=noninteractive
-
-# Install runtime requirements
 RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        libgoogle-glog0v5 \
-        libxmlrpc-c++8v5 \
-        locales \
-        sudo \
+    && apt-get install -y --no-install-recommends \
+    libxmlrpc-c++8v5 \
+    locales \
+    sudo \
+    libssl-dev \
+    libgoogle-glog0v5 \    
+    libboost-all-dev \
+    python3-rosdep \
     && rm -rf /var/lib/apt/lists/*
 
+# Install ifm3d
+RUN cd /home/ifm/ifm3d &&\
+    dpkg -i *.deb
 
-# install additional run dependencies of ifm3d-ros
-RUN apt-get update && apt-get install -y --no-install-recommends ros-${ROS_DISTRO}-nodelet \
-    ros-${ROS_DISTRO}-tf2-ros \
-    ros-${ROS_DISTRO}-robot=1.5.0-1* \
-    ros-${ROS_DISTRO}-image-transport \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*s \
-    && apt-get autoremove -y
-    # && dpkg -r --force-depends perl-modules-5.30 gfortran-8 perl-modules-5.30 humanity-icon-theme \
-    # && dpkg -r --force-depends libicu-dev \
-    # && dpkg -r --force-depends libpython3.8-dev cmake-data libapr1-dev libgcc-7-dev \
-    # libmysqlclient-dev libstdc++-7-dev libc6-dev cmake perl-modules-5.30 libpython3.8-dev libperl5.30 \
-    # && dpkg -r --force-depends libgl1-mesa-dri
+RUN cd /home/ifm/catkin_ws && \
+    apt-get update && \
+    rosdep init && \
+    rosdep update --rosdistro=${ROS_DISTRO} && \
+    rosdep install --from-path src -y --ignore-src
 
 # Setup localisation
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
@@ -135,10 +95,4 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Create the rosuser user
-RUN id rosuser 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U rosuser
-RUN echo "rosuser ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/rosuser
-
-# USER rosuser
-# COPY ./noetic/focal/ros_entrypoint.sh /
-#  ENTRYPOINT [ "/ros-entrypoint.sh" ]
+# NOTE: Make sure to run export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
