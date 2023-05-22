@@ -903,6 +903,7 @@ void ifm3d_ros::CameraNodelet::Run()
           NODELET_WARN_ONCE("Could not re-initialize pixel stream!");
           ros::Duration(1.0).sleep();
         }
+        this->StartStream();
       }
     }
     else
