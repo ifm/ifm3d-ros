@@ -827,13 +827,11 @@ bool ifm3d_ros::CameraNodelet::StartStream()
   NODELET_INFO_STREAM("Start streaming frames");
   try
   {
-
-
     // need to implement a nice strategy for getting the actual times
     // from the camera which are registered to the frame data in the image
     // buffer.
 
-    NODELET_INFO_STREAM("prepare header");
+    NODELET_DEBUG_STREAM("prepare header");
     this->head = std_msgs::Header();
     this->head.frame_id = this->frame_id_;
     this->head.stamp = ros::Time::now();
@@ -845,14 +843,14 @@ bool ifm3d_ros::CameraNodelet::StartStream()
     if (strcmp(this->imager_type_.c_str(), "3D") == 0)
     {
       fg_->Start(this->schema_mask_default_3d_);
-      NODELET_INFO_STREAM("Framegabbber initialized with default 3D schema mask");
+      NODELET_DEBUG_STREAM("Framegabbber initialized with default 3D schema mask");
       fg_->OnNewFrame(std::bind(&ifm3d_ros::CameraNodelet::Callback3D, this, std::placeholders::_1));
     }
 
     else if (strcmp(this->imager_type_.c_str(), "2D") == 0)
     {
       fg_->Start(this->schema_mask_default_2d_);
-      NODELET_INFO_STREAM("Framegabbber initialized with default 2D schema mask");
+      NODELET_DEBUG_STREAM("Framegabbber initialized with default 2D schema mask");
       fg_->OnNewFrame(std::bind(&ifm3d_ros::CameraNodelet::Callback2D, this, std::placeholders::_1));
     }
 
