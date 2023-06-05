@@ -2,9 +2,9 @@
 <package format="2">
 
   <name>ifm3d</name>
-  <version>0.7.0</version>
+  <version>0.7.1</version>
   <description>ifm pmd-based 3D ToF Camera ROS package</description>
-  <maintainer email="sean.kelly@ifm.com">Sean Kelly</maintainer>
+  <maintainer email="support.robotics@ifm.com">Sean Kelly</maintainer>
   <license>Apache 2</license>
   <author email="tom@boxrobotics.ai">Tom Panzarella</author>
 

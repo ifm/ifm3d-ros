@@ -64,12 +64,17 @@ Software Compatibility Matrix
     <td>0.11.2, 0.12.0, 0.17.0</td>
     <td>Kinetic, Melodic</td>
   </tr>
+   <tr>
+    <td>0.7.1</td>
+    <td>0.20.3</td>
+    <td>Melodic, Noetic</td>
+  </tr> 
 </table>
 
 Building and Installing the Software
 ====================================
 
-1. Preparing your system: [Kinetic](doc/kinetic.md), [Melodic](doc/melodic.md)
+1. Preparing your system: [Melodic](doc/melodic.md), [Noetic](doc/noetic.md)
 2. [Installing the ROS node](doc/building.md)
 
 ROS Interface
@@ -90,7 +95,8 @@ $ roslaunch ifm3d camera.launch
 We note, the above command is equivalent to the following and is used for
 purposes of providing a backward compatible interface to versions of
 `ifm3d-ros` prior to the conversion to a nodelet architecture:
-
+**NOTE:**
+For the O3X1XX cameras, the PCIC connections are limited to only one. Therefore if ifmVisionAssistant is running then you cannot able to launch the camera node.
 ```
 $ roslaunch ifm3d nodelet.launch __ns:=ifm3d
 ```
@@ -395,6 +401,25 @@ None.
   </tr>
 </table>
 
+Docker Images
+=======================
+
+To build the docker image based on your OS and OS architecture, chose the respective Dockerfile in `docker` directory.
+
+**To build the image**
+
+Execute the shell script `build.sh` which automatically starts building the Docker image.
+
+
+After the successful build, run the container by executing the following command.
+```sh
+$ docker run -ti --network=host ifm3d-ros:melodic-x86_64
+```
+The above command runs the docker container in interactive mode and you can launch the camera node by executing the following command in a docker container.
+
+```sh
+$ roslaunch ifm3d camera.launch
+```
 
 Additional Documentation
 ========================
@@ -406,3 +431,9 @@ LICENSE
 -------
 
 Please see the file called [LICENSE](LICENSE).
+
+### FAQ
+
+1. Does the schema mask value has any effect on data streaming?
+    
+    A: Schema mask value has no affect on stream as the UVECs will be always latched along.
