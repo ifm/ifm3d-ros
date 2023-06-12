@@ -1,5 +1,4 @@
-
-Building and Installing the ifm3d-ros Package
+# Building and Installing the ifm3d-ros Package
 ---------------------------------------------
 
 ### Prerequisites
@@ -16,30 +15,22 @@ or
 
 ### Step-by-Step Build Instructions
 
-Step-by-step instructions on getting a fresh installation of Ubuntu and ROS
-prepared for usage with `ifm3d-ros` is available at the following links:
-* [Ubuntu 16.04 with ROS Kinetic](kinetic.md)
+Step-by-step instructions on getting a fresh installation of Ubuntu and ROS prepared for usage with `ifm3d-ros` are available at the following links:
 * [Ubuntu 18.04 with ROS Melodic](melodic.md)
+* [Ubuntu 20.04 with ROS Noetic](noetic.md)
 
-Building and installing ifm3d-ros is accomplished by utilizing the ROS
-[catkin](http://wiki.ros.org/catkin) tool. There are many tutorials and other
-pieces of advice available on-line advising how to most effectively utilize
-catkin. However, the basic idea is to provide a clean separation between your
-source code repository and your build and runtime environments. The
-instructions that now follow represent how we choose to use catkin to build and
-_permanently install_ a ROS package from source.
+Building and installing ifm3d-ros is accomplished by utilizing the ROS [catkin](http://wiki.ros.org/catkin) tool. There are many tutorials and other 
+pieces of advice available on-line advising how to most effectively utilize catkin. However, the basic idea is to provide a clean separation between your source code repository and your build and runtime environments. The instructions that now follow represent how we choose to use catkin to build and _permanently install_ a ROS package from source.
 
-First, we need to decide where we want our software to ultimately be
-installed. For purposes of this document, we will assume that we will install
-our ROS packages at `~/ros`. For convenience, we add the following to our
-`~/.bashrc`:
+First, we need to decide where we want our software to ultimately be installed. For purposes of this document, we will assume that we will install
+our ROS packages at `~/ros`. For convenience, we add the following to our `~/.bashrc`:
 
-NOTE: Below we assume `kinetic`. Adapting to `melodic` is left as an exercise
+NOTE: Below we assume `melodic`. Adapting to `noetic` is left as an exercise
 for the reader.
 
 ```
-if [ -f /opt/ros/kinetic/setup.bash ]; then
-  source /opt/ros/kinetic/setup.bash
+if [ -f /opt/ros/melodic/setup.bash ]; then
+  source /opt/ros/melodic/setup.bash
 fi
 
 cd ${HOME}
@@ -57,17 +48,14 @@ if [ -d ${LPR_ROS} ]; then
 fi
 ```
 
-Next, we need to get the code from github. We assume we keep all of our git
-repositories in `~/dev`.
+Next, we need to get the code from github. We assume we keep all of our git repositories in `~/dev`.
 
 ```
 $ cd ~/dev
-$ git clone https://github.com/lovepark/ifm3d-ros.git
+$ git clone https://github.com/ifm/ifm3d-ros.git -b v0.7.1 --single-branch 
 ```
 
-We now have the code in `~/dev/ifm3d-ros`. Next, we want to create a _catkin
-workspace_ that we can use to build and install that code from. It is the
-catkin philosophy that we do not do this directly in the source directory.
+We now have the code in `~/dev/ifm3d-ros`. Next, we want to create a `catkin_workspace` that we can use to build and install that code. It is the catkin philosophy that we do not do this directly in the source directory.
 
 ```
 $ cd ~/catkin
@@ -84,14 +72,14 @@ looks basically like:
 
 ```
 [ ~/catkin/ifm3d/src ]
-tpanzarella@tuna: $ pwd
-/home/tpanzarella/catkin/ifm3d/src
+user@host: $ pwd
+/home/xxxxxxx/catkin/ifm3d/src
 
 [ ~/catkin/ifm3d/src ]
-tpanzarella@tuna: $ ls -l
+user@host: $ ls -l
 total 0
-lrwxrwxrwx 1 tpanzarella tpanzarella 50 Mar 26 15:16 CMakeLists.txt -> /opt/ros/kinetic/share/catkin/cmake/toplevel.cmake
-lrwxrwxrwx 1 tpanzarella tpanzarella 31 Mar 26 15:16 ifm3d -> /home/tpanzarella/dev/ifm3d-ros
+lrwxrwxrwx 1 xxxxxxx xxxxxxxxx 50 Mar 26 15:16 CMakeLists.txt -> /opt/ros/melodic/share/catkin/cmake/toplevel.cmake
+lrwxrwxrwx 1 xxxxxxx xxxxxxxxx 31 Mar 26 15:16 ifm3d -> /home/xxxxxxx/dev/ifm3d-ros
 ```
 
 Now we are ready to build the code.
@@ -99,7 +87,6 @@ Now we are ready to build the code.
 ```
 $ cd ~/catkin/ifm3d
 $ catkin_make -DCATKIN_ENABLE_TESTING=ON
-$ catkin_make run_tests
 $ catkin_make -DCMAKE_INSTALL_PREFIX=${LPR_ROS}/ifm3d install
 ```
 

@@ -1,17 +1,9 @@
 ifm3d-ros on Ubuntu 20.04 and ROS Noetic
 -----------------------------------------
 
-NOTE: The instructions below only apply if you plan to install `ifm3d` from
-source. You can, as of version 0.12.0, install `ifm3d` from binary
-debs. Instructions for that are located at the main
-[ifm3d project page](https://github.com/ifm/ifm3d).
+NOTE: The instructions below only apply if you plan to install `ifm3d` from the source. You can, as of version 0.12.0, install `ifm3d` from binary debs. Instructions for that are located at the main [ifm3d project page](https://github.com/ifm/ifm3d).
 
-
-This article provides a quick-start guide for getting a fresh install of Ubuntu
-20.04 ready for usage with `ifm3d-ros` and an O3D camera. As a pre-requisite
-for this article, we assume you already have Ubuntu 20.04 installed (but have
-done no other configuration). A *minimal* install of 20.04 is sufficient for
-following along below.
+This article provides a quick-start guide for getting a fresh install of Ubuntu 20.04 ready for usage with `ifm3d-ros` and an O3D/O3X camera. As a pre-requisite for this article, we assume you already have Ubuntu 20.04 installed (but have done no other configuration). A *minimal* install of 20.04 is sufficient for following along below.
 
 ### Update the Baseline Packages of your Ubuntu 20.04 Install
 
@@ -22,43 +14,49 @@ $ sudo apt-get -u upgrade
 
 ### Install ROS Noetic
 
-You should now follow
-[these steps](http://wiki.ros.org/noetic/Installation/Ubuntu) exactly (we
-assume you did) and that you chose to install `ros-noetic-desktop-full`. Go do
-that now, then continue on.
+You should now follow [these steps](http://wiki.ros.org/noetic/Installation/Ubuntu) exactly (we 
+assume you did) and that you chose to install `ros-noetic-desktop-full`. Go do that now, then continue on.
 
 ### Additional Dependencies
 
-There are a few things that we need to install to successfully build from a source that we did not get implicitly by installing ROS. The following commands
-will handle these pre-requisites:
+There are a few things that we need to install to successfully build from a source that we did not get implicitly by installing ROS. The following commands will handle these pre-requisites:
 
 ```
-$ sudo apt-get install libxmlrpc-c++8-dev
-$ sudo apt-get install libgoogle-glog-dev
+$ sudo apt-get install -y libxmlrpc-c++8-dev \
+ libgoogle-glog-dev \
+ libcurl4-openssl-dev \
+ libboost-all-dev \
+ cmake \
+ libgtest-dev \
+ libopencv-dev \
+ libpcl-dev \
+ libproj-dev \
+ locales \
+ ninja-build \
+ wget \
+ gpg
 ```
 
 ### Install ifm3d
 
-[ifm3d](https://github.com/lovepark/ifm3d) is the core underlying C++ driver
+[ifm3d](https://github.com/ifm/ifm3d) is the core underlying C++ driver
 that `ifm3d-ros` wraps. We need to install that now. We assume you keep all of
 your source code in `~/dev`.
 
 ```
 $ mkdir ~/dev
 $ cd ~/dev
-$ git clone https://github.com/lovepark/ifm3d.git
+$ git clone https://github.com/ifm/ifm3d ifm3d
 $ cd ifm3d
+$ git checkout tags/v0.20.3
 $ mkdir build
 $ cd build
-$ cmake -DCMAKE_INSTALL_PREFIX=/usr ..
-$ make
-$ make check
-$ make package
-$ make repackage
-$ sudo dpkg -i ifm3d_0.20.3_amd64-camera.deb
-$ sudo dpkg -i ifm3d_0.20.3_amd64-framegrabber.deb
-$ sudo dpkg -i ifm3d_0.20.3_amd64-image.deb
-$ sudo dpkg -i ifm3d_0.20.3_amd64-tools.deb
+$ cmake -GNinja cmake \
+    -DCMAKE_INSTALL_PREFIX=/install \
+    -DBUILD_MODULE_IMAGE=ON \
+    -DBUILD_IN_DEPS=OFF
+$ cmake --build
+$ cmake --build . --target install
 ```
 
 You are now in a position to install `ifm3d-ros`. Those instructions are
