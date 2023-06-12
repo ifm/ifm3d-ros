@@ -95,8 +95,9 @@ $ roslaunch ifm3d camera.launch
 We note, the above command is equivalent to the following and is used for
 purposes of providing a backward compatible interface to versions of
 `ifm3d-ros` prior to the conversion to a nodelet architecture:
+
 **NOTE:**
-For the O3X1XX cameras, the PCIC connections are limited to only one. Therefore if ifmVisionAssistant is running then you cannot able to launch the camera node.
+For the O3X1xx cameras, the PCIC connections are limited to only one. Therefore if there is already an active session established via ifmVisionAssistant then it is not possible to launch the camera node because the PCIC connection is currently picked up by iVA.
 ```
 $ roslaunch ifm3d nodelet.launch __ns:=ifm3d
 ```
@@ -434,6 +435,6 @@ Please see the file called [LICENSE](LICENSE).
 
 ### FAQ
 
-1. Does the schema mask value has any effect on data streaming?
+1. Does the schema mask value have any effect on UVEC's data streaming?
     
-    A: Schema mask value has no affect on stream as the UVECs will be always latched along.
+    A: Schema mask value has no effect on streaming UVECs because the UVEC's will be always latched along.

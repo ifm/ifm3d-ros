@@ -1,10 +1,12 @@
-FROM ros:noetic-perception AS build
-
-ARG ROS_DISTRO=noetic
-ARG LSB_RELEASE=focal
+ARG BASE_IMAGE
+ARG ROS_DISTRO
+ARG LSB_RELEASE
 ARG CMAKE_VERSION=3.20.6
-ARG IFM3D_TAG=tags/v0.20.3
-ARG IFM3D_ROS_BRANCH="v0.7.1"
+ARG IFM3D_TAG
+ARG IFM3D_ROS_BRANCH
+
+FROM ${BASE_IMAGE} AS build
+
 # Create the ifm user
 RUN id ifm 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U ifm
 WORKDIR /home/ifm
@@ -36,7 +38,7 @@ RUN wget -O - "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSI
     | tar -xz --strip-components=1 -C /usr
 
 
-# clone and install ifm3d frmom tag
+# First clone ifm3d repo
 ARG IFM3D_CLONE_REPO
 
 RUN mkdir src && \
@@ -54,11 +56,13 @@ RUN mkdir src && \
     cmake --build . && \
     cmake --build . --target install
 
-# copy ifm3d from install location to /usr
+# copy ifm from install location to /usr
 RUN cp -r /install/* /usr/
 
-# Initialize catkin workspace
+# use the first build stage to also compile the ros package as it has shared dependencies as ifm3d
 RUN mkdir -p catkin_ws/ifm3d-ros/src
+
+# Initialize catkin workspace
 RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros/src; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace'
 
 # Clone and build ifm3d-ros repo
@@ -68,18 +72,17 @@ RUN cd /home/ifm/catkin_ws/ifm3d-ros/src && \
 
 RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make'
 
-# # create a temporary install location for catkin packages
 RUN mkdir -p /home/ifm/catkin_ws/ifm3d-ros/
 RUN /bin/bash -c 'cd /home/ifm/catkin_ws/ifm3d-ros/; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make install -DCMAKE_INSTALL_PREFIX=/home/ifm/catkin_ws/ifm3d-ros/install'
 
-# multistage and switch to bare ros image
-FROM ros:noetic-ros-core
+
+FROM ros:melodic-ros-core
 
 ARG DEBIAN_FRONTEND=noninteractive
 COPY --from=build /install/ /usr/
 COPY --from=build /home/ifm/catkin_ws/ /home/ifm/catkin_ws/
 
-ARG DEBIAN_FRONTEND=noninteractive
+WORKDIR /home/ifm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgoogle-glog0v5 \
@@ -90,19 +93,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean
 
 # install additional run dependencies of ifm3d-ros
-RUN apt-get update && apt-get install -y --no-install-recommends ros-${ROS_DISTRO}-nodelet \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-${ROS_DISTRO}-nodelet \
     ros-${ROS_DISTRO}-tf2-ros \
-    ros-${ROS_DISTRO}-robot=1.5.0-1* \
+    ros-${ROS_DISTRO}-robot\
     ros-${ROS_DISTRO}-image-transport \
     ros-${ROS_DISTRO}-cv-bridge \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean && rm -rf /var/lib/apt/lists/*s \
-    && apt-get autoremove -y \
-    && dpkg -r --force-depends perl-modules-5.30 gfortran-8 perl-modules-5.30 humanity-icon-theme \
-    && dpkg -r --force-depends libicu-dev \
-    && dpkg -r --force-depends libpython3.8-dev cmake-data libapr1-dev libgcc-7-dev \
-    libmysqlclient-dev libstdc++-7-dev libc6-dev cmake perl-modules-5.30 libpython3.8-dev libperl5.30 \
-    && dpkg -r --force-depends libgl1-mesa-dri
+    && apt-get autoremove -y
 
 # Setup localisation
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
@@ -118,5 +117,6 @@ RUN id rosuser 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U 
 RUN echo "rosuser ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/rosuser
 
 USER rosuser
+
 ADD ros-entrypoint.sh /ros-entrypoint.sh
 ENTRYPOINT [ "/ros-entrypoint.sh" ]
