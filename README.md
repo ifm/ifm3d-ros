@@ -1,6 +1,6 @@
 ifm3d-ros
 =========
-ifm3d-ros is a wrapper around [ifm3d](https://github.com/lovepark/ifm3d)
+ifm3d-ros is a wrapper around [ifm3d](https://github.com/ifm/ifm3d)
 enabling the usage of ifm pmd-based ToF cameras from within
 [ROS](http://ros.org) software systems.
 
@@ -68,7 +68,7 @@ Software Compatibility Matrix
     <td>0.7.1</td>
     <td>0.20.3</td>
     <td>Melodic, Noetic</td>
-  </tr> 
+  </tr>
 </table>
 
 Building and Installing the Software
@@ -126,7 +126,7 @@ node as follows:
 $ GLOG_minloglevel=3 roslaunch ifm3d camera.launch assume_sw_triggered:=true
 ```
 
-The incomatibility here is that in prior versions, one would not need to
+The incompatibility here is that in prior versions, one would not need to
 explicitly set the `GLOG_` environment variable. While not strictly necessary,
 it is recommended for keeping the noise level of the `ifm3d` logs low.
 
@@ -195,7 +195,7 @@ it is recommended for keeping the noise level of the `ifm3d` logs low.
       The pcic schema mask to apply to the active session with the frame
       grabber. This determines which images are available for publication from
       the camera. More about pcic schemas can be gleaned from the
-      <a href="https://github.com/lovepark/ifm3d">ifm3d</a> project.
+      <a href="https://github.com/ifm/ifm3d">ifm3d</a> project.
     </td>
   </tr>
   <tr>
@@ -335,7 +335,7 @@ it is recommended for keeping the noise level of the `ifm3d` logs low.
     <td>sensor_msgs/Image</td>
     <td>
       A 3-channel image encoding of the point cloud. Each of the three image
-      channels respesent a spatial data plane encoding the x, y, z cartesian
+      channels represent a spatial data plane encoding the x, y, z cartesian
       values respectively.
     </td>
   </tr>
@@ -436,5 +436,5 @@ Please see the file called [LICENSE](LICENSE).
 ### FAQ
 
 1. Does the schema mask value have any effect on UVEC's data streaming?
-    
+
     A: Schema mask value has no effect on streaming UVECs because the UVEC's will be always latched along.
