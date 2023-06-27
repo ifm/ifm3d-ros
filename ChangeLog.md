@@ -1,3 +1,11 @@
+## Changes between ifm3d-ros 0.6.2 and 0.7.1
+
+* Added Dockerfile for build instructions documentation and reproducible build environments
+* Updated maintainer email address
+* Updated O3X documentation
+* Updated to ifm3d version 0.20.3
+* Updated build instructions for ROS Melodic and ROS Noetic
+
 ## Changes between ifm3d-ros 0.6.1 and 0.6.2
 
 * Updated maintainer email address
