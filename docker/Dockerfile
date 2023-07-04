@@ -1,11 +1,12 @@
 ARG BASE_IMAGE
-ARG ROS_DISTRO
-ARG LSB_RELEASE
-ARG CMAKE_VERSION=3.20.6
-ARG IFM3D_TAG
-ARG IFM3D_ROS_BRANCH
 
 FROM ${BASE_IMAGE} AS build
+
+ARG ROS_DISTRO
+ARG IFM3D_TAG
+ARG IFM3D_ROS_BRANCH
+ARG IFM3D_ROS_CLONE_REPO=https://github.com/ifm/ifm3d-ros
+ARG IFM3D_CLONE_REPO=https://github.com/ifm/ifm3d
 
 # Create the ifm user
 RUN id ifm 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U ifm
@@ -33,19 +34,17 @@ RUN apt-get update && \
     gpg
 RUN apt-get clean
 
+ARG CMAKE_VERSION=3.20.6
 # Install cmake
 RUN wget -O - "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -i).tar.gz" \
     | tar -xz --strip-components=1 -C /usr
 
-
 # First clone ifm3d repo
-ARG IFM3D_CLONE_REPO
-
 RUN mkdir src && \
     cd src && \
     git clone ${IFM3D_CLONE_REPO} ifm3d && \
     cd ifm3d && \
-    git checkout ${IFM3D_TAG} && \
+    git checkout tags/v${IFM3D_TAG} && \
     echo "Building from tag ${IFM3D_TAG}" && \
     mkdir build && \
     cd build && \
@@ -66,9 +65,8 @@ RUN mkdir -p catkin_ws/ifm3d-ros/src
 RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros/src; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_init_workspace'
 
 # Clone and build ifm3d-ros repo
-ARG IFM3D_ROS_CLONE_REPO
 RUN cd /home/ifm/catkin_ws/ifm3d-ros/src && \
-    git clone ${IFM3D_ROS_CLONE_REPO} -b ${IFM3D_ROS_BRANCH} --single-branch 
+    git clone ${IFM3D_ROS_CLONE_REPO} -b v${IFM3D_ROS_BRANCH} --single-branch
 
 RUN /bin/bash -c 'cd catkin_ws/ifm3d-ros; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make'
 
@@ -76,7 +74,7 @@ RUN mkdir -p /home/ifm/catkin_ws/ifm3d-ros/
 RUN /bin/bash -c 'cd /home/ifm/catkin_ws/ifm3d-ros/; . /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make install -DCMAKE_INSTALL_PREFIX=/home/ifm/catkin_ws/ifm3d-ros/install'
 
 
-FROM ros:melodic-ros-core
+FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
 COPY --from=build /install/ /usr/

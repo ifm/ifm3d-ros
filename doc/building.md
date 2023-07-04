@@ -3,15 +3,15 @@
 
 ### Prerequisites
 
-1. [Ubuntu 16.04 LTS](http://www.ubuntu.com)
-2. [ROS Kinetic](http://www.ros.org/install) - we recommend `ros-kinetic-desktop-full`.
-3. [ifm3d](https://github.com/lovepark/ifm3d) - version >= 0.9.0
+1. [Ubuntu 18.04 LTS](http://www.ubuntu.com)
+2. [ROS Melodic](http://www.ros.org/install) - we recommend `ros-melodic-desktop-full`.
+3. [ifm3d](https://github.com/ifm/ifm3d) - version == 0.20.3
 
 or
 
-1. [Ubuntu 18.04 LTS](http://www.ubuntu.com)
-2. [ROS Melodic](http://www.ros.org/install) - we recommend `ros-melodic-desktop-full`.
-3. [ifm3d](https://github.com/lovepark/ifm3d) - version >= 0.9.2
+1. [Ubuntu 20.04 LTS](http://www.ubuntu.com)
+2. [ROS Noetic](http://www.ros.org/install) - we recommend `ros-noetic-desktop-full`.
+3. [ifm3d](https://github.com/ifm/ifm3d) - version == 0.20.3
 
 ### Step-by-Step Build Instructions
 

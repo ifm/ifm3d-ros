@@ -561,7 +561,7 @@ ifm3d_ros::CameraNodelet::Run()
             }
 
           // should solve the problem of first image being (0,0)
-          // see: https://github.com/lovepark/ifm3d/issues/12
+          // see: https://github.com/ifm/ifm3d/issues/12
           continue;
         }
 
