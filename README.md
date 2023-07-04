@@ -82,19 +82,13 @@ ROS Interface
 
 ## camera nodelet
 
-The core `ifm3d-ros` sensor interface is implemented as a ROS nodelet. This
-allows for lower-latency data processing vs. the traditional out-of-process
-node-based ROS interface for applications that require it. However, we ship a
-launch file with this package that allows for using the core `ifm3d-ros` driver
-as a standard node. To launch the node, the following command can be used:
+The core `ifm3d-ros` sensor interface is implemented as a ROS nodelet. This allows for lower-latency data processing vs. the traditional out-of-process node-based ROS interface for applications that require it. However, we ship a launch file with this package that allows for using the core `ifm3d-ros` driver as a standard node. To launch the node, the following command can be used:
 
 ```
 $ roslaunch ifm3d camera.launch
 ```
 
-We note, the above command is equivalent to the following and is used for
-purposes of providing a backward compatible interface to versions of
-`ifm3d-ros` prior to the conversion to a nodelet architecture:
+We note, the above command is equivalent to the following and is used for purposes of providing a backward compatible interface to versions of `ifm3d-ros` prior to the conversion to a nodelet architecture:
 
 **NOTE:**
 For the O3X1xx cameras, the PCIC connections are limited to only one. Therefore if there is already an active session established via ifmVisionAssistant then it is not possible to launch the camera node because the PCIC connection is currently picked up by iVA.
@@ -102,25 +96,16 @@ For the O3X1xx cameras, the PCIC connections are limited to only one. Therefore 
 $ roslaunch ifm3d nodelet.launch __ns:=ifm3d
 ```
 
-Regardless of which command line you used from above, the launch file(s)
-encapsulate several features:
+Regardless of which command line you used from above, the launch file(s) encapsulate several features:
 
-1. It exposes some of the `camera_nodelet` parameters as command-line arguments
-   for ease of runtime configuration.
-2. It instantiates a nodelet manager which the `camera_nodelet` will be loaded
-   into.
+1. It exposes some of the `camera_nodelet` parameters as command-line arguments for ease of runtime configuration.
+2. It instantiates a nodelet manager which the `camera_nodelet` will be loaded into.
 3. It launches the camera nodelet itself.
-4. It publishes the static transform from the camera's optical frame to a
-   traditional ROS sensor frame as a tf2 `static_transform_publisher`.
+4. It publishes the static transform from the camera's optical frame to a traditional ROS sensor frame as a tf2 `static_transform_publisher`.
 
-You can either use [this launch file](launch/camera.launch) directly, or, use
-it as a basis for integrating `ifm3d-ros` into your own robot software system.
+You can either use [this [launch file](launch/camera.launch) directly or, use it as a basis for integrating `ifm3d-ros` into your own robot software system.
 
-We note: due to the change in architecture from a standalone node to a nodelet,
-we have seen one behavior whose solution is not clear to have us provide
-backward compatible behavior with older versions of `ifm3d-ros`. Specifically,
-if you plan to run the camera in software triggered mode, you should lanch the
-node as follows:
+We note: due to the change in architecture from a standalone node to a nodelet, we have seen one behavior whose solution is not clear to have us provide backward compatible behavior with older versions of `ifm3d-ros`. Specifically, if you plan to run the camera in software-triggered mode, you should launch the node as follows:
 
 ```
 $ GLOG_minloglevel=3 roslaunch ifm3d camera.launch assume_sw_triggered:=true
@@ -129,7 +114,6 @@ $ GLOG_minloglevel=3 roslaunch ifm3d camera.launch assume_sw_triggered:=true
 The incompatibility here is that in prior versions, one would not need to
 explicitly set the `GLOG_` environment variable. While not strictly necessary,
 it is recommended for keeping the noise level of the `ifm3d` logs low.
-
 
 ### Parameters
 
@@ -192,7 +176,7 @@ it is recommended for keeping the noise level of the `ifm3d` logs low.
     <td>uint16</td>
     <td>0xf</td>
     <td>
-      The pcic schema mask to apply to the active session with the frame
+      The PCIC schema mask to apply to the active session with the frame
       grabber. This determines which images are available for publication from
       the camera. More about pcic schemas can be gleaned from the
       <a href="https://github.com/ifm/ifm3d">ifm3d</a> project.
@@ -409,8 +393,8 @@ To build the docker image based on your OS and OS architecture, chose the respec
 
 **To build the image**
 
+Edit the `build.sh` script to the required architecture and system setup
 Execute the shell script `build.sh` which automatically starts building the Docker image.
-
 
 After the successful build, run the container by executing the following command.
 ```sh
@@ -437,4 +421,4 @@ Please see the file called [LICENSE](LICENSE).
 
 1. Does the schema mask value have any effect on UVEC's data streaming?
 
-    A: Schema mask value has no effect on streaming UVECs because the UVEC's will be always latched along.
+    A: Schema mask value has no effect on streaming UVECs because the UVECs will be always latched along.

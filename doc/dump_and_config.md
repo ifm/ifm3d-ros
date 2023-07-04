@@ -2,15 +2,9 @@
 ifm3d-ros: Dump and Config
 ==========================
 
-`ifm3d-ros` provides access to the camera/imager parameters via the `Dump` and
-`Config` services exposed by the `camera_nodelet`. Additionally, command-line
-scripts called `dump` and `config` are provided as wrapper interfaces to those
-services. This gives a feel similar to using the underlying `ifm3d`
-command-line tool from the ROS-independent driver except proxying the calls
-through the ros network.
+`ifm3d-ros` provides access to the camera/imager parameters via the `Dump` and `Config` services exposed by the `camera_nodelet`. Additionally, command-line scripts called `dump` and `config` are provided as wrapper interfaces to those services. This gives a feel similar to using the underlying `ifm3d` command-line tool from the ROS-independent driver except proxying the calls through the ros network.
 
-For example, to dump the state of the camera:
-
+For example, to dump the state of the camera: 
 (exemplary output from an O3D303 is shown)
 
 ```
@@ -155,9 +149,7 @@ $ rosrun ifm3d dump
 }
 ```
 
-Chaining together Linux pipelines works just as it does in `ifm3d`. For
-example, using a combination of `dump` and `config` to set a new name on the
-camera would look like:
+Chaining together Linux pipelines works just as it does in `ifm3d`. For example, using a combination of `dump` and `config` to set a new name on the camera would look like:
 
 ```
 $ rosrun ifm3d dump | jq '.ifm3d.Device.Name="My 3D Camera"' | rosrun ifm3d config
@@ -167,17 +159,10 @@ $ rosrun ifm3d dump | jq .ifm3d.Device.Name
 
 **NOTE:** If you do not have `jq` on your system, it can be installed with: `$ sudo apt-get install jq`
 
-For the `config` command, one difference between our ROS implementation and the
-`ifm3d` implementation is that we only accept input on `stdin`. So, if you had
-a file with JSON you wish to configure your camera with, you would simply use the
-file I/O redirection facilities of your shell (or something like `cat`) to feed
-the data to `stdin`. For example, in `bash`:
+For the `config` command, one difference between our ROS implementation and the `ifm3d` implementation is that we only accept input on `stdin`. So, if you had a file with JSON you wish to configure your camera with, you would simply use the file I/O redirection facilities of your shell (or something like `cat`) to feed the data to `stdin`. For example, in `bash`:
 
 ```
 $ rosrun ifm3d config < camera.json
 ```
 
-Beyond the requirement of prefacing your command-line with `rosrun` to invoke
-the ROS version of these tools, they operate the same. To learn more about the
-functionality and concepts, you can read the docs
-[here](https://github.com/lovepark/ifm3d/blob/master/doc/configuring.md).
+Beyond the requirement of prefacing your command line with `rosrun` to invoke the ROS version of these tools, they operate the same. To learn more about the functionality and concepts, you can read the docs [here](https://github.com/ifm/ifm3d/blob/master/doc/configuring.md).
