@@ -5,7 +5,7 @@ We suggest to build the `ifm3d-ros` node on top of Ubuntu 20.04 and ROS noetic.
 If you have reached this document via the [noetic ifm3d building instructions](noetic.md) and followed all the major steps in there you can skip the three steps listed below. They are just a short repetition.
 1. [Ubuntu 20.04 LTS](http://www.ubuntu.com)
 2. [ROS Noetic](http://wiki.ros.org/noetic/Installation/) - we recommend `ros-noetic-desktop-full`.
-3. [ifm3d](https://github.com/ifm/ifm3d/tree/o3r/dev)
+3. [ifm3d](https://github.com/ifm/ifm3d)
 
 
 > **NOTE**: Some users may require older ROS distributions for legacy reasons. The supplied ROS package may very well work with limited changes on older ROS distributions. At least previous version could be run as far back as Indigo and Kinetic. However, we didn't test this ourselves. Please be aware that if you chose to go this route no guarantee is given.

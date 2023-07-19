@@ -13,7 +13,7 @@ On systems utilizing a single core processor, you may find that the Dump, Config
 
 This issue can be resolved by setting the <b>"num_worker_threads"</b> parameter for your ROS nodelet manager to use a value > 1. You can read more about this parameter [here](http://wiki.ros.org/nodelet).
 
-The snippet below show's how to set this parameter using the [nodelet.launch](https://github.com/ifm/ifm3d-ros/blob/master/launch/nodelet.launch) file of the ifm3d-ros package.
+The snippet below show's how to set this parameter using the [nodelet.launch](https://github.com/ifm/ifm3d-ros/blob/master/ifm3d_ros_driver/launch/nodelet.launch) file of the ifm3d-ros package.
 
 ```
   <node pkg="nodelet"
