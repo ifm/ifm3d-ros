@@ -2,18 +2,43 @@
 Changelog for package ifm3d-ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.0
-===
+1.1 (unreleased)
+===============
+
 1.1.0
 -----
-* Remove gray_img publisher (deprecated in ifm3d). Use amplitude image instead.
-* Update camera nodelet for ifm3d >= v1.0.0
+* Update camera nodelet for ifm3d >= v1.2.3
+  * Switch from looped image retrieval to callback based image retrieval
+  * Updated schema mask handling: uint based schema mask replaced with default 2D and 3D bufferID based lists
+* Nodelet interface changes:
+  * additional parameters:
+    * xyz_image_stream: boolean value - Enable / disable publishing and streaming of point cloud topic / messages.
+    * confidence_image_stream: boolean value - Enable / disable publishing and streaming of confidence image topic / messages
+    * radial_distance_image_stream: boolean value - Enable / disable publishing and streaming of radial distance image topic / messages
+    * radial_distance_noise_stream: boolean value - Enable / disable publishing and streaming of radial distance noise image topic / messages
+    * amplitude_image_stream: boolean value - Enable / disable publishing and streaming of amplitude image topic / messages
+    * extrinsic_image_stream: boolean value - Enable / disable publishing and streaming of extrinsics topic / messages
+    * intrinsic_image_stream: boolean value - Enable / disable publishing and streaming of intrinsics topic / messages
+    * rgb_image_stream: boolean value - Enable / disable publishing and streaming of 2D RGB image topic / messages
+  * Updated the default launch files for 2D RGB / 3D TOF cameras accordingly
+  * Added support for JSON schema dump service
+  * ifm3d-ros logging:
+    * Reduced level of logging messages
+    * Changed default behavior of info log messages: NODELET_INFO_STREAM replaced by NODELET_INFO_ONCE
+  * Removed:
+    * Compressed amplitude stream: only amplitude publisher is used
+    * Unit vector publisher
+* Robustness improvements:
+  * Only publish data to image streams if API frames include the corresponding image data
+
+1.0
+===
 
 1.0.2
 -----
 * Fix the IP parameter that was not being used
 
-1.0.1 
+1.0.1
 -----
 
 * Removed dependency to OpenCV and PCL.
