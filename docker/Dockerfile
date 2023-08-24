@@ -1,12 +1,10 @@
-ARG ARCH="amd64"
-ARG BASE_IMAGE="amd64/ros"
-ARG BUILD_IMAGE_TAG="noetic"
-ARG FINAL_IMAGE_TAG="noetic-ros-core"
-ARG IFM3D_VERSION="1.2.6"
-ARG IFM3D_ROS2_REPO="https://github.com/ifm/ifm3d-ros.git"
-ARG IFM3D_ROS2_BRANCH="master"
-ARG UBUNTU_VERSION="20.04"
-
+#############################################
+# Copyright 2023-present ifm electronic, gmbh
+# SPDX-License-Identifier: Apache-2.0
+#############################################
+ARG BASE_IMAGE
+ARG BUILD_IMAGE_TAG
+ARG FINAL_IMAGE_TAG
 FROM ${BASE_IMAGE}:${BUILD_IMAGE_TAG} AS build
 ARG IFM3D_VERSION
 ARG IFM3D_ROS_REPO
@@ -45,7 +43,7 @@ RUN cd /home/ifm/ifm3d &&\
 SHELL ["/bin/bash", "-c"]
 # RUN mkdir -p /home/ifm/catkin_ws/src && \
 #     cd /home/ifm/catkin_ws/src && \
-    # git clone ${IFM3D_ROS_REPO} -b ${IFM3D_ROS_BRANCH} --single-branch 
+    # git clone ${IFM3D_ROS_REPO} -b ${IFM3D_ROS_BRANCH} --single-branch
 ADD . /home/ifm/catkin_ws/src
 RUN cd /home/ifm/catkin_ws && \
     rosdep update --rosdistro=${ROS_DISTRO} && \
@@ -71,7 +69,7 @@ RUN apt-get update \
     locales \
     sudo \
     libssl-dev \
-    libgoogle-glog0v5 \    
+    libgoogle-glog0v5 \
     libboost-all-dev \
     python3-rosdep \
     && rm -rf /var/lib/apt/lists/*

@@ -10,6 +10,9 @@ Changelog for package ifm3d-ros
 * Update camera nodelet for ifm3d >= v1.2.3
   * Switch from looped image retrieval to callback based image retrieval
   * Updated schema mask handling: uint based schema mask replaced with default 2D and 3D bufferID based lists
+  Between ifm3d API version 0.93 and 1.1 the internal handling of the amplitude and distance image and the point cloud has changed: The previously automatically applied masking based on the confidence image is no longer applied. As a result, more image pixels are displayed as valid pixels.
+  If you want to apply a binary mapping to these images, use the confidence image as provided in the ROS node and apply the mask `confidence&1` for backward compatibility.
+
 * Nodelet interface changes:
   * additional parameters:
     * xyz_image_stream: boolean value - Enable / disable publishing and streaming of point cloud topic / messages.
