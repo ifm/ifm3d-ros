@@ -831,15 +831,6 @@ bool ifm3d_ros::CameraNodelet::StartStream()
     // from the camera which are registered to the frame data in the image
     // buffer.
 
-    NODELET_DEBUG_STREAM("prepare header");
-    this->head = std_msgs::Header();
-    this->head.frame_id = this->frame_id_;
-    this->head.stamp = ros::Time::now();
-
-    this->optical_head = std_msgs::Header();
-    this->optical_head.stamp = head.stamp;
-    this->optical_head.frame_id = this->optical_frame_id_;
-
     if (strcmp(this->imager_type_.c_str(), "3D") == 0)
     {
       fg_->Start(this->schema_mask_default_3d_);
@@ -874,9 +865,8 @@ void ifm3d_ros::CameraNodelet::Run()
 {
   std::unique_lock<std::mutex> lock(this->mutex_, std::defer_lock);
 
-  NODELET_INFO_STREAM("in CameraNodelet Run");
+  NODELET_DEBUG_STREAM("in CameraNodelet Run");
   ros::Duration(5.0).sleep();
-
 
   while (ros::ok() && (!this->InitStructures(this->pcic_port_)))
   {
@@ -884,7 +874,7 @@ void ifm3d_ros::CameraNodelet::Run()
     ros::Duration(this->timeout_tolerance_secs_).sleep();
   }
 
-  NODELET_INFO_STREAM("after initializing the buffers and services");
+  NODELET_DEBUG_STREAM("after initializing the buffers and services");
 
   this->StartStream();
   NODELET_INFO_STREAM("Started the camera stream");
@@ -899,7 +889,7 @@ void ifm3d_ros::CameraNodelet::Run()
         NODELET_WARN_STREAM("Attempting to restart framegrabber...");
         while (!this->InitStructures(this->pcic_port_))
         {
-          NODELET_WARN_ONCE("Could not re-initialize pixel stream!");
+          NODELET_WARN_STREAM("Could not re-initialize pixel stream!");
           ros::Duration(1.0).sleep();
         }
         this->StartStream();

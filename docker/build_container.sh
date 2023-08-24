@@ -25,6 +25,9 @@ IFM3D_ROS_REPO="https://github.com/ifm/ifm3d-ros"
 IFM3D_ROS_BRANCH="dev1.2"
 UBUNTU_VERSION="20.04"
 
+##############
+# Build the Docker container
+##############
 docker build -t $TAG \
     --build-arg ARCH=${ARCH} \
     --build-arg BASE_IMAGE=${BASE_IMAGE} \
@@ -35,4 +38,3 @@ docker build -t $TAG \
     --build-arg IFM3D_ROS_BRANCH=${IFM3D_ROS_BRANCH} \
     --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} \
     -f Dockerfile .
-

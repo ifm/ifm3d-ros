@@ -1,0 +1,5 @@
+127.0.0.1	localhost.localdomain		localhost
+# 0.0.0.0		ifm3d_rosmaster
+# 0.0.0.0		ifm3d_ros
+192.168.0.69		ifm3d_rosmaster
+192.168.0.69		ifm3d_ros
