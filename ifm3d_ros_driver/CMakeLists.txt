@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
 project(ifm3d_ros_driver)
 
-find_package(ifm3d REQUIRED COMPONENTS
-             camera
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+find_package(ifm3d 1.2.6 REQUIRED COMPONENTS
+             device
              framegrabber
-             stlimage
              )
 
 find_package(catkin REQUIRED COMPONENTS
@@ -35,9 +38,6 @@ catkin_package(
 #############
 ##  Build  ##
 #############
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 include_directories(
   include
@@ -47,11 +47,10 @@ include_directories(
 add_library(ifm3d_ros src/camera_nodelet.cpp)
 target_link_libraries(ifm3d_ros
   ${catkin_LIBRARIES}
-  ifm3d::camera
+  ifm3d::device
   ifm3d::framegrabber
-  ifm3d::stlimage
   )
-  
+
 #############
 ## Install ##
 #############

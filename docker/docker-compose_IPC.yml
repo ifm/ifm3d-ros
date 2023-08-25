@@ -1,0 +1,30 @@
+version: "2.3"
+services:
+
+  ifm3d_ros:
+    tty: true
+    image: ifm3d-ros_126:noetic-amd64_1.1.1
+    restart: unless-stopped
+    volumes:
+      - ./hosts_IPC:/etc/hosts/
+
+    logging:
+      driver: "json-file"
+      options:
+        mode: non-blocking
+        max-buffer-size: "20m"
+
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        . /opt/ros/noetic/setup.sh;
+        . /home/ifm/catkin_ws/devel/setup.sh;
+        export ROS_MASTER_URI=http://ifm3d_rosmaster:11311;
+        export ROS_HOSTNAME=ifm3d_ros;
+        echo ROS_MASTER_URI=$$ROS_MASTER_URI;
+        echo ROS_HOSTNAME=$$ROS_HOSTNAME;
+        roslaunch ifm3d_ros_driver camera_3d.launch pcic_port:=50012
+
+    network_mode: host

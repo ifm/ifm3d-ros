@@ -1,0 +1,59 @@
+#############################################
+# Copyright 2023-present ifm electronic, gmbh
+# SPDX-License-Identifier: Apache-2.0
+#############################################
+
+ARG BASE_IMAGE
+ARG BUILD_IMAGE_TAG
+ARG FINAL_IMAGE_TAG
+FROM ${BASE_IMAGE}:${BUILD_IMAGE_TAG} AS build
+ARG IFM3D_VERSION
+ARG IFM3D_ROS_REPO
+ARG IFM3D_ROS_BRANCH
+ARG ARCH
+ARG UBUNTU_VERSION
+
+# Create the ifm user
+RUN id ifm 2>/dev/null || useradd --uid 30000 --create-home -s /bin/bash -U ifm
+WORKDIR /home/ifm
+
+# Dependencies for both ifm3d and ifm3d-ros2
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y \
+    git \
+    jq \
+    libxmlrpc-c++8-dev \
+    libproj-dev \
+    libcurl4 \
+    libgoogle-glog-dev \
+    libgoogle-glog0v5 \
+    build-essential \
+    coreutils \
+    cmake \
+    wget \
+    libssl-dev \
+    python3-rosdep
+
+# Install ifm3d using the deb files
+RUN mkdir /home/ifm/ifm3d
+ADD https://github.com/ifm/ifm3d/releases/download/v${IFM3D_VERSION}/ifm3d-ubuntu-${UBUNTU_VERSION}-${ARCH}-debs_${IFM3D_VERSION}.tar /home/ifm/ifm3d
+RUN cd /home/ifm/ifm3d &&\
+    tar -xf ifm3d-ubuntu-${UBUNTU_VERSION}-${ARCH}-debs_${IFM3D_VERSION}.tar &&  \
+    dpkg -i *.deb
+
+SHELL ["/bin/bash", "-c"]
+# Manually install ifm3d-ros additional ROS packages: based on noetic-ros-core base image
+RUN apt-get update && apt-get install -y \
+    ros-noetic-tf2-ros \
+    ros-noetic-tf \
+    ros-noetic-image-transport
+
+ADD . /home/ifm/catkin_ws/src
+
+RUN cd /home/ifm/catkin_ws && \
+    source /opt/ros/${ROS_DISTRO}/setup.bash && \
+    catkin_make --only-pkg-with-deps ifm3d_ros_msgs
+
+RUN cd /home/ifm/catkin_ws && \
+    source /opt/ros/${ROS_DISTRO}/setup.bash && \
+    catkin_make --only-pkg-with-deps ifm3d-ros
