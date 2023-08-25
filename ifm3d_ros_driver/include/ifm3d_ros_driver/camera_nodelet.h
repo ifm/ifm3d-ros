@@ -10,16 +10,19 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include <image_transport/image_transport.h>
 #include <nodelet/nodelet.h>
 #include <ros/ros.h>
 
-#include <ifm3d/camera/camera_base.h>
+#include <ifm3d/device/o3r.h>
+#include <ifm3d/device/device.h>
 #include <ifm3d/fg.h>
-#include <ifm3d/stlimage.h>
+#include <ifm3d/fg/frame_grabber.h>
 #include <ifm3d_ros_msgs/Config.h>
 #include <ifm3d_ros_msgs/Dump.h>
+#include <ifm3d_ros_msgs/DumpJSONSchema.h>
 #include <ifm3d_ros_msgs/Extrinsics.h>
 #include <ifm3d_ros_msgs/SoftOff.h>
 #include <ifm3d_ros_msgs/SoftOn.h>
@@ -45,6 +48,7 @@ private:
   // ROS services
   //
   bool Dump(ifm3d_ros_msgs::Dump::Request& req, ifm3d_ros_msgs::Dump::Response& res);
+  bool DumpJSONSchema(ifm3d_ros_msgs::DumpJSONSchema::Request& req, ifm3d_ros_msgs::DumpJSONSchema::Response& res);
   bool Config(ifm3d_ros_msgs::Config::Request& req, ifm3d_ros_msgs::Config::Response& res);
   bool Trigger(ifm3d_ros_msgs::Trigger::Request& req, ifm3d_ros_msgs::Trigger::Response& res);
   bool SoftOff(ifm3d_ros_msgs::SoftOff::Request& req, ifm3d_ros_msgs::SoftOff::Response& res);
@@ -54,8 +58,11 @@ private:
   // This is our main publishing loop and its helper functions
   //
   void Run();
-  bool InitStructures(std::uint16_t mask, std::uint16_t pcic_port);
-  bool AcquireFrame();
+  bool InitStructures(std::uint16_t pcic_port);
+  void Callback2D(ifm3d::Frame::Ptr frame);
+  void Callback3D(ifm3d::Frame::Ptr frame);
+  bool StartStream();
+  std::string GetCameraType(std::uint16_t);
 
   //
   // state
@@ -64,7 +71,23 @@ private:
   std::uint16_t xmlrpc_port_;
   std::uint16_t pcic_port_;
   std::string password_;
-  std::uint16_t schema_mask_;
+  std::string imager_type_;
+  ifm3d::TimePointT last_frame_time_;
+  ros::Time last_frame_local_time_;
+
+  bool xyz_image_stream_;
+  bool confidence_image_stream_;
+  bool radial_distance_image_stream_;
+  bool radial_distance_noise_stream_;
+  bool amplitude_image_stream_;
+  bool extrinsic_image_stream_;
+  bool intrinsic_image_stream_;
+  bool rgb_image_stream_;
+
+  std::list<ifm3d::buffer_id> buffer_list;
+  ifm3d::FrameGrabber::BufferList schema_mask_default_3d_;
+  ifm3d::FrameGrabber::BufferList schema_mask_default_2d_;
+
   int timeout_millis_;
   double timeout_tolerance_secs_;
   bool assume_sw_triggered_;
@@ -77,10 +100,10 @@ private:
   std::string frame_id_;
   std::string optical_frame_id_;
 
-  ifm3d::CameraBase::Ptr cam_;
+  ifm3d::Device::Ptr cam_;
   ifm3d::FrameGrabber::Ptr fg_;
-  ifm3d::StlImageBuffer::Ptr im_;
   std::mutex mutex_;
+  bool receiving_;
 
   ros::NodeHandle np_;
   std::unique_ptr<image_transport::ImageTransport> it_;
@@ -91,6 +114,7 @@ private:
   ros::Publisher cloud_pub_;
   ros::Publisher uvec_pub_;
   ros::Publisher extrinsics_pub_;
+  ros::Publisher intrinsics_pub_;
   image_transport::Publisher distance_pub_;
   image_transport::Publisher distance_noise_pub_;
   image_transport::Publisher amplitude_pub_;
@@ -103,6 +127,7 @@ private:
   // Services we advertise
   //
   ros::ServiceServer dump_srv_;
+  ros::ServiceServer dump_json_schema_srv_;
   ros::ServiceServer config_srv_;
   ros::ServiceServer trigger_srv_;
   ros::ServiceServer soft_off_srv_;
@@ -112,6 +137,13 @@ private:
   // We use a ROS one-shot timer to kick off our publishing loop.
   //
   ros::Timer publoop_timer_;
+
+  //
+  // Message header used for publishing
+  //
+  std_msgs::Header optical_head;
+  std_msgs::Header head;
+
 
 };  // end: class CameraNodelet
 
