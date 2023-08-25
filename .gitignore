@@ -3,6 +3,7 @@
 *.swp
 
 ## VSCode and Python
+*.vscode
 .DS_Store
 .huskyrc.json
 out

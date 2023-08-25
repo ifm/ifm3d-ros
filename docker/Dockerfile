@@ -28,8 +28,6 @@ RUN apt-get update && apt-get install -y \
     cmake \
     wget \
     libssl-dev \
-    libgoogle-glog-dev \
-    libgoogle-glog0v5 \
     python3-rosdep
 
 # Install ifm3d using the deb files
@@ -69,8 +67,6 @@ RUN apt-get update \
     locales \
     sudo \
     libssl-dev \
-    libgoogle-glog0v5 \
-    libboost-all-dev \
     python3-rosdep \
     && rm -rf /var/lib/apt/lists/*
 
@@ -92,5 +88,3 @@ RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
-
-# NOTE: Make sure to run export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp

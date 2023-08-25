@@ -11,6 +11,7 @@
 
 | **ifm3d-ros version** | **ifm3d version** | **embedded O3R FW version** | **ROS distribution(s)** |
 | --------------------- | ----------------- | --------------------------- | ----------------------- |
+| 1.1.2                 | 1.3.3             | 1.0.14                      | ROS Noetic              |
 | 1.1.1                 | 1.2.6             | 1.0.14                      | ROS Noetic              |
 | 1.1.0 (unreleased)    | 1.2.3             | 1.0.x                       | ROS Noetic              |
 | 1.0.1                 | 0.93.0            | 0.14.23                     | ROS Noetic              |
@@ -22,6 +23,7 @@ Please see the internal subpackage version structure for a known `ifm3d-ros vers
 
 | **ifm3d-ros version** | **ifm3d_ros_driver** | **ifm3d_ros_msgs** | **ifm3d_ros_examples** |
 | --------------------- | -------------------- | ------------------ | ---------------------- |
+| 1.1.2                 | 1.1.1                | 0.2.0              | 0.2.0                  |
 | 1.1.1                 | 1.1.1                | 0.2.0              | 0.2.0                  |
 | 1.1.0 (unreleased)    | 1.1.0                | 0.2.0              | 0.2.0                  |
 | 1.0.1                 | 1.0.1                | 0.1.0              | 0.1.0                  |

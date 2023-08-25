@@ -2,7 +2,7 @@ version: "2.3"
 services:
   ifm3d_ros:
     tty: true
-    image: ifm3d-ros_126:noetic-arm64_v8_1.1.1
+    image: ifm3d-ros_133:noetic-arm64_v8_1.1.2
 
     restart: unless-stopped
     volumes:
@@ -22,8 +22,6 @@ services:
         . /opt/ros/noetic/setup.sh;
         . /home/ifm/catkin_ws/devel/setup.sh;
         export IFM3D_IP="127.0.0.1";
-        export GLOG_logtostderr=1;
-        export GLOG_minloglevel=3;
         export ROS_MASTER_URI=http://ifm3d_rosmaster:11311;
         export ROS_HOSTNAME=ifm3d_ros;
         echo ROOS_MASTER_URI=$$ROS_MASTER_URI;
