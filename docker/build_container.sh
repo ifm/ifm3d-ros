@@ -6,21 +6,21 @@ set -euo pipefail
 ##############
 ARCH="amd64"
 BASE_IMAGE="amd64/ros"
-TAG=ifm3d-ros:noetic-amd64
+TAG=ifm3d-ros_133:noetic-amd64
 
 ##############
 # For ARM64V8:
 ##############
 # ARCH="arm64v8"
 # BASE_IMAGE="arm64v8/ros"
-# TAG=ifm3d-ros:noetic-arm64_v8
+# TAG=ifm3d-ros_133:noetic-arm64_v8
 
 ##############
 # Arguments common for both architecture
 ##############
 BUILD_IMAGE_TAG="noetic"
 FINAL_IMAGE_TAG="noetic-ros-core"
-IFM3D_VERSION="1.2.6"
+IFM3D_VERSION="1.3.3"
 IFM3D_ROS_REPO="https://github.com/ifm/ifm3d-ros"
 IFM3D_ROS_BRANCH="dev1.2"
 UBUNTU_VERSION="20.04"
