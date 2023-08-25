@@ -2,10 +2,14 @@
 Changelog for package ifm3d-ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.1 (unreleased)
-===============
+1.1
+===
 
-1.1.0
+1.1.2
+-----
+* Update Dockerfiles for building the ROS node inside a Docker software container environment: removed glog build and runtime libs
+
+1.1.1
 -----
 * Update camera nodelet for ifm3d >= v1.2.3
   * Switch from looped image retrieval to callback based image retrieval
@@ -33,6 +37,11 @@ Changelog for package ifm3d-ros
     * Unit vector publisher
 * Robustness improvements:
   * Only publish data to image streams if API frames include the corresponding image data
+
+
+1.1.0
+-----
+* UNRELEASED
 
 1.0
 ===
