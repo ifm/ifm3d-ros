@@ -1,3 +1,3 @@
 127.0.0.1	    localhost.localdomain		localhost
-192.168.0.69    ifm3d_rosmaster
+192.168.0.100   ifm3d_rosmaster
 192.168.0.69	ifm3d_ros
