@@ -2,7 +2,7 @@ version: "2.3"
 services:
   ifm3d_ros:
     tty: true
-    image: ifm3d-ros_133:noetic-arm64_v8_1.1.2
+    image: ifm3d-ros_143:noetic-arm64_v8_1.1.2
 
     restart: unless-stopped
     volumes:
