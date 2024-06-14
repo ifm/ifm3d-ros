@@ -90,7 +90,7 @@ For example, to dump the state of the camera:
 >Note: The service proxying only works on the `/ifm3d_ros_examples/camera/` namespace at the moment.
 
 ```
-$ roslaunch ifm3d_ros_examples camera.launch &
+$ roslaunch ifm3d_ros_examples camera_3d.launch &
 $ rosrun ifm3d_ros_msgs dump
 {
   "device": {

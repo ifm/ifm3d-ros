@@ -14,7 +14,7 @@ This article provides a quick-start guide for getting a fresh installation of Ub
     $ sudo apt-get update
     $ sudo apt-get -u upgrade
     ```
-2. Install ROS Melodic:  
+2. Install ROS Noetic:  
     Follow [these steps](http://wiki.ros.org/noetic/Installation/Ubuntu) exactly (we assume you did) and choose to install `ros-noetic-desktop-full`. 
 
 3. Additional Dependencies:    

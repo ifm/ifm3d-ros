@@ -1,5 +1,5 @@
 ## HOW to visualize the point cloud with RVIZ
-The included launch file `camera.launch` will publish and remap all topics and services to `/ifm3d_ros_driver/xxx`, for example the point cloud topic will be remapped to `/ifm3d_ros_driver/camera/cloud`.  
+The included launch file `camera_3d.launch` will publish and remap all topics and services to `/ifm3d_ros_driver/xxx`, for example the point cloud topic will be remapped to `/ifm3d_ros_driver/camera/cloud`.  
 
 When you open RVIZ for the first time and subscribe the point cloud topic to it, it will not be displayed as the transformation chain between the different reference frames is not complete.
 
