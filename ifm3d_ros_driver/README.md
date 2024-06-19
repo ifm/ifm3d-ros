@@ -5,7 +5,7 @@
 The core `ifm3d-ros` sensor interface is implemented as a ROS nodelet. This allows for lower-latency data processing vs. the traditional out-of-process node-based ROS interface for applications that require it. However, we ship a launch file with this package that allows for using the core `ifm3d-ros` driver as a standard node. To launch the node, the following command can be used:
 
 ```
-$ roslaunch ifm3d_ros_examples camera.launch
+$ roslaunch ifm3d_ros_examples camera_3d.launch
 ```
 >Note: Please notice the use of the subpackage `ifm3d_ros_examples`.
 
