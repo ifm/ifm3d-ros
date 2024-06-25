@@ -57,14 +57,14 @@ Now we are ready to build the code. The following code block shows you how to si
 $ cd ~/catkin_ws/
 $ catkin_make
 ```
-This will create a `devel` and `build` folder in your catkin workspace, which contains the required code for running the ROS node. To test this you can easily set-up your current shell and run: `source ~/catkin_ws/devel/setup.bash && roslaunch ifm3d_ros_examples camera.launch`.
+This will create a `devel` and `build` folder in your catkin workspace, which contains the required code for running the ROS node. To test this you can easily set-up your current shell and run: `source ~/catkin_ws/devel/setup.bash && roslaunch ifm3d_ros_examples camera_3d.launch`.
 
 
 The ROS package should now be installed in `~/ros/ifm3d-ros`. To test everything out you should open a fresh bash shell, and start up a ROS core:
 (Please don't forget to source the ifm3d-ros package first if you haven't done it yet.)
 ```
 $ roscore &
-$ roslaunch ifm3d_ros_examples camera.launch
+$ roslaunch ifm3d_ros_examples camera_3d.launch
 ```
 
 > **NOTE**: This example expects the camera on PCIC port 50010. You can change the default value with `pcic_port`.
@@ -73,7 +73,7 @@ Open another shell and start the rviz node to visualize the data coming from the
 ```
 $ roslaunch ifm3d_ros_examples rviz.launch
 ```
-> **NOTE**: `rviz.launch` does not include the camera node itself, but subscribes to published topics (distance, amplitude, etc). A camera node need to be running in parallel to rviz (you can use `camera.launch`).
+> **NOTE**: `rviz.launch` does not include the camera node itself, but subscribes to published topics (distance, amplitude, etc). A camera node need to be running in parallel to rviz (you can use `camera_3d.launch`).
 
 At this point, you should see an rviz window that looks something like the image below (note that this is the view from 3 camera heads):
 ![rviz1](figures/O3R_merged_point_cloud.png)
