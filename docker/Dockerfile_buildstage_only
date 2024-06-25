@@ -46,7 +46,9 @@ RUN apt-get update && apt-get install -y \
     ros-noetic-tf \
     ros-noetic-image-transport
 
-ADD . /home/ifm/catkin_ws/src
+RUN mkdir -p /home/ifm/catkin_ws/src && \
+    cd /home/ifm/catkin_ws/src && \
+    git clone ${IFM3D_ROS_REPO} -b ${IFM3D_ROS_BRANCH} --single-branch
 
 RUN cd /home/ifm/catkin_ws && \
     source /opt/ros/${ROS_DISTRO}/setup.bash && \
