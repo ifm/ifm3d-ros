@@ -9,14 +9,13 @@
 :::{warning} Note that the `master` branch is generally in a work in progress, and you probably want to use a tagged [release version](https://github.com/ifm/ifm3d-ros/releases) for production.
 :::
 
-| **ifm3d-ros version** | **ifm3d version** | **embedded O3R FW version** | **ROS distribution(s)** |
-| --------------------- | ----------------- | --------------------------- | ----------------------- |
-| 1.1.2                 | 1.3.3, 1.4.3, 1.5.3| 1.0.14, 1.1.30, 1.1.41, 1.4.30      | ROS Noetic              |
-| 1.1.1                 | 1.2.6             | 1.0.14                      | ROS Noetic              |
-| 1.1.0 (unreleased)    | 1.2.3             | 1.0.x                       | ROS Noetic              |
-| 1.0.1                 | 0.93.0            | 0.14.23                     | ROS Noetic              |
-| 1.0.0                 | 0.91.0            | 0.14.23                     | ROS Noetic              |
-
+| **ifm3d-ros version** | **ifm3d version**   | **embedded O3R FW version**    | **ROS distribution(s)** |
+| --------------------- | ------------------- | ------------------------------ | ----------------------- |
+| 1.1.2                 | 1.3.3, 1.4.3, 1.5.3 | 1.0.14, 1.1.30, 1.1.41, 1.4.30 | ROS Noetic              |
+| 1.1.1                 | 1.2.6               | 1.0.14                         | ROS Noetic              |
+| 1.1.0 (unreleased)    | 1.2.3               | 1.0.x                          | ROS Noetic              |
+| 1.0.1                 | 0.93.0              | 0.14.23                        | ROS Noetic              |
+| 1.0.0                 | 0.91.0              | 0.14.23                        | ROS Noetic              |
 
 ### Internal ifm3d-ros subpackage version structure
 Please see the internal subpackage version structure for a known `ifm3d-ros version`.
@@ -28,7 +27,6 @@ Please see the internal subpackage version structure for a known `ifm3d-ros vers
 | 1.1.0 (unreleased)    | 1.1.0                | 0.2.0              | 0.2.0                  |
 | 1.0.1                 | 1.0.1                | 0.1.0              | 0.1.0                  |
 | 1.0.0                 | 0.7.0                | 0.1.0              | 0.1.0                  |
-
 
 ## Changelogs
 + ifm3d-ros: For changes between on the ifm3d-ros node source code, please see the respective information in the [CHANGELOG](CHANGELOG.rst).

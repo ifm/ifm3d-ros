@@ -6,7 +6,6 @@ set -euo pipefail
 ##############
 ARCH="amd64"
 BASE_IMAGE="amd64/ros"
-TAG=ifm3d-ros_133:noetic-amd64_1.1.2
 
 ##############
 # For ARM64V8:
@@ -20,11 +19,12 @@ TAG=ifm3d-ros_133:noetic-amd64_1.1.2
 ##############
 BUILD_IMAGE_TAG="noetic"
 FINAL_IMAGE_TAG="noetic-ros-core"
-IFM3D_VERSION="1.3.3"
+IFM3D_VERSION="1.5.3"
 IFM3D_ROS_REPO="https://github.com/ifm/ifm3d-ros"
-IFM3D_ROS_BRANCH="dev1.2"
+IFM3D_ROS_BRANCH="v1.1.2"
 UBUNTU_VERSION="20.04"
 
+TAG=ifm3d-ros_${IFM3D_VERSION}:${BUILD_IMAGE_TAG}-${ARCH}_${IFM3D_ROS_BRANCH}
 ##############
 # Build the Docker container
 ##############

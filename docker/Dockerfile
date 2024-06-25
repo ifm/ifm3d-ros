@@ -39,10 +39,11 @@ RUN cd /home/ifm/ifm3d &&\
 
 # Clone and build ifm3d-ros repo
 SHELL ["/bin/bash", "-c"]
-# RUN mkdir -p /home/ifm/catkin_ws/src && \
-#     cd /home/ifm/catkin_ws/src && \
-    # git clone ${IFM3D_ROS_REPO} -b ${IFM3D_ROS_BRANCH} --single-branch
-ADD . /home/ifm/catkin_ws/src
+
+RUN mkdir -p /home/ifm/catkin_ws/src && \
+    cd /home/ifm/catkin_ws/src && \
+    git clone ${IFM3D_ROS_REPO} -b ${IFM3D_ROS_BRANCH} --single-branch
+
 RUN cd /home/ifm/catkin_ws && \
     rosdep update --rosdistro=${ROS_DISTRO} && \
     rosdep install --from-path src -y --ignore-src
